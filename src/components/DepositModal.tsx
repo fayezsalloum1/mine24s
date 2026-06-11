@@ -120,7 +120,7 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="glass-panel rounded-2xl w-full max-w-md p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-panel animate-slide-up">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-yellow-500">{t("title")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>

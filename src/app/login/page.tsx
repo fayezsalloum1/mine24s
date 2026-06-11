@@ -175,9 +175,9 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="page-shell bg-gray-950">
+    <div className="page-shell">
       <AppHeader showNotifications={false} />
-      <div className="flex items-center justify-center p-6 min-h-[calc(100vh-64px)]">
+      <div className="auth-shell">
         <Suspense fallback={<div className="text-white">Loading...</div>}>
           <LoginForm />
         </Suspense>

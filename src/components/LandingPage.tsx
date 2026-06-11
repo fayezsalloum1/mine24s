@@ -50,50 +50,52 @@ export default function LandingPage() {
     <div className="page-shell text-white">
       <AppHeader showNotifications={false} />
 
-      <section className="hero-glow max-w-6xl mx-auto px-6 py-20 text-center">
-        <h1 className="text-5xl md:text-6xl font-bold text-yellow-500 mb-6 text-balance">
-          {t("heroTitle")}
-        </h1>
-        <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto text-balance">
-          {t("heroSubtitle")}
-        </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link
-            href="/register"
-            className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition-colors"
-          >
-            {t("getStarted")}
-          </Link>
-          <Link
-            href="/login"
-            className="px-8 py-3 glass-panel font-bold rounded-lg hover:border-yellow-500/40 transition-colors"
-          >
-            {tc("login")}
-          </Link>
+      <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live Cloud Mining Platform
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance text-gradient-gold leading-tight">
+            {t("heroTitle")}
+          </h1>
+          <p className="text-base sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto text-balance leading-relaxed">
+            {t("heroSubtitle")}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-sm sm:max-w-none mx-auto">
+            <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl text-base">
+              {t("getStarted")}
+            </Link>
+            <Link href="/login" className="btn-secondary px-8 py-3.5 rounded-xl text-base">
+              {tc("login")}
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-yellow-500 text-center mb-12">{t("howItWorks")}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <h2 className="section-title">{t("howItWorks")}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
           {STEPS.map(({ Icon, titleKey, descKey }) => (
-            <div key={titleKey} className="glass-panel p-8 rounded-xl text-center border border-gray-700/50">
+            <div key={titleKey} className="step-card">
               <div className="flex justify-center mb-4">
-                <Icon />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/20 flex items-center justify-center">
+                  <Icon />
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-yellow-500 mb-2">{t(titleKey)}</h3>
-              <p className="text-gray-400">{t(descKey)}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-amber-400 mb-2">{t(titleKey)}</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">{t(descKey)}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-yellow-500 text-center mb-4">{t("miningPlans")}</h2>
-        <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">{t("plansIntro")}</p>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <h2 className="section-title">{t("miningPlans")}</h2>
+        <p className="text-slate-400 text-center mb-8 sm:mb-12 max-w-2xl mx-auto text-sm sm:text-base">{t("plansIntro")}</p>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
             {[1, 2, 3].map((i) => (
               <PlanCardSkeleton key={i} />
             ))}
@@ -103,9 +105,12 @@ export default function LandingPage() {
         ) : (
           <>
             {soloPlans.length > 0 && (
-              <div className="mb-12">
-                <h3 className="text-xl font-bold text-green-400 mb-6">{t("soloPlans")}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="mb-10 sm:mb-12">
+                <h3 className="text-lg sm:text-xl font-bold text-emerald-400 mb-5 sm:mb-6 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-emerald-400 rounded-full" />
+                  {t("soloPlans")}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                   {soloPlans.map((plan) => (
                     <SoloPlanCard key={plan.id} plan={plan} mode="landing" />
                   ))}
@@ -115,9 +120,12 @@ export default function LandingPage() {
 
             {pooledPlans.length > 0 && (
               <div>
-                <h3 className="text-xl font-bold text-blue-400 mb-2">{t("sharedPlans")}</h3>
-                <p className="text-gray-400 text-sm mb-6">{t("sharedPlansHint")}</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <h3 className="text-lg sm:text-xl font-bold text-blue-400 mb-2 flex items-center gap-2">
+                  <span className="w-1 h-6 bg-blue-400 rounded-full" />
+                  {t("sharedPlans")}
+                </h3>
+                <p className="text-slate-400 text-sm mb-5 sm:mb-6 ps-3">{t("sharedPlansHint")}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                   {pooledPlans.map((plan) => (
                     <PooledPlanCard key={plan.id} plan={plan} mode="landing" />
                   ))}
@@ -128,35 +136,35 @@ export default function LandingPage() {
         )}
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-yellow-500 text-center mb-12">{t("platformStats")}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <h2 className="section-title">{t("platformStats")}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl mx-auto">
           <div className="stat-card text-center">
-            <p className="text-4xl font-bold text-yellow-500">{stats.totalUsers.toLocaleString()}</p>
-            <p className="text-gray-400 mt-2">{t("totalUsers")}</p>
+            <p className="text-3xl sm:text-4xl font-bold text-gradient-gold">{stats.totalUsers.toLocaleString()}</p>
+            <p className="text-slate-400 mt-2 text-sm">{t("totalUsers")}</p>
           </div>
           <div className="stat-card text-center">
-            <p className="text-4xl font-bold text-green-400">
+            <p className="text-3xl sm:text-4xl font-bold text-emerald-400">
               ${stats.totalPaid?.toLocaleString() ?? "0"}
             </p>
-            <p className="text-gray-400 mt-2">{t("totalPaid")}</p>
+            <p className="text-slate-400 mt-2 text-sm">{t("totalPaid")}</p>
           </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-8">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <ExternalLinksBar />
       </section>
 
-      <footer className="border-t border-gray-800 py-8 text-center text-gray-500">
-        <p>{t("footer")}</p>
-        <div className="flex flex-wrap gap-4 justify-center mt-4 text-sm">
-          <Link href="/about" className="hover:text-yellow-500">{tn("about")}</Link>
-          <Link href="/faq" className="hover:text-yellow-500">{tn("faq")}</Link>
-          <Link href="/terms" className="hover:text-yellow-500">{tn("terms")}</Link>
-          <Link href="/contact" className="hover:text-yellow-500">{tn("contact")}</Link>
-          <Link href="/login" className="hover:text-yellow-500">{tc("login")}</Link>
-          <Link href="/register" className="hover:text-yellow-500">{tc("register")}</Link>
+      <footer className="border-t border-slate-800/80 py-8 sm:py-10 text-center text-slate-500 bg-slate-950/30">
+        <p className="text-sm">{t("footer")}</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center mt-4 text-sm">
+          <Link href="/about" className="hover:text-amber-400 transition-colors">{tn("about")}</Link>
+          <Link href="/faq" className="hover:text-amber-400 transition-colors">{tn("faq")}</Link>
+          <Link href="/terms" className="hover:text-amber-400 transition-colors">{tn("terms")}</Link>
+          <Link href="/contact" className="hover:text-amber-400 transition-colors">{tn("contact")}</Link>
+          <Link href="/login" className="hover:text-amber-400 transition-colors">{tc("login")}</Link>
+          <Link href="/register" className="hover:text-amber-400 transition-colors">{tc("register")}</Link>
         </div>
       </footer>
     </div>

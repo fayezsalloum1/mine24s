@@ -115,8 +115,8 @@ export default function DashboardPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader />
-      <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-8">{t("title")}</h1>
+      <div className="page-content">
+        <h1 className="page-title">{t("title")}</h1>
 
         {loadError && (
           <div className="bg-red-900/40 border border-red-500 text-red-300 p-4 rounded-lg mb-6">
@@ -157,23 +157,17 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <button
-            onClick={() => setDepositOpen(true)}
-            className="bg-green-600 p-4 rounded-lg text-center font-bold hover:bg-green-500"
-          >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+          <button type="button" onClick={() => setDepositOpen(true)} className="action-tile-deposit">
+            <span className="text-2xl">💰</span>
             {t("deposit")}
           </button>
-          <Link
-            href="/plans"
-            className="bg-yellow-500 text-black p-4 rounded-lg text-center font-bold hover:bg-yellow-400"
-          >
+          <Link href="/plans" className="action-tile-plans">
+            <span className="text-2xl">⛏️</span>
             {t("buyPlan")}
           </Link>
-          <Link
-            href="/withdraw"
-            className="bg-gray-700 p-4 rounded-lg text-center font-bold hover:bg-gray-600"
-          >
+          <Link href="/withdraw" className="action-tile-withdraw">
+            <span className="text-2xl">↗</span>
             {t("requestWithdrawal")}
           </Link>
         </div>
@@ -211,12 +205,18 @@ export default function DashboardPage() {
         )}
 
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-yellow-500 mb-4">{t("activePlans")}</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+            <span className="w-1 h-5 bg-amber-400 rounded-full" />
+            {t("activePlans")}
+          </h2>
           <ActivePlansSection userPlans={userData?.userPlans ?? []} />
         </div>
 
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-yellow-500 mb-4">{t("transactionHistory")}</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+            <span className="w-1 h-5 bg-amber-400 rounded-full" />
+            {t("transactionHistory")}
+          </h2>
           <div className="plan-card overflow-x-auto">
             {userData?.transactions?.length ? (
               <table className="w-full">
@@ -252,7 +252,7 @@ export default function DashboardPage() {
         {session?.user?.role === "ADMIN" && (
           <Link
             href="/admin"
-            className="mt-6 block bg-purple-700 text-white p-4 rounded-lg text-center font-bold hover:bg-purple-600"
+            className="mt-6 block text-center font-bold py-3.5 rounded-xl bg-gradient-to-r from-violet-700 to-purple-600 hover:from-violet-600 hover:to-purple-500 transition-all shadow-lg shadow-purple-500/20"
           >
             {tc("admin")}
           </Link>

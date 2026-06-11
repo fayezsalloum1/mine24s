@@ -44,26 +44,33 @@ export default function LiveProfitCard({ creditedProfit, balance, userPlans }: L
   const depositBalance = Math.max(0, balance - creditedProfit);
 
   return (
-    <div className="bg-gray-800 p-6 rounded-lg">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="stat-card-featured relative">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <p className="text-gray-400">{t("liveProfitBalance")}</p>
-          <p className="text-3xl font-bold text-green-400">${totalLiveProfit.toFixed(4)}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {t("accruingNow")}: <span className="text-green-300">${accruingProfit.toFixed(4)}</span>
-            {" · "}
-            {t("creditedProfit")}: <span className="text-green-300">${creditedProfit.toFixed(2)}</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="text-slate-400 text-sm uppercase tracking-wide">{t("liveProfitBalance")}</p>
+          </div>
+          <p className="text-3xl sm:text-4xl font-bold text-emerald-400 tabular-nums">
+            ${totalLiveProfit.toFixed(4)}
+          </p>
+          <p className="text-xs sm:text-sm text-slate-500 mt-2">
+            {t("accruingNow")}: <span className="text-emerald-300">${accruingProfit.toFixed(4)}</span>
+            <span className="hidden sm:inline">{" · "}</span>
+            <span className="block sm:inline mt-0.5 sm:mt-0">
+              {t("creditedProfit")}: <span className="text-emerald-300">${creditedProfit.toFixed(2)}</span>
+            </span>
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-gray-400 text-sm">{t("nextPayout")}</p>
-          <p className="text-2xl font-mono text-yellow-500">{formatCountdown(nextPayoutMs)}</p>
-          <p className="text-xs text-gray-500 mt-1">{t("profitUpdatesLive")}</p>
+        <div className="sm:text-right bg-slate-900/40 rounded-xl px-4 py-3 sm:bg-transparent sm:p-0 border border-slate-700/40 sm:border-0">
+          <p className="text-slate-400 text-xs uppercase tracking-wide">{t("nextPayout")}</p>
+          <p className="text-2xl sm:text-3xl font-mono text-amber-400 tabular-nums">{formatCountdown(nextPayoutMs)}</p>
+          <p className="text-xs text-slate-500 mt-1">{t("profitUpdatesLive")}</p>
         </div>
       </div>
       {depositBalance > 0.01 && (
-        <p className="text-sm text-gray-500 mt-4 border-t border-gray-700 pt-3">
-          {t("depositBalance")}: <span className="text-yellow-500">${depositBalance.toFixed(2)}</span>
+        <p className="relative z-10 text-sm text-slate-500 mt-4 border-t border-slate-700/60 pt-3">
+          {t("depositBalance")}: <span className="text-amber-400 font-semibold">${depositBalance.toFixed(2)}</span>
           {" "}({t("notWithdrawable")})
         </p>
       )}

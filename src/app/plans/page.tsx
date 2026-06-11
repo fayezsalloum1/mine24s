@@ -107,9 +107,9 @@ export default function PlansPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader />
-      <div className="max-w-6xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-2">{t("title")}</h1>
-        <p className="text-gray-400 mb-8">{t("subtitle")}</p>
+      <div className="page-content">
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">{t("subtitle")}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -132,7 +132,10 @@ export default function PlansPage() {
           <>
             {soloPlans.length > 0 && (
               <section className="mb-10">
-                <h2 className="text-xl font-bold text-green-400 mb-4">{t("soloPlans")}</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-emerald-400 rounded-full" />
+                  {t("soloPlans")}
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {soloPlans.map((plan) => (
                     <SoloPlanCard key={plan.id} plan={plan} onBuy={() => requestBuy(plan)} />
@@ -143,7 +146,10 @@ export default function PlansPage() {
 
             {pooledPlans.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold text-blue-400 mb-2">{t("sharedPlans")}</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-blue-400 mb-2 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-blue-400 rounded-full" />
+                  {t("sharedPlans")}
+                </h2>
                 <p className="text-gray-400 text-sm mb-4">{t("sharedPlansHint")}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {pooledPlans.map((plan) => (

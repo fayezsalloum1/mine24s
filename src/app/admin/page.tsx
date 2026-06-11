@@ -187,24 +187,24 @@ export default function AdminPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader />
-      <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-8">{t("title")}</h1>
+      <div className="page-content-wide">
+        <h1 className="page-title">{t("title")}</h1>
         {adminError && (
-          <div className="bg-red-800 text-red-200 p-3 rounded mb-4">{adminError}</div>
+          <div className="bg-red-950/50 border border-red-500/40 text-red-300 p-4 rounded-xl mb-4">{adminError}</div>
         )}
         {message && (
-          <div className="bg-green-800 text-green-200 p-3 rounded mb-4 flex justify-between">
+          <div className="bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 p-4 rounded-xl mb-4 flex justify-between items-center">
             <span>{message}</span>
-            <button onClick={() => setMessage("")}>✕</button>
+            <button onClick={() => setMessage("")} className="text-emerald-400 hover:text-white px-2">✕</button>
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded font-bold ${activeTab === tab.id ? "bg-yellow-500 text-black" : "bg-gray-800"}`}
+              className={activeTab === tab.id ? "admin-tab-active" : "admin-tab"}
             >
               {tab.label}
               {tab.id === "users" && ` (${users.length})`}
@@ -217,8 +217,8 @@ export default function AdminPage() {
 
         {activeTab === "stats" && (
           <>
-          <div className="bg-gray-800 rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-yellow-500 mb-2">{t("treasuryWallet")}</h2>
+          <div className="admin-panel mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-2">{t("treasuryWallet")}</h2>
             <p className="text-sm text-gray-400 mb-4">{t("treasuryHint")}</p>
             {treasury?.addresses ? (
               <div className="space-y-4">
@@ -236,7 +236,7 @@ export default function AdminPage() {
                   )}
                 </p>
                 {(["ERC20", "BEP20", "TRC20"] as const).map((net) => (
-                  <div key={net} className="bg-gray-700 p-4 rounded-lg">
+                  <div key={net} className="bg-slate-800/60 border border-slate-700/50 p-4 rounded-xl">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <span className="font-bold text-yellow-500">{net}</span>
                       <span className="text-green-400 text-sm">
@@ -269,30 +269,30 @@ export default function AdminPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("totalUsers")}</p>
-              <p className="text-3xl font-bold text-yellow-500">{stats.totalUsers ?? 0}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("totalUsers")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gradient-gold">{stats.totalUsers ?? 0}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("usersWithActivePlans")}</p>
-              <p className="text-3xl font-bold text-green-400">{stats.usersWithActivePlans ?? 0}</p>
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("usersWithActivePlans")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.usersWithActivePlans ?? 0}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("totalActivePlans")}</p>
-              <p className="text-3xl font-bold text-green-400">{stats.totalActivePlans ?? 0}</p>
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("totalActivePlans")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.totalActivePlans ?? 0}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("totalDeposits")}</p>
-              <p className="text-3xl font-bold text-green-400">${stats.totalDeposits?.toFixed(2) ?? "0"}</p>
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("totalDeposits")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">${stats.totalDeposits?.toFixed(2) ?? "0"}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("totalWithdrawals")}</p>
-              <p className="text-3xl font-bold text-red-400">${stats.totalWithdrawals?.toFixed(2) ?? "0"}</p>
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("totalWithdrawals")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-red-400">${stats.totalWithdrawals?.toFixed(2) ?? "0"}</p>
             </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <p className="text-gray-400">{t("platformBalance")}</p>
-              <p className="text-3xl font-bold text-yellow-500">${stats.platformBalance?.toFixed(2) ?? "0"}</p>
+            <div className="admin-stat">
+              <p className="text-slate-400 text-xs sm:text-sm">{t("platformBalance")}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gradient-gold">${stats.platformBalance?.toFixed(2) ?? "0"}</p>
             </div>
           </div>
           </>
@@ -302,7 +302,7 @@ export default function AdminPage() {
 
         {activeTab === "users" && (
           <div>
-            <div className="bg-gray-800 rounded-lg p-4 mb-4">
+            <div className="admin-panel mb-4">
               <div className="flex flex-wrap items-end justify-between gap-4 mb-3">
                 <div>
                   <p className="text-sm text-gray-400">{t("showingUsers")}</p>
@@ -317,7 +317,7 @@ export default function AdminPage() {
                   type="button"
                   onClick={clearFilters}
                   disabled={!hasActiveFilters}
-                  className="px-4 py-2 rounded font-bold bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-primary px-4 py-2 rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {t("showAllUsers")}
                 </button>
@@ -329,7 +329,7 @@ export default function AdminPage() {
                   <select
                     value={filterFrozen}
                     onChange={(e) => setFilterFrozen(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full p-2.5 rounded-xl bg-slate-800/80 border border-slate-600/60 text-sm focus:border-amber-500/50 outline-none"
                   >
                     <option value="">{t("all")}</option>
                     <option value="true">{tc("frozen")}</option>
@@ -341,7 +341,7 @@ export default function AdminPage() {
                   <select
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full p-2.5 rounded-xl bg-slate-800/80 border border-slate-600/60 text-sm focus:border-amber-500/50 outline-none"
                   >
                     <option value="">{t("all")}</option>
                     <option value="USER">USER</option>
@@ -353,7 +353,7 @@ export default function AdminPage() {
                   <select
                     value={filterHasActivePlan}
                     onChange={(e) => setFilterHasActivePlan(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full p-2.5 rounded-xl bg-slate-800/80 border border-slate-600/60 text-sm focus:border-amber-500/50 outline-none"
                   >
                     <option value="">{t("allUsers")}</option>
                     <option value="true">{t("withActivePlans")}</option>
@@ -366,7 +366,7 @@ export default function AdminPage() {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+                    className="w-full p-2.5 rounded-xl bg-slate-800/80 border border-slate-600/60 text-sm focus:border-amber-500/50 outline-none"
                   />
                 </label>
               </div>
@@ -398,8 +398,8 @@ export default function AdminPage() {
               )}
             </div>
 
-            <div className="bg-gray-800 rounded-lg overflow-x-auto">
-              <table className="w-full">
+            <div className="admin-table-wrap">
+              <table className="admin-table">
                 <thead>
                   <tr className="border-b border-gray-700">
                     <th className="p-4 text-left">{tc("email")}</th>
@@ -461,7 +461,7 @@ export default function AdminPage() {
 
             {selectedUser && (
               <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="admin-panel w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-panel">
                   <h2 className="text-xl font-bold text-yellow-500 mb-4">{selectedUser.email}</h2>
                   <p className="text-gray-400 mb-2">{tc("balance")}: ${selectedUser.balance.toFixed(2)}</p>
                   <p className="text-gray-400 mb-4">{t("referrals")}: {selectedUser.referralCount ?? 0}</p>
@@ -530,8 +530,8 @@ export default function AdminPage() {
         )}
 
         {activeTab === "activePlans" && (
-          <div className="bg-gray-800 rounded-lg overflow-x-auto">
-            <table className="w-full">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="p-4 text-left">{tc("email")}</th>
@@ -569,8 +569,8 @@ export default function AdminPage() {
         )}
 
         {activeTab === "deposits" && (
-          <div className="bg-gray-800 rounded-lg overflow-x-auto">
-            <table className="w-full">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="p-4 text-left">{tc("email")}</th>
@@ -605,8 +605,8 @@ export default function AdminPage() {
         )}
 
         {activeTab === "withdrawals" && (
-          <div className="bg-gray-800 rounded-lg overflow-x-auto">
-            <table className="w-full">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="p-4 text-left">{tc("email")}</th>
@@ -643,8 +643,8 @@ export default function AdminPage() {
         )}
 
         {activeTab === "notifications" && (
-          <div className="bg-gray-800 rounded-lg overflow-x-auto">
-            <table className="w-full">
+          <div className="admin-table-wrap">
+            <table className="admin-table">
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="p-4 text-left">{tc("email")}</th>

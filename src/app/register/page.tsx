@@ -349,9 +349,9 @@ function RegisterForm() {
 export default function RegisterPage() {
   const tc = useTranslations("common");
   return (
-    <div className="page-shell bg-gradient-to-b from-gray-950 via-[#020b1a] to-gray-950">
+    <div className="page-shell">
       <AppHeader showNotifications={false} />
-      <div className="flex items-center justify-center px-4 py-10 min-h-[calc(100vh-64px)]">
+      <div className="auth-shell">
         <Suspense fallback={<div className="text-white">{tc("loading")}</div>}>
           <RegisterForm />
         </Suspense>

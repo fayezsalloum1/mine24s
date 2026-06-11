@@ -18,42 +18,40 @@ export default function SoloPlanCard({ plan, mode = "buy", onBuy }: SoloPlanCard
   const tc = useTranslations("common");
 
   return (
-    <div className="plan-card flex flex-col h-full">
-      <div className="h-48 bg-gray-800/50 flex items-center justify-center overflow-hidden">
+    <div className="plan-card flex flex-col h-full group">
+      <div className="h-40 sm:h-48 bg-gradient-to-b from-slate-800/80 to-slate-900/90 flex items-center justify-center overflow-hidden relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(245_158_11/0.08),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <MachineImage src={plan.machineImage} alt={plan.name} />
       </div>
-      <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-xl font-bold text-yellow-500 mb-1">{plan.name}</h3>
+      <div className="p-5 sm:p-6 flex flex-col flex-1">
+        <h3 className="text-lg sm:text-xl font-bold text-gradient-gold mb-1">{plan.name}</h3>
         {plan.description && (
-          <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
+          <p className="text-slate-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
         )}
-        <div className="space-y-1 text-sm mb-4 flex-1">
-          <p className="text-gray-400">
-            {t("price")}: <span className="text-white font-bold">${plan.price.toLocaleString()}</span>
-          </p>
-          <p className="text-gray-400">
-            {t("dailyReturn")}: <span className="text-green-400 font-bold">{plan.dailyReturnPercent}%</span>
-          </p>
-          <p className="text-gray-400">
-            {t("dailyProfit")}: <span className="text-green-400 font-bold">${plan.soloDailyProfit?.toFixed(2)}</span>
-          </p>
-          <p className="text-gray-400">
-            {t("duration")}: <span className="text-white">{plan.durationDays} {t("days")}</span>
-          </p>
+        <div className="space-y-2 text-sm mb-5 flex-1">
+          <div className="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("price")}</span>
+            <span className="text-white font-bold">${plan.price.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("dailyReturn")}</span>
+            <span className="text-emerald-400 font-bold">{plan.dailyReturnPercent}%</span>
+          </div>
+          <div className="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("dailyProfit")}</span>
+            <span className="text-emerald-400 font-bold">${plan.soloDailyProfit?.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center py-1.5">
+            <span className="text-slate-400">{t("duration")}</span>
+            <span className="text-slate-200">{plan.durationDays} {t("days")}</span>
+          </div>
         </div>
         {mode === "landing" ? (
-          <Link
-            href="/register"
-            className="w-full p-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 text-center"
-          >
+          <Link href="/register" className="w-full btn-primary py-3 rounded-xl text-center">
             {tc("register")}
           </Link>
         ) : (
-          <button
-            type="button"
-            onClick={onBuy}
-            className="w-full p-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400"
-          >
+          <button type="button" onClick={onBuy} className="w-full btn-primary py-3 rounded-xl">
             {t("buyNow")}
           </button>
         )}

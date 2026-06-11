@@ -60,67 +60,67 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
 
         return (
           <div key={up.id} className="plan-card">
-            <div className="h-32 bg-gray-700 flex items-center justify-center overflow-hidden">
+            <div className="h-28 sm:h-32 bg-gradient-to-b from-slate-800/80 to-slate-900 flex items-center justify-center overflow-hidden">
               <MachineImage src={up.plan.machineImage} alt={up.plan.name} />
             </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center gap-2">
-                <h3 className="text-lg font-bold text-yellow-500">{up.plan.name}</h3>
+            <div className="p-4 sm:p-5">
+              <div className="flex justify-between items-center gap-2 mb-3">
+                <h3 className="text-base sm:text-lg font-bold text-gradient-gold">{up.plan.name}</h3>
                 {isShared && (
-                  <span className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded">{t("shared")}</span>
+                  <span className="text-xs bg-blue-600/80 text-blue-200 px-2 py-0.5 rounded-full">{t("shared")}</span>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs sm:text-sm">
                 <div>
-                  <span className="text-gray-400">{t("planPrice")}: </span>
-                  <span>${stats.principal.toFixed(2)}</span>
+                  <span className="text-slate-500">{t("planPrice")}: </span>
+                  <span className="text-slate-200">${stats.principal.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">{t("dailyProfit")}: </span>
-                  <span className="text-green-400">${stats.dailyProfit.toFixed(2)}</span>
+                  <span className="text-slate-500">{t("dailyProfit")}: </span>
+                  <span className="text-emerald-400">${stats.dailyProfit.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">{t("daysActive")}: </span>
+                  <span className="text-slate-500">{t("daysActive")}: </span>
                   <span>{Math.min(stats.elapsedDays, durationDays)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">{t("daysCredited")}: </span>
+                  <span className="text-slate-500">{t("daysCredited")}: </span>
                   <span>{stats.daysCredited}/{durationDays}</span>
                 </div>
                 {isShared && stats.contributionShare != null && (
                   <div>
-                    <span className="text-gray-400">{t("yourShare")}: </span>
+                    <span className="text-slate-500">{t("yourShare")}: </span>
                     <span>{(stats.contributionShare * 100).toFixed(1)}%</span>
                   </div>
                 )}
                 <div>
-                  <span className="text-gray-400">{t("totalEarnedPlan")}: </span>
-                  <span className="text-green-400">${stats.liveTotalEarned.toFixed(4)}</span>
+                  <span className="text-slate-500">{t("totalEarnedPlan")}: </span>
+                  <span className="text-emerald-400">${stats.liveTotalEarned.toFixed(4)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">{t("accruingNow")}: </span>
-                  <span className="text-green-300">${stats.accruingToday.toFixed(4)}</span>
+                  <span className="text-slate-500">{t("accruingNow")}: </span>
+                  <span className="text-emerald-300">${stats.accruingToday.toFixed(4)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">{t("principalReturn")}: </span>
+                  <span className="text-slate-500">{t("principalReturn")}: </span>
                   <span>{up.principalReturned ? t("completed") : `$${stats.principal.toFixed(2)}`}</span>
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="flex justify-between text-xs text-gray-400 mb-1">
+              <div className="mt-4 pt-3 border-t border-slate-800/60">
+                <div className="flex justify-between text-xs text-slate-500 mb-1">
                   <span>{t("duration")}: {durationDays} days</span>
-                  <span className="text-yellow-500">{stats.payableDays}/{durationDays}</span>
+                  <span className="text-amber-400">{stats.payableDays}/{durationDays}</span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
-                  <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${planProgress}%` }} />
+                <div className="w-full bg-slate-800 rounded-full h-1.5 mb-3 overflow-hidden">
+                  <div className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-1.5 rounded-full transition-all" style={{ width: `${planProgress}%` }} />
                 </div>
-                <div className="flex justify-between text-xs text-gray-400 mb-1">
+                <div className="flex justify-between text-xs text-slate-500 mb-1">
                   <span>{t("nextPayout")}</span>
-                  <span className="font-mono text-yellow-500">{formatCountdown(stats.msUntilPayout)}</span>
+                  <span className="font-mono text-amber-400">{formatCountdown(stats.msUntilPayout)}</span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-yellow-500 h-2 rounded-full transition-all"
+                    className="bg-gradient-to-r from-amber-600 to-amber-400 h-1.5 rounded-full transition-all"
                     style={{ width: `${stats.payoutCycleProgress}%` }}
                   />
                 </div>

@@ -33,52 +33,50 @@ export default function PooledPlanCard({
       : null;
 
   return (
-    <div className="plan-card plan-card-pooled flex flex-col h-full">
-      <div className="h-48 bg-gray-800/50 flex items-center justify-center overflow-hidden relative">
+    <div className="plan-card plan-card-pooled flex flex-col h-full group">
+      <div className="h-40 sm:h-48 bg-gradient-to-b from-blue-950/40 to-slate-900/90 flex items-center justify-center overflow-hidden relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(59_130_246/0.1),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <MachineImage src={plan.machineImage} alt={plan.name} />
-        <span className="absolute top-3 end-3 text-xs bg-blue-900/90 text-blue-200 px-2 py-1 rounded-full">
+        <span className="absolute top-3 end-3 text-xs bg-blue-600/90 text-blue-100 px-2.5 py-1 rounded-full font-semibold backdrop-blur-sm">
           {t("shared")}
         </span>
       </div>
-      <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-xl font-bold text-yellow-500 mb-1">{plan.name}</h3>
+      <div className="p-5 sm:p-6 flex flex-col flex-1">
+        <h3 className="text-lg sm:text-xl font-bold text-gradient-gold mb-1">{plan.name}</h3>
         {plan.description && (
-          <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
+          <p className="text-slate-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
         )}
 
-        <div className="bg-gray-900/60 rounded-lg p-3 mb-4">
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">{t("poolProgress")}</span>
+        <div className="bg-slate-900/60 rounded-xl p-3 mb-4 border border-blue-500/20">
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-slate-400">{t("poolProgress")}</span>
             <span className="text-blue-400 font-bold">{plan.poolProgress?.toFixed(0)}%</span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+          <div className="w-full bg-slate-700/80 rounded-full h-2 mb-2 overflow-hidden">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-blue-600 to-cyan-400 h-2 rounded-full transition-all duration-500"
               style={{ width: `${plan.poolProgress ?? 0}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             ${plan.poolFilled?.toLocaleString()} / ${plan.targetPoolAmount?.toLocaleString()}
             {" · "}{plan.poolParticipants} {t("participants")}
           </p>
         </div>
 
-        <div className="space-y-1 text-sm mb-4 flex-1">
-          <p className="text-gray-400">
-            {t("dailyReturn")}: <span className="text-green-400">{plan.dailyReturnPercent}%</span>
-            {plan.poolDailyProfit != null && (
-              <span className="text-gray-500"> ({t("onFullPool")}: ${plan.poolDailyProfit.toFixed(2)}/day)</span>
-            )}
-          </p>
-          <p className="text-gray-400">
-            {t("duration")}: <span className="text-white">{plan.durationDays} {t("days")}</span>
-          </p>
-          <p className="text-gray-400">
-            {t("minContribution")}: <span className="text-yellow-500">${plan.minContribution}</span>
-            {plan.poolRemaining != null && plan.poolRemaining > 0 && (
-              <span className="text-gray-500"> · {t("remaining")}: ${plan.poolRemaining.toLocaleString()}</span>
-            )}
-          </p>
+        <div className="space-y-2 text-sm mb-4 flex-1">
+          <div className="flex justify-between py-1 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("dailyReturn")}</span>
+            <span className="text-emerald-400">{plan.dailyReturnPercent}%</span>
+          </div>
+          <div className="flex justify-between py-1 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("duration")}</span>
+            <span className="text-slate-200">{plan.durationDays} {t("days")}</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-slate-400">{t("minContribution")}</span>
+            <span className="text-amber-400 font-semibold">${plan.minContribution}</span>
+          </div>
         </div>
 
         {mode === "buy" && onContributionChange && (
@@ -88,7 +86,7 @@ export default function PooledPlanCard({
               placeholder={`${t("yourContribution")} (min $${plan.minContribution})`}
               value={contribution}
               onChange={(e) => onContributionChange(e.target.value)}
-              className="w-full p-3 rounded-lg bg-gray-700/80 border border-gray-600 mb-2 focus:border-blue-500 outline-none"
+              className="w-full p-3 rounded-xl bg-slate-800/80 border border-slate-600/80 mb-2 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/15 outline-none transition-all"
               step="0.01"
               min={plan.minContribution}
               max={plan.poolRemaining}
@@ -102,17 +100,14 @@ export default function PooledPlanCard({
         )}
 
         {mode === "landing" ? (
-          <Link
-            href="/register"
-            className="w-full p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 text-center"
-          >
+          <Link href="/register" className="w-full py-3 rounded-xl font-bold text-center text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 transition-all shadow-lg shadow-blue-500/20">
             {t("joinPool")}
           </Link>
         ) : (
           <button
             type="button"
             onClick={onJoin}
-            className="w-full p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500"
+            className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 transition-all shadow-lg shadow-blue-500/20"
           >
             {t("joinPool")}
           </button>

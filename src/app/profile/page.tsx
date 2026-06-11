@@ -104,15 +104,15 @@ export default function ProfilePage() {
   return (
     <div className="page-shell text-white">
       <AppHeader />
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-8">{t("title")}</h1>
+      <div className="page-content max-w-2xl">
+        <h1 className="page-title">{t("title")}</h1>
         <p className="text-gray-400 mb-6">{userData?.email}</p>
 
         {message && <p className="text-green-400 mb-4">{message}</p>}
         {error && <p className="text-red-400 mb-4">{error}</p>}
 
-        <div className="bg-gray-800 p-6 rounded-lg mb-6">
-          <h2 className="text-xl font-bold text-yellow-500 mb-2">{t("twoFactor")}</h2>
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl mb-6">
+          <h2 className="text-lg font-bold text-amber-400 mb-2">{t("twoFactor")}</h2>
           <p className="text-gray-400 text-sm mb-4">{t("twoFactorDesc")}</p>
 
           {userData?.twoFactorEnabled ? (
@@ -151,8 +151,8 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-xl font-bold text-yellow-500 mb-2">{t("phoneNumber")}</h2>
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl">
+          <h2 className="text-lg font-bold text-amber-400 mb-2">{t("phoneNumber")}</h2>
           <p className="text-gray-400 text-sm mb-4">{t("phoneDesc")}</p>
           {userData?.phoneVerified && (
             <p className="text-green-400 mb-4">{t("phoneVerified")}: {userData.phoneNumber}</p>

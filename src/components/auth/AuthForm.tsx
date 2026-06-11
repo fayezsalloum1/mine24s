@@ -10,9 +10,9 @@ type AuthFieldProps = {
 export function AuthField({ label, error, hint, children }: AuthFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-300 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
       {children}
-      {hint && !error && <p className="text-gray-500 text-xs mt-1">{hint}</p>}
+      {hint && !error && <p className="text-slate-500 text-xs mt-1">{hint}</p>}
       {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
     </div>
   );
@@ -22,8 +22,8 @@ export function AuthInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full px-4 py-3 rounded-lg bg-gray-950/80 border text-white placeholder-gray-500 transition-colors focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 ${
-        props["aria-invalid"] ? "border-red-500/60" : "border-gray-700 hover:border-gray-600"
+      className={`w-full px-4 py-3 rounded-xl bg-slate-950/70 border text-white placeholder-slate-500 transition-all focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 ${
+        props["aria-invalid"] ? "border-red-500/60" : "border-slate-700/80 hover:border-slate-600"
       } ${props.className ?? ""}`}
     />
   );
@@ -38,7 +38,7 @@ export function AuthButton({
     <button
       {...props}
       disabled={loading || props.disabled}
-      className={`w-full py-3.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-lg hover:from-yellow-400 hover:to-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/10 transition-all ${props.className ?? ""}`}
+      className={`w-full py-3.5 btn-primary rounded-xl disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none ${props.className ?? ""}`}
     >
       {loading && (
         <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -51,11 +51,12 @@ export function AuthButton({
 export function AuthPanel({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <div
-      className={`relative bg-gray-900/95 border border-gray-800 p-8 sm:p-10 rounded-2xl w-full shadow-2xl shadow-black/40 ${
+      className={`relative glass-panel p-6 sm:p-10 rounded-2xl w-full shadow-panel ${
         wide ? "max-w-lg" : "max-w-md"
       }`}
     >
-      <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600" />
+      <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
+      <div className="absolute -top-px left-1/2 -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-amber-300/60 to-transparent" />
       {children}
     </div>
   );
@@ -69,11 +70,11 @@ export function AuthAlert({
   children: React.ReactNode;
 }) {
   const styles = {
-    error: "bg-red-950/50 border-red-500/40 text-red-300",
-    success: "bg-green-950/50 border-green-500/40 text-green-300",
-    info: "bg-blue-950/50 border-blue-500/40 text-blue-300",
+    error: "bg-red-950/40 border-red-500/30 text-red-300",
+    success: "bg-emerald-950/40 border-emerald-500/30 text-emerald-300",
+    info: "bg-cyan-950/40 border-cyan-500/30 text-cyan-300",
   };
   return (
-    <div className={`border rounded-lg px-4 py-3 text-sm mb-4 ${styles[type]}`}>{children}</div>
+    <div className={`border rounded-xl px-4 py-3 text-sm mb-4 ${styles[type]}`}>{children}</div>
   );
 }

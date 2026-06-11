@@ -142,13 +142,13 @@ export default function WithdrawPage() {
     return (
       <div className="page-shell text-white">
         <AppHeader />
-        <div className="max-w-md mx-auto p-6 mt-12">
-          <div className="bg-gray-800 p-8 rounded-lg">
-            <h1 className="text-2xl font-bold text-red-400 mb-4 text-center">{t("lockedTitle")}</h1>
-            <p className="text-gray-400 mb-6 text-center">{t("lockedMessage")}</p>
-            <p className="text-sm text-gray-400 mb-2">{t("shareReferral")}</p>
+        <div className="page-content max-w-md">
+          <div className="glass-panel p-6 sm:p-8 rounded-2xl">
+            <h1 className="text-xl sm:text-2xl font-bold text-red-400 mb-4 text-center">{t("lockedTitle")}</h1>
+            <p className="text-slate-400 mb-6 text-center text-sm">{t("lockedMessage")}</p>
+            <p className="text-sm text-slate-400 mb-2">{t("shareReferral")}</p>
             <ReferralLinkActions link={data.referralLink} />
-            <Link href="/dashboard" className="mt-6 inline-block text-yellow-500 hover:underline">
+            <Link href="/dashboard" className="mt-6 inline-block text-amber-400 hover:underline">
               {tc("back")}
             </Link>
           </div>
@@ -160,36 +160,30 @@ export default function WithdrawPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader />
-      <div className="max-w-md mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-8">{t("title")}</h1>
+      <div className="page-content max-w-md">
+        <h1 className="page-title">{t("title")}</h1>
 
-        <div className="bg-gray-800 p-4 rounded-lg mb-6">
-          <p className="text-gray-400">{t("availableProfit")}</p>
-          <p className="text-2xl font-bold text-green-400">${availableProfit.toFixed(4)}</p>
-          <div className="flex justify-between text-sm text-gray-500 mt-2">
-            <span>
-              {td("accruingNow")}: ${(data?.accruingProfit ?? 0).toFixed(4)}
-            </span>
-            <span className="font-mono text-yellow-500">{formatCountdown(nextPayoutMs)}</span>
+        <div className="stat-card-featured mb-6">
+          <p className="text-slate-400 text-sm">{t("availableProfit")}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-emerald-400 tabular-nums">${availableProfit.toFixed(4)}</p>
+          <div className="flex justify-between text-xs sm:text-sm text-slate-500 mt-2">
+            <span>{td("accruingNow")}: ${(data?.accruingProfit ?? 0).toFixed(4)}</span>
+            <span className="font-mono text-amber-400">{formatCountdown(nextPayoutMs)}</span>
           </div>
         </div>
 
         {(data?.pendingWithdrawalAmount ?? 0) > 0 && (
-          <p className="text-gray-500 text-sm mb-4">
+          <p className="text-slate-500 text-sm mb-4">
             {t("pendingWithdrawals")}: ${data?.pendingWithdrawalAmount?.toFixed(2)}
           </p>
         )}
-        {error && <p className="text-red-400 mb-4">{error}</p>}
-        {success && <p className="text-green-400 mb-4">{success}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 p-6 rounded-lg">
+        {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
+        {success && <p className="text-emerald-400 mb-4 text-sm">{success}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4 glass-panel p-5 sm:p-6 rounded-2xl">
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-sm text-gray-400">{t("amount")}</label>
-              <button
-                type="button"
-                onClick={handleMaxClick}
-                className="text-xs text-yellow-500 hover:text-yellow-400"
-              >
+              <label className="text-sm text-slate-400">{t("amount")}</label>
+              <button type="button" onClick={handleMaxClick} className="text-xs text-amber-400 hover:text-amber-300">
                 {t("useMax")}
               </button>
             </div>
@@ -198,19 +192,17 @@ export default function WithdrawPage() {
               placeholder={t("amount")}
               value={amount}
               onChange={(e) => handleAmountChange(e.target.value)}
-              className="w-full p-3 rounded bg-gray-700"
+              className="w-full p-3 rounded-xl bg-slate-900/70 border border-slate-700/80 focus:border-amber-500/50 outline-none"
               step="0.01"
               min="0"
               max={availableProfit}
             />
-            {isOverLimit && (
-              <p className="text-red-400 text-sm mt-1">{t("exceedsProfit")}</p>
-            )}
+            {isOverLimit && <p className="text-red-400 text-sm mt-1">{t("exceedsProfit")}</p>}
           </div>
           <select
             value={network}
             onChange={(e) => setNetwork(e.target.value)}
-            className="w-full p-3 rounded bg-gray-700"
+            className="w-full p-3 rounded-xl bg-slate-900/70 border border-slate-700/80 focus:border-amber-500/50 outline-none"
           >
             <option value="ERC20">ERC20</option>
             <option value="BEP20">BEP20</option>
@@ -221,17 +213,13 @@ export default function WithdrawPage() {
             placeholder={t("address")}
             value={withdrawalAddress}
             onChange={(e) => setWithdrawalAddress(e.target.value)}
-            className="w-full p-3 rounded bg-gray-700 font-mono text-sm"
+            className="w-full p-3 rounded-xl bg-slate-900/70 border border-slate-700/80 font-mono text-sm focus:border-amber-500/50 outline-none"
           />
-          <button
-            type="submit"
-            disabled={isSubmitDisabled}
-            className="w-full p-3 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button type="submit" disabled={isSubmitDisabled} className="w-full btn-primary py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
             {t("submit")}
           </button>
         </form>
-        <Link href="/dashboard" className="mt-6 inline-block text-gray-400 hover:text-white">
+        <Link href="/dashboard" className="mt-6 inline-block text-slate-400 hover:text-white text-sm">
           ← {tc("back")}
         </Link>
       </div>
