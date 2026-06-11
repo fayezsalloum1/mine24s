@@ -50,10 +50,10 @@ export default function RainingCoins() {
             opacity: 0;
           }
           10% {
-            opacity: 0.35;
+            opacity: 0.45;
           }
           85% {
-            opacity: 0.35;
+            opacity: 0.45;
           }
           100% {
             transform: translateY(110vh) rotate(360deg);
@@ -62,11 +62,10 @@ export default function RainingCoins() {
         }
 
         .rain-coins-root {
-          position: fixed;
+          position: absolute;
           inset: 0;
           overflow: hidden;
           pointer-events: none;
-          z-index: -1;
         }
 
         .rain-coin {

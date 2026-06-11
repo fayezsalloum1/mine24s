@@ -9,7 +9,7 @@ export default function MiningBackground() {
   ];
 
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden mining-bg-base" aria-hidden>
+    <div className="absolute inset-0 overflow-hidden mining-bg-base" aria-hidden>
       {/* Grid only in lower half — keeps hero text area clean */}
       <div className="absolute inset-x-0 bottom-0 top-[45%] mining-grid opacity-40 md:opacity-50" />
 
@@ -60,9 +60,8 @@ export default function MiningBackground() {
         preload="none"
       />
 
-      {/* Strong top scrim so hero text never fights the background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/95 from-0% via-slate-950/88 via-[35%] to-slate-950/75 to-100%" />
-      <div className="absolute inset-0 bg-slate-950/30 md:bg-transparent" />
+      {/* Light scrim — keeps text readable without hiding coin rain */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 from-0% via-slate-950/25 via-[40%] to-transparent to-100%" />
     </div>
   );
 }

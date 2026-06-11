@@ -66,7 +66,7 @@ export default function LandingPage() {
 
       <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
         <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-stretch">
-          <div className="hero-content-panel text-center lg:text-start order-2 lg:order-1">
+          <div className="text-center lg:text-start order-2 lg:order-1 hero-text-block">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-5 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
               Live Cloud Mining Platform

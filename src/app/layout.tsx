@@ -27,9 +27,11 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${cairo.variable} font-sans text-white relative isolate`}>
-        <MiningBackground />
-        <RainingCoins />
+      <body className={`${cairo.variable} font-sans text-white relative`}>
+        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden>
+          <MiningBackground />
+          <RainingCoins />
+        </div>
         <div className="relative z-10">
           <SessionProvider session={session}>
             <LocaleProvider>
