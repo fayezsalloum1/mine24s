@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canWithdraw, getReferralStats } from "@/lib/referral";
-import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +19,6 @@ export async function GET() {
     const currentUser = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!currentUser) {
       return NextResponse.json({ error: "User not found", staleSession: true }, { status: 404 });
-    }
-
-    try {
-      await processDueMiningForUser(currentUser.id);
-    } catch (miningError) {
-      console.error("[user/me] mining process failed:", miningError);
     }
 
     const user = await prisma.user.findUnique({
