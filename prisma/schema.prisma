@@ -1,0 +1,194 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlanType {
+  SOLO
+  POOLED
+}
+
+enum PoolStatus {
+  FILLING
+  ACTIVE
+  COMPLETED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  EARNING
+  REFERRAL
+  PLAN_PURCHASE
+  PRINCIPAL_RETURN
+}
+
+enum Status {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  password           String
+  role               Role     @default(USER)
+  walletIndex        Int      @unique
+  depositAddress     String
+  tronDepositAddress String
+  balance            Float    @default(0)
+  isFrozen           Boolean  @default(false)
+  referralCode       String   @unique
+  referredBy         String?
+  twoFactorSecret    String?
+  twoFactorEnabled   Boolean  @default(false)
+  phoneNumber        String?
+  phoneVerified      Boolean   @default(false)
+  phoneOtpCode       String?
+  phoneOtpExpiresAt  DateTime?
+  createdAt          DateTime  @default(now())
+
+  userPlans          UserPlan[]
+  transactions       Transaction[]
+  withdrawals        WithdrawalRequest[]
+  notifications      Notification[]
+  processedDeposits  ProcessedDeposit[]
+  poolContributions  PoolContribution[]
+}
+
+model ProcessedDeposit {
+  id          String   @id @default(cuid())
+  userId      String
+  network     String
+  txHash      String
+  amount      Float
+  sweepTxHash String?
+  sweepError  String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([network, txHash])
+}
+
+model ScannerState {
+  id           String @id @default("main")
+  ethLastBlock Int    @default(0)
+  bscLastBlock Int    @default(0)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Plan {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  price              Float
+  dailyReturnPercent Float    @default(1)
+  durationDays       Int      @default(100)
+  machineImage       String?
+  planType           PlanType @default(SOLO)
+  targetPoolAmount   Float?
+  minContribution    Float?
+  maxParticipants    Int?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  userPlans UserPlan[]
+  pools     PlanPool[]
+}
+
+model PlanPool {
+  id                 String     @id @default(cuid())
+  planId             String
+  targetAmount       Float
+  filledAmount       Float      @default(0)
+  status             PoolStatus @default(FILLING)
+  durationDays       Int
+  dailyReturnPercent Float
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime   @default(now())
+
+  plan            Plan               @relation(fields: [planId], references: [id])
+  contributions   PoolContribution[]
+  userPlans       UserPlan[]
+}
+
+model PoolContribution {
+  id        String   @id @default(cuid())
+  poolId    String
+  userId    String
+  amount    Float
+  createdAt DateTime @default(now())
+
+  pool PlanPool @relation(fields: [poolId], references: [id])
+  user User     @relation(fields: [userId], references: [id])
+
+  @@unique([poolId, userId])
+}
+
+model UserPlan {
+  id                         String    @id @default(cuid())
+  userId                     String
+  planId                     String
+  poolId                     String?
+  purchasedAt                DateTime  @default(now())
+  purchasePrice              Float
+  dailyReturnPercentSnapshot Float
+  durationDaysSnapshot       Int       @default(100)
+  dailyProfitSnapshot        Float?
+  contributionShare          Float?
+  daysCredited               Int       @default(0)
+  lastEarningAt              DateTime?
+  principalReturned          Boolean   @default(false)
+  isActive                   Boolean   @default(true)
+  completedAt                DateTime?
+
+  user User      @relation(fields: [userId], references: [id])
+  plan Plan      @relation(fields: [planId], references: [id])
+  pool PlanPool? @relation(fields: [poolId], references: [id])
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  userId    String
+  type      TransactionType
+  amount    Float
+  status    Status          @default(PENDING)
+  network   String?
+  txHash    String?
+  createdAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model WithdrawalRequest {
+  id                String    @id @default(cuid())
+  userId            String
+  amount            Float
+  network           String?
+  withdrawalAddress String?
+  status            Status    @default(PENDING)
+  requestedAt       DateTime  @default(now())
+  processedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}

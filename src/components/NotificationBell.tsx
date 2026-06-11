@@ -1,0 +1,88 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+
+interface Notification {
+  id: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export default function NotificationBell() {
+  const t = useTranslations("notifications");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [open, setOpen] = useState(false);
+
+  const fetchNotifications = () => {
+    fetch("/api/notifications")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setNotifications(data);
+      });
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const markAllRead = async () => {
+    await fetch("/api/notifications/read", { method: "POST" });
+    fetchNotifications();
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative p-2 text-gray-400 hover:text-white"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
+          <div className="flex justify-between items-center p-3 border-b border-gray-700">
+            <h3 className="font-bold text-yellow-500">{t("title")}</h3>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-xs text-blue-400 hover:underline">
+                {t("markAllRead")}
+              </button>
+            )}
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <p className="p-4 text-gray-400 text-sm text-center">{t("noNotifications")}</p>
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`p-3 border-b border-gray-700 text-sm ${!n.isRead ? "bg-gray-750" : ""}`}
+                >
+                  <p className={!n.isRead ? "text-white font-medium" : "text-gray-400"}>
+                    {n.message}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

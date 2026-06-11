@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #111827;
+  --foreground: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: #020b1a;
+  font-family: var(--font-cairo), Arial, Helvetica, sans-serif;
+}
+
+.page-shell {
+  min-height: 100vh;
+  position: relative;
+}
+
+.glass-panel {
+  background-color: rgb(31 41 55 / 0.92);
+  backdrop-filter: blur(8px);
+}
+
+@layer components {
+  .plan-card {
+    background-color: rgb(31 41 55 / 0.92);
+    backdrop-filter: blur(8px);
+    @apply rounded-xl overflow-hidden border border-gray-700/50 transition-all duration-200;
+  }
+
+  .plan-card:hover {
+    @apply border-yellow-500/25 shadow-lg shadow-yellow-500/5;
+  }
+
+  .plan-card-pooled:hover {
+    @apply border-blue-500/30 shadow-blue-500/5;
+  }
+
+  .stat-card {
+    background-color: rgb(31 41 55 / 0.92);
+    backdrop-filter: blur(8px);
+    @apply rounded-xl p-6 border border-gray-700/50;
+  }
+
+  .hero-glow {
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgb(234 179 8 / 0.15), transparent);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker 30s linear infinite;
+}
+
+[dir="rtl"] .animate-ticker {
+  animation-direction: reverse;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240">
+  <rect width="400" height="240" fill="#1f2937"/>
+  <rect x="10" y="50" width="120" height="140" rx="6" fill="#374151" stroke="#eab308" stroke-width="2"/>
+  <rect x="140" y="50" width="120" height="140" rx="6" fill="#374151" stroke="#eab308" stroke-width="2"/>
+  <rect x="270" y="50" width="120" height="140" rx="6" fill="#374151" stroke="#eab308" stroke-width="2"/>
+  <text x="200" y="38" text-anchor="middle" fill="#eab308" font-family="Arial" font-size="18" font-weight="bold">Ultimate Farm</text>
+  <text x="200" y="218" text-anchor="middle" fill="#9ca3af" font-family="Arial" font-size="14">10� S19 XP � 1400 TH/s</text>
+</svg>

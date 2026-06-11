@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #020b1a;
+  }
+  @keyframes float1 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-18px)} }
+  @keyframes float2 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
+  @keyframes float3 { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-22px)} }
+  @keyframes pulse { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+  @keyframes orbit { 0%{transform:rotate(0deg) translateX(90px) rotate(0deg)} 100%{transform:rotate(360deg) translateX(90px) rotate(-360deg)} }
+  @keyframes orbit2 { 0%{transform:rotate(60deg) translateX(130px) rotate(-60deg)} 100%{transform:rotate(420deg) translateX(130px) rotate(-420deg)} }
+  @keyframes orbit3 { 0%{transform:rotate(180deg) translateX(160px) rotate(-180deg)} 100%{transform:rotate(540deg) translateX(160px) rotate(-540deg)} }
+  @keyframes datastream { 0%{opacity:0;transform:translateY(-30px)} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0;transform:translateY(30px)} }
+  @keyframes scanline { 0%{top:10%} 100%{top:90%} }
+  @keyframes glitch { 0%,95%,100%{clip-path:none;transform:none} 96%{clip-path:inset(20% 0 60% 0);transform:translateX(-4px)} 97%{clip-path:inset(70% 0 10% 0);transform:translateX(4px)} 98%{clip-path:none;transform:none} }
+  @keyframes hashup { 0%{opacity:0;transform:translateY(10px)} 30%{opacity:1;transform:translateY(0)} 70%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-10px)} }
+  @keyframes ring-pulse { 0%,100%{r:55;opacity:0.15} 50%{r:75;opacity:0} }
+  @keyframes ring-pulse2 { 0%,100%{r:75;opacity:0.1} 50%{r:100;opacity:0} }
+  @keyframes coin-spin { 0%{transform:scaleX(1)} 25%{transform:scaleX(0.1)} 50%{transform:scaleX(1)} 75%{transform:scaleX(0.1)} 100%{transform:scaleX(1)} }
+  @keyframes bolt-flash { 0%,90%,100%{opacity:0} 92%,94%,96%{opacity:1} 93%,95%{opacity:0.3} }
+  @keyframes node-blink { 0%,100%{fill:#00e5ff;opacity:0.8} 50%{fill:#fff;opacity:1} }
+  @keyframes trail { 0%{stroke-dashoffset:400} 100%{stroke-dashoffset:0} }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="display:block;background:#020b1a;overflow:hidden">
+
+  <!-- Background grid -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0a2040" stroke-width="0.5"/>
+    </pattern>
+    <radialGradient id="glow-center" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0044cc" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#020b1a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cloud-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00aaff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0044aa" stop-opacity="0.1"/>
+    </radialGradient>
+    <filter id="blur-soft">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <rect width="680" height="420" fill="url(#grid)"/>
+  <ellipse cx="340" cy="210" rx="260" ry="180" fill="url(#glow-center)"/>
+
+  <!-- Orbit rings -->
+  <circle cx="340" cy="200" r="100" fill="none" stroke="#003366" stroke-width="0.5" stroke-dasharray="4 4"/>
+  <circle cx="340" cy="200" r="140" fill="none" stroke="#002244" stroke-width="0.5" stroke-dasharray="6 6"/>
+  <circle cx="340" cy="200" r="170" fill="none" stroke="#001a33" stroke-width="0.5" stroke-dasharray="8 8"/>
+
+  <!-- Pulse rings around center cloud -->
+  <circle cx="340" cy="185" r="55" fill="none" stroke="#00aaff" stroke-width="1">
+    <animate attributeName="r" values="55;80;55" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="340" cy="185" r="75" fill="none" stroke="#0077cc" stroke-width="0.5">
+    <animate attributeName="r" values="75;110;75" dur="3s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.2;0;0.2" dur="3s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- === CENTRAL CLOUD === -->
+  <g style="animation:float1 4s ease-in-out infinite">
+    <g transform="translate(280,155)">
+      <!-- Cloud glow backdrop -->
+      <ellipse cx="60" cy="38" rx="72" ry="30" fill="#0044cc" opacity="0.25" filter="url(#blur-soft)"/>
+      <!-- Cloud body -->
+      <circle cx="38" cy="42" r="20" fill="#1a6fff"/>
+      <circle cx="58" cy="36" r="26" fill="#2277ff"/>
+      <circle cx="82" cy="40" r="20" fill="#1a6fff"/>
+      <circle cx="68" cy="50" r="15" fill="#1a6fff"/>
+      <circle cx="50" cy="52" r="14" fill="#1a6fff"/>
+      <rect x="22" y="46" width="78" height="18" rx="4" fill="#1a6fff"/>
+      <!-- Shine -->
+      <ellipse cx="52" cy="33" rx="18" ry="8" fill="#66aaff" opacity="0.35"/>
+      <!-- Lock icon on cloud -->
+      <rect x="51" y="44" width="18" height="14" rx="3" fill="#003399"/>
+      <path d="M54 44 Q60 38 66 44" fill="none" stroke="#003399" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="60" cy="51" r="2" fill="#66ccff"/>
+    </g>
+  </g>
+
+  <!-- === ORBITING CRYPTO COINS === -->
+
+  <!-- BTC coin -->
+  <g style="transform-origin:340px 185px;animation:orbit 8s linear infinite">
+    <g style="animation:float2 3s ease-in-out infinite">
+      <circle cx="0" cy="0" r="18" fill="#f7931a"/>
+      <circle cx="0" cy="0" r="16" fill="#f7931a" stroke="#ffbb55" stroke-width="1"/>
+      <text x="0" y="4" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="monospace">₿</text>
+      <ellipse cx="0" cy="-10" rx="8" ry="3" fill="#ffcc66" opacity="0.4"/>
+    </g>
+  </g>
+
+  <!-- ETH coin -->
+  <g style="transform-origin:340px 185px;animation:orbit2 12s linear infinite">
+    <circle cx="0" cy="0" r="16" fill="#627eea"/>
+    <circle cx="0" cy="0" r="14" fill="#627eea" stroke="#99aaff" stroke-width="1"/>
+    <text x="0" y="4" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="monospace">Ξ</text>
+    <ellipse cx="0" cy="-9" rx="7" ry="3" fill="#aabbff" opacity="0.4"/>
+  </g>
+
+  <!-- USDT coin -->
+  <g style="transform-origin:340px 185px;animation:orbit3 16s linear infinite">
+    <circle cx="0" cy="0" r="15" fill="#26a17b"/>
+    <circle cx="0" cy="0" r="13" fill="#26a17b" stroke="#55ddaa" stroke-width="1"/>
+    <text x="0" y="4" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="monospace">₮</text>
+    <ellipse cx="0" cy="-8" rx="6" ry="2.5" fill="#88eebb" opacity="0.4"/>
+  </g>
+
+  <!-- === MINING SERVER NODES === -->
+
+  <!-- Server left -->
+  <g style="animation:float2 5s ease-in-out infinite">
+    <rect x="42" y="130" width="90" height="110" rx="8" fill="#061a33" stroke="#0055aa" stroke-width="1"/>
+    <rect x="52" y="140" width="70" height="6" rx="3" fill="#003388"/>
+    <rect x="52" y="150" width="70" height="6" rx="3" fill="#003388"/>
+    <rect x="52" y="160" width="70" height="6" rx="3" fill="#003388"/>
+    <!-- LED indicators -->
+    <circle cx="60" cy="175" r="3" fill="#00ff88"><animate attributeName="opacity" values="1;0.2;1" dur="1.2s" repeatCount="indefinite"/></circle>
+    <circle cx="72" cy="175" r="3" fill="#00ff88"><animate attributeName="opacity" values="1;0.2;1" dur="1.2s" begin="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="84" cy="175" r="3" fill="#0099ff"><animate attributeName="opacity" values="1;0.2;1" dur="0.8s" begin="0.2s" repeatCount="indefinite"/></circle>
+    <circle cx="96" cy="175" r="3" fill="#ff6600"><animate attributeName="opacity" values="1;0.2;1" dur="1.8s" repeatCount="indefinite"/></circle>
+    <!-- Hash rate text -->
+    <text x="87" y="210" text-anchor="middle" fill="#00aaff" font-size="8" font-family="monospace" style="animation:hashup 2.5s ease-in-out infinite">142.3 TH/s</text>
+    <text x="87" y="224" text-anchor="middle" fill="#005588" font-size="7" font-family="monospace">SERVER 01</text>
+  </g>
+
+  <!-- Server right -->
+  <g style="animation:float3 6s ease-in-out 1s infinite">
+    <rect x="548" y="130" width="90" height="110" rx="8" fill="#061a33" stroke="#0055aa" stroke-width="1"/>
+    <rect x="558" y="140" width="70" height="6" rx="3" fill="#003388"/>
+    <rect x="558" y="150" width="70" height="6" rx="3" fill="#003388"/>
+    <rect x="558" y="160" width="70" height="6" rx="3" fill="#003388"/>
+    <circle cx="566" cy="175" r="3" fill="#00ff88"><animate attributeName="opacity" values="1;0.2;1" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></circle>
+    <circle cx="578" cy="175" r="3" fill="#00ff88"><animate attributeName="opacity" values="1;0.2;1" dur="1.0s" begin="0.1s" repeatCount="indefinite"/></circle>
+    <circle cx="590" cy="175" r="3" fill="#0099ff"><animate attributeName="opacity" values="1;0.2;1" dur="2.0s" repeatCount="indefinite"/></circle>
+    <circle cx="602" cy="175" r="3" fill="#ff6600"><animate attributeName="opacity" values="1;0.2;1" dur="1.3s" begin="0.8s" repeatCount="indefinite"/></circle>
+    <text x="593" y="210" text-anchor="middle" fill="#00aaff" font-size="8" font-family="monospace" style="animation:hashup 3s ease-in-out 1s infinite">98.7 TH/s</text>
+    <text x="593" y="224" text-anchor="middle" fill="#005588" font-size="7" font-family="monospace">SERVER 02</text>
+  </g>
+
+  <!-- === DATA STREAM LINES === -->
+  <!-- Left server to cloud -->
+  <line x1="132" y1="185" x2="285" y2="185" stroke="#0055ff" stroke-width="1" stroke-dasharray="6 4">
+    <animate attributeName="stroke-dashoffset" values="0;-40" dur="1s" repeatCount="indefinite"/>
+  </line>
+  <!-- Right server to cloud -->
+  <line x1="548" y1="185" x2="400" y2="185" stroke="#0055ff" stroke-width="1" stroke-dasharray="6 4">
+    <animate attributeName="stroke-dashoffset" values="0;-40" dur="1s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- Moving data packets on lines -->
+  <circle cx="0" cy="185" r="3" fill="#00ccff" opacity="0.9">
+    <animate attributeName="cx" values="132;285" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="0" cy="185" r="3" fill="#00ccff" opacity="0.9">
+    <animate attributeName="cx" values="132;285" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="0" cy="185" r="3" fill="#00ccff" opacity="0.9">
+    <animate attributeName="cx" values="548;400" dur="2.1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" dur="2.1s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- === FLOATING HASH VALUES === -->
+  <text x="80" y="95" fill="#003366" font-size="9" font-family="monospace" style="animation:datastream 3s linear infinite">0x4f8a2b...</text>
+  <text x="490" y="80" fill="#003366" font-size="9" font-family="monospace" style="animation:datastream 3s linear 1.5s infinite">0xe9d1c7...</text>
+  <text x="200" y="340" fill="#002255" font-size="9" font-family="monospace" style="animation:datastream 4s linear 0.8s infinite">BLOCK #891,204</text>
+  <text x="420" y="355" fill="#002255" font-size="9" font-family="monospace" style="animation:datastream 4s linear 2s infinite">SHA-256 ✓</text>
+
+  <!-- === BOTTOM STATS BAR === -->
+  <rect x="0" y="380" width="680" height="40" fill="#030e1e" opacity="0.95"/>
+  <line x1="0" y1="380" x2="680" y2="380" stroke="#0033aa" stroke-width="0.5"/>
+
+  <!-- Stat 1 -->
+  <text x="60" y="396" text-anchor="middle" fill="#005588" font-size="8" font-family="monospace">NETWORK</text>
+  <text x="60" y="410" text-anchor="middle" fill="#00ccff" font-size="9" font-family="monospace" font-weight="bold">241.0 EH/s</text>
+
+  <!-- Divider -->
+  <line x1="170" y1="385" x2="170" y2="415" stroke="#0033aa" stroke-width="0.5"/>
+
+  <!-- Stat 2 -->
+  <text x="230" y="396" text-anchor="middle" fill="#005588" font-size="8" font-family="monospace">DAILY YIELD</text>
+  <text x="230" y="410" text-anchor="middle" fill="#00ff88" font-size="9" font-family="monospace" font-weight="bold">+2.4% APR</text>
+
+  <line x1="340" y1="385" x2="340" y2="415" stroke="#0033aa" stroke-width="0.5"/>
+
+  <!-- Stat 3 -->
+  <text x="400" y="396" text-anchor="middle" fill="#005588" font-size="8" font-family="monospace">BLOCK REWARD</text>
+  <text x="400" y="410" text-anchor="middle" fill="#f7931a" font-size="9" font-family="monospace" font-weight="bold">3.125 BTC</text>
+
+  <line x1="510" y1="385" x2="510" y2="415" stroke="#0033aa" stroke-width="0.5"/>
+
+  <!-- Stat 4 -->
+  <text x="595" y="396" text-anchor="middle" fill="#005588" font-size="8" font-family="monospace">STATUS</text>
+  <text x="595" y="410" text-anchor="middle" fill="#00ff88" font-size="9" font-family="monospace" font-weight="bold">● MINING</text>
+
+  <!-- === SCANLINE EFFECT === -->
+  <rect x="0" y="0" width="680" height="2" fill="#00aaff" opacity="0.04">
+    <animate attributeName="y" values="0;380;0" dur="5s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- === TOP TITLE === -->
+  <text x="340" y="38" text-anchor="middle" fill="#002255" font-size="11" font-family="monospace" letter-spacing="6" style="animation:glitch 6s linear infinite">CLOUD MINING</text>
+  <text x="340" y="38" text-anchor="middle" fill="#00aaff" font-size="11" font-family="monospace" letter-spacing="6" opacity="0.9" style="animation:glitch 6s linear 0.05s infinite">CLOUD MINING</text>
+  <text x="340" y="56" text-anchor="middle" fill="#004488" font-size="8" font-family="monospace" letter-spacing="4">DECENTRALIZED · SECURE · PROFITABLE</text>
+
+</svg>
+</body>
+</html>

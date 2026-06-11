@@ -1,0 +1,54 @@
+-- PlanType enum
+CREATE TYPE "PlanType" AS ENUM ('SOLO', 'POOLED');
+
+-- PoolStatus enum
+CREATE TYPE "PoolStatus" AS ENUM ('FILLING', 'ACTIVE', 'COMPLETED');
+
+-- Extend Plan
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "planType" "PlanType" NOT NULL DEFAULT 'SOLO';
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "durationDays" INTEGER NOT NULL DEFAULT 100;
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "targetPoolAmount" DOUBLE PRECISION;
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "minContribution" DOUBLE PRECISION;
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "maxParticipants" INTEGER;
+ALTER TABLE "Plan" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- PlanPool
+CREATE TABLE IF NOT EXISTS "PlanPool" (
+    "id" TEXT NOT NULL,
+    "planId" TEXT NOT NULL,
+    "targetAmount" DOUBLE PRECISION NOT NULL,
+    "filledAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "status" "PoolStatus" NOT NULL DEFAULT 'FILLING',
+    "durationDays" INTEGER NOT NULL,
+    "dailyReturnPercent" DOUBLE PRECISION NOT NULL,
+    "startedAt" TIMESTAMP(3),
+    "completedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PlanPool_pkey" PRIMARY KEY ("id")
+);
+
+-- PoolContribution
+CREATE TABLE IF NOT EXISTS "PoolContribution" (
+    "id" TEXT NOT NULL,
+    "poolId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PoolContribution_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "PoolContribution_poolId_userId_key" ON "PoolContribution"("poolId", "userId");
+
+-- Extend UserPlan
+ALTER TABLE "UserPlan" ADD COLUMN IF NOT EXISTS "durationDaysSnapshot" INTEGER NOT NULL DEFAULT 100;
+ALTER TABLE "UserPlan" ADD COLUMN IF NOT EXISTS "dailyProfitSnapshot" DOUBLE PRECISION;
+ALTER TABLE "UserPlan" ADD COLUMN IF NOT EXISTS "poolId" TEXT;
+ALTER TABLE "UserPlan" ADD COLUMN IF NOT EXISTS "contributionShare" DOUBLE PRECISION;
+
+-- Foreign keys
+ALTER TABLE "PlanPool" ADD CONSTRAINT "PlanPool_planId_fkey" FOREIGN KEY ("planId") REFERENCES "Plan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PoolContribution" ADD CONSTRAINT "PoolContribution_poolId_fkey" FOREIGN KEY ("poolId") REFERENCES "PlanPool"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PoolContribution" ADD CONSTRAINT "PoolContribution_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "UserPlan" ADD CONSTRAINT "UserPlan_poolId_fkey" FOREIGN KEY ("poolId") REFERENCES "PlanPool"("id") ON DELETE SET NULL ON UPDATE CASCADE;
