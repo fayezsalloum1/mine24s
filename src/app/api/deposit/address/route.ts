@@ -6,6 +6,8 @@ import {
   usesCustomPlatformWallet,
 } from "@/lib/wallet";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     const auth = await requireAuth();
