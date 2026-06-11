@@ -64,24 +64,24 @@ export default function LandingPage() {
     <div className="page-shell text-white">
       <AppHeader showNotifications={false} />
 
-      <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-        <div className="relative grid lg:grid-cols-2 gap-8 items-center">
-          <div className="relative z-10 text-center lg:text-start">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+        <div className="relative grid lg:grid-cols-2 gap-6 sm:gap-8 items-center">
+          <div className="hero-content-panel text-center lg:text-start">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-5 sm:mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
               Live Cloud Mining Platform
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance text-gradient-gold leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance text-gradient-gold leading-tight">
               {t("heroTitle")}
             </h1>
-            <p className="text-base sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0 text-balance leading-relaxed">
+            <p className="text-sm sm:text-lg text-slate-300 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 text-balance leading-relaxed">
               {t("heroSubtitle")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start max-w-sm sm:max-w-none mx-auto lg:mx-0">
-              <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl text-base">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+              <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl text-base w-full sm:w-auto text-center">
                 {t("getStarted")}
               </Link>
-              <Link href="/login" className="btn-secondary px-8 py-3.5 rounded-xl text-base">
+              <Link href="/login" className="btn-secondary px-8 py-3.5 rounded-xl text-base w-full sm:w-auto text-center">
                 {tc("login")}
               </Link>
             </div>

@@ -15,7 +15,7 @@ export default function HeroStatsStrip({
   liquidation = PLATFORM_DISPLAY_DEFAULTS.totalLiquidation,
 }: Props) {
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-4 mb-6 sm:mb-8 relative z-20">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-2 mb-6 sm:mb-8 relative z-20">
       <div className="glass-panel rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 shadow-panel">
         <div className="text-center sm:text-start sm:border-e sm:border-slate-700/50 sm:pe-4">
           <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1">Registered Miners</p>
