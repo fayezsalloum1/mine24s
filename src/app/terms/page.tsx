@@ -13,20 +13,20 @@ export default function TermsPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader showNotifications={false} />
-      <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-2">{t("title")}</h1>
-        <p className="text-gray-500 text-sm mb-8">{t("updated")}</p>
+      <div className="page-content max-w-3xl">
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="text-slate-500 text-xs sm:text-sm mb-6 sm:mb-8">{t("updated")}</p>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {SECTIONS.map((key) => (
-            <section key={key} className="glass-panel rounded-xl p-6 border border-gray-700/50">
-              <h2 className="text-lg font-bold text-yellow-500/90 mb-2">{t(`${key}Title`)}</h2>
-              <p className="text-gray-400 text-sm leading-relaxed">{t(`${key}Body`)}</p>
+            <section key={key} className="content-card">
+              <h2 className="text-base sm:text-lg font-bold text-amber-400/90 mb-2">{t(`${key}Title`)}</h2>
+              <p className="text-slate-400 text-sm leading-relaxed">{t(`${key}Body`)}</p>
             </section>
           ))}
         </div>
 
-        <Link href="/" className="mt-8 inline-block text-gray-400 hover:text-white">
+        <Link href="/" className="mt-8 inline-block text-slate-400 hover:text-amber-400 text-sm transition-colors">
           ← {tc("back")}
         </Link>
       </div>

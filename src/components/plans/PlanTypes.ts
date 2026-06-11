@@ -6,6 +6,10 @@ export interface ClientPlan {
   dailyReturnPercent: number;
   durationDays: number;
   machineImage?: string | null;
+  machineVideo?: string | null;
+  machineOnline?: boolean;
+  machineUptimeHours?: number;
+  machineOnlineSince?: string | null;
   planType: string;
   isPooled?: boolean;
   targetPoolAmount?: number;

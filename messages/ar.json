@@ -351,8 +351,27 @@
                   "imageUploadFailed":  "فشل رفع الصورة",
                   "imageUploadHint":  "JPEG أو PNG أو WebP أو GIF — بحد أقصى 2 ميجابايت",
                   "imageUrlOrPath":  "أو الصق رابط / مسار الصورة",
-                  "optional":  "اختياري"
+                  "optional":  "اختياري",
+                  "machineVideo":  "فيديو الجهاز (MP4/WebM)",
+                  "uploadVideo":  "رفع فيديو",
+                  "videoUploading":  "جاري رفع الفيديو…",
+                  "videoUploaded":  "تم رفع الفيديو",
+                  "videoUploadFailed":  "فشل رفع الفيديو",
+                  "videoUploadHint":  "MP4 أو WebM — حتى 20 ميجا. يعمل بشكل متكرر على البطاقات.",
+                  "machineOnline":  "الجهاز متصل",
+                  "machineUptimeHours":  "ساعات التشغيل الأساسية",
+                  "machineUptimeHint":  "وقت التشغيل المعروض. يزداد تلقائياً عند تشغيل الجهاز.",
+                  "machineOn":  "متصل",
+                  "machineOff":  "غير متصل",
+                  "turnMachineOn":  "تشغيل",
+                  "turnMachineOff":  "إيقاف"
               },
+    "machine":  {
+                    "online":  "متصل",
+                    "offline":  "غير متصل",
+                    "uptime":  "تشغيل",
+                    "maintenance":  "صيانة"
+                },
     "faq":  {
                 "title":  "الأسئلة الشائعة",
                 "subtitle":  "كل ما تحتاج معرفته عن الإيداع والخطط والمجمعات والسحب.",

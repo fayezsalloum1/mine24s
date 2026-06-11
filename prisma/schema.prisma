@@ -115,6 +115,10 @@ model Plan {
   dailyReturnPercent Float    @default(1)
   durationDays       Int      @default(100)
   machineImage       String?
+  machineVideo       String?
+  machineOnline      Boolean  @default(true)
+  machineUptimeHours Float    @default(8760)
+  machineOnlineSince DateTime?
   planType           PlanType @default(SOLO)
   targetPoolAmount   Float?
   minContribution    Float?

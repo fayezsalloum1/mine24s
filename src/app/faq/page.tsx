@@ -13,23 +13,25 @@ export default function FaqPage() {
   return (
     <div className="page-shell text-white">
       <AppHeader showNotifications={false} />
-      <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-2">{t("title")}</h1>
-        <p className="text-gray-400 mb-8">{t("subtitle")}</p>
+      <div className="page-content max-w-3xl">
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">{t("subtitle")}</p>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {FAQ_KEYS.map((key) => (
-            <details key={key} className="glass-panel rounded-xl border border-gray-700/50 group">
-              <summary className="p-4 cursor-pointer font-medium text-yellow-500/90 hover:text-yellow-500 list-none flex justify-between items-center">
-                {t(`${key}`)}
-                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
+            <details key={key} className="content-card group">
+              <summary className="cursor-pointer font-semibold text-amber-400/90 hover:text-amber-400 list-none flex justify-between items-center gap-3">
+                <span className="text-sm sm:text-base">{t(`${key}`)}</span>
+                <span className="text-slate-500 group-open:rotate-180 transition-transform shrink-0 text-xs">▼</span>
               </summary>
-              <p className="px-4 pb-4 text-gray-400 text-sm leading-relaxed">{t(`${key}a`)}</p>
+              <p className="pt-3 text-slate-400 text-sm leading-relaxed border-t border-slate-800/60 mt-3">
+                {t(`${key}a`)}
+              </p>
             </details>
           ))}
         </div>
 
-        <Link href="/" className="mt-8 inline-block text-gray-400 hover:text-white">
+        <Link href="/" className="mt-8 inline-block text-slate-400 hover:text-amber-400 text-sm transition-colors">
           ← {tc("back")}
         </Link>
       </div>

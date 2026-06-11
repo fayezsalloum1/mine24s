@@ -10,6 +10,7 @@ import PooledPlanCard from "@/components/plans/PooledPlanCard";
 import PlanCardSkeleton from "@/components/ui/PlanCardSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { RegisterIcon, DepositIcon, EarnIcon } from "@/components/StepIcons";
+import MiningHeroVideo from "@/components/MiningHeroVideo";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
 interface Stats {
@@ -50,25 +51,36 @@ export default function LandingPage() {
     <div className="page-shell text-white">
       <AppHeader showNotifications={false} />
 
-      <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center">
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live Cloud Mining Platform
+      <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="relative grid lg:grid-cols-2 gap-8 items-center">
+          <div className="relative z-10 text-center lg:text-start">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live Cloud Mining Platform
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance text-gradient-gold leading-tight">
+              {t("heroTitle")}
+            </h1>
+            <p className="text-base sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0 text-balance leading-relaxed">
+              {t("heroSubtitle")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start max-w-sm sm:max-w-none mx-auto lg:mx-0">
+              <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl text-base">
+                {t("getStarted")}
+              </Link>
+              <Link href="/login" className="btn-secondary px-8 py-3.5 rounded-xl text-base">
+                {tc("login")}
+              </Link>
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 text-balance text-gradient-gold leading-tight">
-            {t("heroTitle")}
-          </h1>
-          <p className="text-base sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto text-balance leading-relaxed">
-            {t("heroSubtitle")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-sm sm:max-w-none mx-auto">
-            <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl text-base">
-              {t("getStarted")}
-            </Link>
-            <Link href="/login" className="btn-secondary px-8 py-3.5 rounded-xl text-base">
-              {tc("login")}
-            </Link>
+          <div className="relative z-10 h-48 sm:h-64 lg:h-72 rounded-2xl overflow-hidden border border-slate-700/50 shadow-panel hidden sm:block">
+            <MiningHeroVideo />
+            <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between text-xs font-mono">
+              <span className="text-emerald-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 mining-status-pulse" /> LIVE
+              </span>
+              <span className="text-amber-400">24/7 MINING</span>
+            </div>
           </div>
         </div>
       </section>

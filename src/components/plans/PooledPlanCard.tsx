@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import MachineImage from "@/components/MachineImage";
+import MiningMachineVisual from "@/components/MiningMachineVisual";
 import { getPooledUserDailyProfit } from "@/lib/plan-pool";
 import type { ClientPlan } from "./PlanTypes";
 
@@ -34,10 +34,16 @@ export default function PooledPlanCard({
 
   return (
     <div className="plan-card plan-card-pooled flex flex-col h-full group">
-      <div className="h-40 sm:h-48 bg-gradient-to-b from-blue-950/40 to-slate-900/90 flex items-center justify-center overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(59_130_246/0.1),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <MachineImage src={plan.machineImage} alt={plan.name} />
-        <span className="absolute top-3 end-3 text-xs bg-blue-600/90 text-blue-100 px-2.5 py-1 rounded-full font-semibold backdrop-blur-sm">
+      <div className="h-44 sm:h-52 relative">
+        <MiningMachineVisual
+          name={plan.name}
+          imageSrc={plan.machineImage}
+          videoSrc={plan.machineVideo}
+          online={plan.machineOnline ?? true}
+          uptimeHours={plan.machineUptimeHours ?? 0}
+          onlineSince={plan.machineOnlineSince}
+        />
+        <span className="absolute top-3 end-3 z-20 text-xs bg-blue-600/90 text-blue-100 px-2.5 py-1 rounded-full font-semibold backdrop-blur-sm">
           {t("shared")}
         </span>
       </div>

@@ -20,20 +20,21 @@ const ICON_FALLBACK: Record<string, string> = {
 
 export default function ExternalLinksBar() {
   return (
-    <div className="bg-gray-800 rounded-lg p-4">
-      <div className="flex flex-wrap gap-4 justify-center items-center">
+    <div className="content-card">
+      <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wider">Trusted Partners & Explorers</p>
+      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center items-center">
         {LINKS.map((link) => (
           <a
             key={link.name}
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition text-sm text-gray-300 hover:text-white"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800/60 border border-slate-700/50 rounded-xl hover:border-amber-500/30 hover:bg-slate-800 transition-all text-xs sm:text-sm text-slate-300 hover:text-white"
           >
             <img
               src={faviconUrl(link.domain)}
               alt={link.name}
-              className="w-5 h-5 rounded"
+              className="w-4 h-4 sm:w-5 sm:h-5 rounded"
               loading="lazy"
               onError={(e) => {
                 const fallback = ICON_FALLBACK[link.name];

@@ -460,15 +460,15 @@ export default function AdminPage() {
             </div>
 
             {selectedUser && (
-              <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                <div className="admin-panel w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-panel">
-                  <h2 className="text-xl font-bold text-yellow-500 mb-4">{selectedUser.email}</h2>
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="admin-panel w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-panel animate-slide-up">
+                  <h2 className="text-lg font-bold text-gradient-gold mb-4">{selectedUser.email}</h2>
                   <p className="text-gray-400 mb-2">{tc("balance")}: ${selectedUser.balance.toFixed(2)}</p>
                   <p className="text-gray-400 mb-4">{t("referrals")}: {selectedUser.referralCount ?? 0}</p>
 
                   {selectedUser.activePlans?.length > 0 && (
-                    <div className="mb-4 p-3 bg-gray-700 rounded">
-                      <h3 className="font-bold text-yellow-500 mb-2">{t("activePlans")}</h3>
+                    <div className="mb-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                      <h3 className="font-bold text-amber-400 mb-2">{t("activePlans")}</h3>
                       {selectedUser.activePlans.map((p: any) => (
                         <div key={p.id} className="text-sm mb-2 border-b border-gray-600 pb-2 last:border-0">
                           <p className="text-white font-medium">{p.planName} — ${p.planPrice}</p>
@@ -480,8 +480,8 @@ export default function AdminPage() {
                   )}
 
                   {referralTree && (
-                    <div className="mb-4 p-3 bg-gray-700 rounded">
-                      <h3 className="font-bold text-yellow-500 mb-2">{t("referralTree")}</h3>
+                    <div className="mb-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                      <h3 className="font-bold text-amber-400 mb-2">{t("referralTree")}</h3>
                       {referralTree.referrer && (
                         <p className="text-sm text-gray-400">↑ {referralTree.referrer.email}</p>
                       )}
@@ -496,13 +496,13 @@ export default function AdminPage() {
                     placeholder="Value"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 mb-2"
+                    className="w-full form-input mb-2"
                   />
                   <textarea
                     placeholder={t("notificationMessage")}
                     value={notificationMsg}
                     onChange={(e) => setNotificationMsg(e.target.value)}
-                    className="w-full p-2 rounded bg-gray-700 mb-4 h-20"
+                    className="w-full form-input mb-4 h-20"
                   />
 
                   <div className="grid grid-cols-2 gap-2">
@@ -520,7 +520,7 @@ export default function AdminPage() {
                     <button onClick={() => { if (confirm("Delete?")) userAction(selectedUser.id, "delete"); }} className="bg-red-800 p-2 rounded text-sm">Delete</button>
                   </div>
 
-                  <button onClick={() => { setSelectedUser(null); setReferralTree(null); }} className="mt-4 w-full bg-gray-700 p-2 rounded">
+                  <button onClick={() => { setSelectedUser(null); setReferralTree(null); }} className="mt-4 w-full btn-outline py-2.5 rounded-xl">
                     {tc("close")}
                   </button>
                 </div>

@@ -37,11 +37,16 @@ function parsePlanBody(body: Record<string, unknown>) {
       dailyReturnPercent,
       durationDays: Math.floor(durationDays),
       machineImage: typeof body.machineImage === "string" ? body.machineImage.trim() : null,
+      machineVideo: typeof body.machineVideo === "string" ? body.machineVideo.trim() || null : null,
       planType: planType as "SOLO" | "POOLED",
       targetPoolAmount: planType === "POOLED" ? targetPoolAmount : null,
       minContribution: planType === "POOLED" ? (minContribution ?? 1) : null,
       maxParticipants: planType === "POOLED" && maxParticipants ? Math.floor(maxParticipants) : null,
       isActive: body.isActive !== false,
+      ...(typeof body.machineOnline === "boolean" ? { machineOnline: body.machineOnline } : {}),
+      ...(body.machineUptimeHours != null && Number.isFinite(Number(body.machineUptimeHours))
+        ? { machineUptimeHours: Math.max(0, Number(body.machineUptimeHours)) }
+        : {}),
     },
   };
 }
@@ -74,7 +79,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const plan = await prisma.plan.create({ data: parsed.data });
+  const plan = await prisma.plan.create({
+    data: {
+      ...parsed.data,
+      machineOnlineSince: parsed.data.machineOnline !== false ? new Date() : null,
+    },
+  });
   return NextResponse.json(plan);
 }
 

@@ -351,8 +351,27 @@
                   "imageUploadFailed":  "Image upload failed",
                   "imageUploadHint":  "JPEG, PNG, WebP, or GIF — max 2 MB",
                   "imageUrlOrPath":  "Or paste image URL / path",
-                  "optional":  "Optional"
+                  "optional":  "Optional",
+                  "machineVideo":  "Machine video (MP4/WebM)",
+                  "uploadVideo":  "Upload video",
+                  "videoUploading":  "Uploading video…",
+                  "videoUploaded":  "Video uploaded",
+                  "videoUploadFailed":  "Video upload failed",
+                  "videoUploadHint":  "MP4 or WebM — max 20 MB. Loops on plan cards.",
+                  "machineOnline":  "Machine online",
+                  "machineUptimeHours":  "Uptime base (hours)",
+                  "machineUptimeHint":  "Displayed uptime. Increases live while machine is ON.",
+                  "machineOn":  "ONLINE",
+                  "machineOff":  "OFFLINE",
+                  "turnMachineOn":  "Turn ON",
+                  "turnMachineOff":  "Turn OFF"
               },
+    "machine":  {
+                    "online":  "Online",
+                    "offline":  "Offline",
+                    "uptime":  "Up",
+                    "maintenance":  "Maintenance"
+                },
     "faq":  {
                 "title":  "Frequently Asked Questions",
                 "subtitle":  "Everything you need to know about deposits, plans, pools, and withdrawals.",

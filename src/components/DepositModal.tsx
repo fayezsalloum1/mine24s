@@ -122,21 +122,21 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="glass-panel rounded-2xl w-full max-w-md p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-panel animate-slide-up">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-yellow-500">{t("title")}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
+          <h2 className="text-lg sm:text-xl font-bold text-gradient-gold">{t("title")}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-800/60 transition-colors">✕</button>
         </div>
 
         <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center text-2xl font-bold">
+          <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-emerald-500 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg shadow-emerald-500/20">
             ₮
           </div>
         </div>
 
-        <label className="block text-gray-400 text-sm mb-2">{t("selectNetwork")}</label>
+        <label className="form-label">{t("selectNetwork")}</label>
         <select
           value={network}
           onChange={(e) => setNetwork(e.target.value as Network)}
-          className="w-full p-3 rounded bg-gray-700 text-white mb-4"
+          className="form-input mb-4"
         >
           <option value="ERC20">{t("networks.ERC20")}</option>
           <option value="BEP20">{t("networks.BEP20")}</option>
@@ -149,26 +149,26 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
           <p className="text-center text-red-400 py-4">{error}</p>
         ) : (
           <>
-            <p className="text-gray-500 text-xs mb-1">
+            <p className="text-slate-500 text-xs mb-1">
               {mode === "custom" ? t("platformAddress") : t("uniqueAddress")}
             </p>
             <div className="flex items-center gap-2 mb-4">
               <input
                 readOnly
                 value={address}
-                className="flex-1 p-2 rounded bg-gray-700 text-white text-sm font-mono break-all"
+                className="flex-1 p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/60 text-white text-xs sm:text-sm font-mono break-all"
               />
               <button
                 onClick={copyAddress}
                 disabled={!address}
-                className="px-4 py-2 bg-yellow-500 text-black rounded font-bold text-sm hover:bg-yellow-400 disabled:opacity-50"
+                className="px-4 py-2.5 btn-primary rounded-xl text-sm disabled:opacity-50 disabled:transform-none"
               >
                 {copied ? tc("copied") : tc("copy")}
               </button>
             </div>
 
             {address && (
-              <div className="flex justify-center mb-4 bg-white p-4 rounded-lg">
+              <div className="flex justify-center mb-4 bg-white p-4 rounded-xl">
                 <QRCode value={address} size={160} />
               </div>
             )}
@@ -178,14 +178,14 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
         <p className="text-orange-400 text-sm text-center mb-4">{t("networkWarning")}</p>
 
         {mode === "custom" ? (
-          <div className="space-y-3 border-t border-gray-700 pt-4">
-            <p className="text-sm text-gray-400">{t("customWalletSteps")}</p>
+          <div className="space-y-3 border-t border-slate-700/60 pt-4">
+            <p className="text-sm text-slate-400">{t("customWalletSteps")}</p>
             <input
               type="number"
               placeholder={t("depositAmount")}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full p-3 rounded bg-gray-700"
+              className="form-input"
               step="0.01"
               min="0"
             />
@@ -194,21 +194,21 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
               placeholder={t("txHash")}
               value={txHash}
               onChange={(e) => setTxHash(e.target.value)}
-              className="w-full p-3 rounded bg-gray-700 font-mono text-sm"
+              className="form-input font-mono"
             />
             {error && address && <p className="text-red-400 text-sm">{error}</p>}
-            {success && <p className="text-green-400 text-sm">{success}</p>}
+            {success && <p className="text-emerald-400 text-sm">{success}</p>}
             <button
               type="button"
               onClick={submitDeposit}
               disabled={submitting || !amount || !txHash}
-              className="w-full p-3 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400 disabled:opacity-50"
+              className="w-full btn-primary py-3 rounded-xl disabled:opacity-50 disabled:transform-none"
             >
               {submitting ? tc("loading") : t("iHaveSent")}
             </button>
           </div>
         ) : (
-          <p className="text-gray-500 text-sm text-center">{t("autoDetect")}</p>
+          <p className="text-slate-500 text-sm text-center">{t("autoDetect")}</p>
         )}
       </div>
     </div>

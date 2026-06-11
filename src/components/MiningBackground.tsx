@@ -71,6 +71,28 @@ export default function MiningBackground() {
         />
       ))}
 
+      {/* Subtle background video on larger screens */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover opacity-[0.12] hidden md:block pointer-events-none"
+        src={process.env.NEXT_PUBLIC_HERO_VIDEO_URL || "https://assets.mixkit.co/videos/preview/mixkit-server-room-with-lights-blinking-4675-large.mp4"}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="none"
+      />
+
+      {/* Floating data streams */}
+      {[10, 30, 55, 75, 90].map((left, i) => (
+        <span
+          key={i}
+          className="mining-data-stream absolute text-[10px] font-mono text-cyan-500/20 pointer-events-none hidden sm:block"
+          style={{ left: `${left}%`, animationDelay: `${i * 0.6}s` }}
+        >
+          0x{((i + 1) * 9731).toString(16)}…
+        </span>
+      ))}
+
       {/* Top vignette + bottom fade for readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/70" />
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950/20 via-transparent to-slate-950/20" />

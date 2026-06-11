@@ -101,15 +101,15 @@ function LoginForm() {
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
 
       {unverifiedEmail && (
-        <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-3 mb-4 text-sm space-y-2">
+        <div className="glass-panel border border-amber-500/20 rounded-xl p-3 mb-4 text-sm space-y-2">
           <button
             type="button"
             onClick={handleResendVerification}
-            className="text-yellow-500 hover:underline block"
+            className="text-amber-400 hover:underline block"
           >
             {t("resendVerificationLink")}
           </button>
-          <Link href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`} className="text-yellow-500 hover:underline block">
+          <Link href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`} className="text-amber-400 hover:underline block">
             {t("verifyEmailTitle")} →
           </Link>
         </div>
@@ -153,7 +153,7 @@ function LoginForm() {
             />
             <span className="text-sm text-gray-400">{t("rememberMe")}</span>
           </label>
-          <Link href="/forgot-password" className="text-sm text-yellow-500 hover:underline font-medium">
+          <Link href="/forgot-password" className="text-sm text-amber-400 hover:underline font-medium">
             {t("forgotPassword")}
           </Link>
         </div>
@@ -165,7 +165,7 @@ function LoginForm() {
 
       <p className="text-gray-400 mt-6 text-center text-sm">
         {t("noAccount")}{" "}
-        <Link href="/register" className="text-yellow-500 hover:underline">
+        <Link href="/register" className="text-amber-400 hover:underline">
           {tc("register")}
         </Link>
       </p>

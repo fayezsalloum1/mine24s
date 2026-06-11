@@ -41,30 +41,30 @@ export default function ReferralLinkActions({ link, className = "" }: ReferralLi
 
   return (
     <div className={className}>
-      <p className="text-gray-400 text-sm mb-2">{t("referralLink")}</p>
+      <p className="text-slate-400 text-sm mb-2">{t("referralLink")}</p>
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           readOnly
           value={link}
-          className="flex-1 p-2 rounded bg-gray-700 text-sm font-mono text-blue-400"
+          className="flex-1 p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/60 text-xs sm:text-sm font-mono text-cyan-400"
         />
         <div className="flex gap-2">
           <button
             onClick={copyLink}
-            className="px-4 py-2 bg-yellow-500 text-black rounded font-bold text-sm hover:bg-yellow-400 whitespace-nowrap"
+            className="flex-1 sm:flex-none px-4 py-2.5 btn-primary rounded-xl text-sm whitespace-nowrap"
           >
             {copied ? tc("copied") : tc("copy")}
           </button>
           <button
             onClick={shareLink}
-            className="px-4 py-2 bg-gray-700 text-white rounded font-bold text-sm hover:bg-gray-600 whitespace-nowrap"
+            className="flex-1 sm:flex-none px-4 py-2.5 btn-outline rounded-xl text-sm whitespace-nowrap"
           >
             {tc("share")}
           </button>
         </div>
       </div>
-      {shareError && <p className="text-green-400 text-xs mt-2">{shareError}</p>}
-      <p className="text-gray-500 text-xs mt-2">{t("referralHint")}</p>
+      {shareError && <p className="text-emerald-400 text-xs mt-2">{shareError}</p>}
+      <p className="text-slate-500 text-xs mt-2">{t("referralHint")}</p>
     </div>
   );
 }

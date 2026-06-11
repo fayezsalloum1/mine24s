@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import AppHeader from "@/components/AppHeader";
+import { AuthButton, AuthPanel } from "@/components/auth/AuthForm";
 
 export default function Verify2FAPage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Verify2FAPage() {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("2fa_email");
@@ -28,44 +30,54 @@ export default function Verify2FAPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const verifyRes = await fetch("/api/auth/2fa/verify-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, code }),
-    });
-    const verifyData = await verifyRes.json();
+    try {
+      const verifyRes = await fetch("/api/auth/2fa/verify-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, code }),
+      });
+      const verifyData = await verifyRes.json();
 
-    if (verifyData.error) {
-      setError(verifyData.error);
-      return;
-    }
+      if (verifyData.error) {
+        setError(verifyData.error);
+        return;
+      }
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      twoFactorVerified: "true",
-      redirect: false,
-    });
+      const res = await signIn("credentials", {
+        email,
+        password,
+        twoFactorVerified: "true",
+        redirect: false,
+      });
 
-    sessionStorage.removeItem("2fa_email");
-    sessionStorage.removeItem("2fa_password");
+      sessionStorage.removeItem("2fa_email");
+      sessionStorage.removeItem("2fa_password");
 
-    if (res?.error) {
-      setError(t("invalidCredentials"));
-    } else {
-      router.push("/dashboard");
+      if (res?.error) {
+        setError(t("invalidCredentials"));
+      } else {
+        router.push("/dashboard");
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <div className="page-shell">
       <AppHeader showNotifications={false} />
-      <div className="flex items-center justify-center p-6">
-        <div className="bg-gray-800 p-8 rounded-lg w-full max-w-md">
-          <h1 className="text-2xl font-bold text-white mb-2">{t("verify2faTitle")}</h1>
-          <p className="text-gray-400 mb-6">{t("verify2faDesc")}</p>
-          {error && <p className="text-red-400 mb-4">{error}</p>}
+      <div className="auth-shell">
+        <AuthPanel>
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl mb-4">
+              🔐
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">{t("verify2faTitle")}</h1>
+            <p className="text-slate-400 text-sm mt-2">{t("verify2faDesc")}</p>
+          </div>
+          {error && <p className="text-red-400 mb-4 text-sm text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -73,16 +85,13 @@ export default function Verify2FAPage() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               maxLength={6}
-              className="w-full p-3 rounded bg-gray-700 text-white text-center text-2xl tracking-widest"
+              className="w-full p-4 rounded-xl bg-slate-950/70 border border-slate-700/80 text-white text-center text-2xl tracking-[0.5em] font-mono focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 outline-none"
             />
-            <button
-              type="submit"
-              className="w-full p-3 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400"
-            >
+            <AuthButton loading={loading} type="submit">
               {t("verify")}
-            </button>
+            </AuthButton>
           </form>
-        </div>
+        </AuthPanel>
       </div>
     </div>
   );

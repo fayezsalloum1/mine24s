@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import MachineImage from "@/components/MachineImage";
+import MiningMachineVisual from "@/components/MiningMachineVisual";
 import type { ClientPlan } from "./PlanTypes";
 
 interface SoloPlanCardProps {
@@ -19,9 +19,15 @@ export default function SoloPlanCard({ plan, mode = "buy", onBuy }: SoloPlanCard
 
   return (
     <div className="plan-card flex flex-col h-full group">
-      <div className="h-40 sm:h-48 bg-gradient-to-b from-slate-800/80 to-slate-900/90 flex items-center justify-center overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgb(245_158_11/0.08),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <MachineImage src={plan.machineImage} alt={plan.name} />
+      <div className="h-44 sm:h-52 relative">
+        <MiningMachineVisual
+          name={plan.name}
+          imageSrc={plan.machineImage}
+          videoSrc={plan.machineVideo}
+          online={plan.machineOnline ?? true}
+          uptimeHours={plan.machineUptimeHours ?? 0}
+          onlineSince={plan.machineOnlineSince}
+        />
       </div>
       <div className="p-5 sm:p-6 flex flex-col flex-1">
         <h3 className="text-lg sm:text-xl font-bold text-gradient-gold mb-1">{plan.name}</h3>

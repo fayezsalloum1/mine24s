@@ -42,3 +42,5 @@ next-env.d.ts
 # uploaded plan images (folder kept via .gitkeep)
 /public/uploads/plans/*
 !/public/uploads/plans/.gitkeep
+/public/uploads/videos/*
+!/public/uploads/videos/.gitkeep

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { getLivePlanStats, formatCountdown } from "@/lib/mining-math";
 import { useNow } from "@/hooks/useNow";
-import MachineImage from "@/components/MachineImage";
+import MiningMachineVisual from "@/components/MiningMachineVisual";
 import EmptyState from "@/components/ui/EmptyState";
 import Link from "next/link";
 
@@ -27,6 +27,10 @@ interface UserPlan {
     durationDays?: number;
     planType?: string;
     machineImage?: string;
+    machineVideo?: string | null;
+    machineOnline?: boolean;
+    machineUptimeHours?: number;
+    machineOnlineSince?: string | null;
   };
 }
 
@@ -60,8 +64,16 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
 
         return (
           <div key={up.id} className="plan-card">
-            <div className="h-28 sm:h-32 bg-gradient-to-b from-slate-800/80 to-slate-900 flex items-center justify-center overflow-hidden">
-              <MachineImage src={up.plan.machineImage} alt={up.plan.name} />
+            <div className="h-36 sm:h-40 relative">
+              <MiningMachineVisual
+                name={up.plan.name}
+                imageSrc={up.plan.machineImage}
+                videoSrc={up.plan.machineVideo}
+                online={up.plan.machineOnline ?? up.isActive}
+                uptimeHours={up.plan.machineUptimeHours ?? 0}
+                onlineSince={up.plan.machineOnlineSince}
+                compact
+              />
             </div>
             <div className="p-4 sm:p-5">
               <div className="flex justify-between items-center gap-2 mb-3">

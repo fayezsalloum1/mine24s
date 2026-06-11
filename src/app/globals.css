@@ -297,6 +297,18 @@ body {
     border-color: rgb(51 65 85 / 0.5);
     box-shadow: 0 4px 24px -8px rgb(0 0 0 / 0.4);
   }
+
+  .form-input {
+    @apply w-full p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/80 text-sm text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/15 outline-none transition-all;
+  }
+
+  .form-label {
+    @apply text-sm text-slate-400 block mb-1;
+  }
+
+  .content-card {
+    @apply glass-panel rounded-2xl p-5 sm:p-6;
+  }
 }
 
 /* Mining background layers */
@@ -322,10 +334,109 @@ body {
   animation: particle-float 8s ease-in-out infinite;
 }
 
-.mining-particle-cyan {
-  background: rgb(34 211 238 / 0.5);
-  box-shadow: 0 0 8px rgb(34 211 238 / 0.3);
+.mining-machine-wrap {
+  min-height: 10rem;
+  background: #020617;
 }
+
+.mining-machine-bg {
+  inset: 0;
+}
+
+.mining-rig-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgb(34 211 238 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  animation: grid-shift 20s linear infinite;
+}
+
+.mining-rig-scanner {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(34 211 238 / 0.08) 48%,
+    rgb(245 158 11 / 0.12) 50%,
+    transparent 52%
+  );
+  animation: scan-line 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mining-rig-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 80%, rgb(52 211 153 / 0.15), transparent 70%);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.mining-fan {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgb(34 211 238 / 0.5);
+  border-radius: 50%;
+  border-top-color: rgb(245 158 11 / 0.8);
+  animation: fan-spin 0.8s linear infinite;
+}
+
+.mining-hash-bar {
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(245 158 11 / 0.8), transparent);
+  animation: hash-slide 2s ease-in-out infinite;
+}
+
+.mining-status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.mining-hero-video-wrap {
+  mask-image: radial-gradient(ellipse 90% 80% at 70% 50%, black 30%, transparent 85%);
+}
+
+@keyframes grid-shift {
+  0% { background-position: 0 0; }
+  100% { background-position: 24px 24px; }
+}
+
+@keyframes scan-line {
+  0%, 100% { transform: translateY(-100%); opacity: 0; }
+  10%, 90% { opacity: 1; }
+  50% { transform: translateY(100%); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes fan-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hash-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0.3); }
+  50% { box-shadow: 0 0 12px 2px rgb(52 211 153 / 0.2); }
+}
+
+@keyframes data-stream {
+  0% { transform: translateY(100%); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+.mining-data-stream {
+  animation: data-stream 3s linear infinite;
+}
+
 
 @keyframes particle-float {
   0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }

@@ -298,10 +298,10 @@ function RegisterForm() {
         </AuthField>
 
         <div
-          className={`rounded-lg border p-4 transition-colors ${
+          className={`rounded-xl border p-4 transition-colors ${
             touched.acceptTerms && errors.acceptTerms
               ? "border-red-500/50 bg-red-950/20"
-              : "border-gray-800 bg-gray-950/50"
+              : "border-slate-700/60 bg-slate-950/40"
           }`}
         >
           <label className="flex items-start gap-3 cursor-pointer">
@@ -321,7 +321,7 @@ function RegisterForm() {
             />
             <span className="text-sm text-gray-300 leading-relaxed">
               {t("acceptTerms")}{" "}
-              <Link href="/terms" target="_blank" className="text-yellow-500 hover:underline">
+              <Link href="/terms" target="_blank" className="text-amber-400 hover:underline">
                 {t("termsOfService")}
               </Link>
             </span>
@@ -338,7 +338,7 @@ function RegisterForm() {
 
       <p className="text-gray-400 mt-8 text-center text-sm">
         {t("haveAccount")}{" "}
-        <Link href="/login" className="text-yellow-500 hover:underline font-medium">
+        <Link href="/login" className="text-amber-400 hover:underline font-medium">
           {tc("login")}
         </Link>
       </p>
