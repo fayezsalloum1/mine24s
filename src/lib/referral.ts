@@ -3,6 +3,7 @@ import { createNotification } from "@/lib/notifications";
 import { sendEmail, referralCommissionHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
 
+/** Pay 10% commission to referrer on the buyer's first plan purchase only. */
 export async function processReferralCommission(
   buyerId: string,
   planPrice: number
@@ -10,10 +11,11 @@ export async function processReferralCommission(
   const buyer = await prisma.user.findUnique({ where: { id: buyerId } });
   if (!buyer?.referredBy) return;
 
-  const existingPlans = await prisma.userPlan.count({
-    where: { userId: buyerId },
+  const planPurchases = await prisma.transaction.count({
+    where: { userId: buyerId, type: "PLAN_PURCHASE", status: "CONFIRMED" },
   });
-  if (existingPlans > 1) return;
+  // Called after the purchase transaction — exactly one purchase means first buy.
+  if (planPurchases !== 1) return;
 
   const commission = planPrice * 0.1;
   const referrer = await prisma.user.findUnique({
@@ -70,4 +72,8 @@ export async function getReferralStats(userId: string) {
     totalReferrals,
     totalEarned: referralEarnings._sum.amount ?? 0,
   };
+}
+
+export function normalizeReferralCode(code: string) {
+  return code.trim().toUpperCase();
 }

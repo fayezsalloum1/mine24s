@@ -11,6 +11,7 @@ import {
 } from "@/lib/wallet";
 import { sendEmail, welcomeEmailHtml } from "@/lib/email";
 import { BRAND_NAME } from "@/lib/constants";
+import { normalizeReferralCode } from "@/lib/referral";
 
 export async function POST(req: Request) {
   try {
@@ -27,8 +28,9 @@ export async function POST(req: Request) {
 
     let referredBy = null;
     if (referralCode) {
+      const normalizedCode = normalizeReferralCode(String(referralCode));
       const referrer = await prisma.user.findUnique({
-        where: { referralCode },
+        where: { referralCode: normalizedCode },
       });
       if (referrer) referredBy = referrer.id;
     }

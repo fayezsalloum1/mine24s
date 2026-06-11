@@ -88,6 +88,7 @@
                  "invalidCredentials":  "Invalid email or password",
                  "accountFrozen":  "Your account has been frozen. Contact support.",
                  "referralCode":  "Referral Code (optional)",
+                 "referralApplied":  "Referral code applied — you will be linked to your referrer.",
                  "verify2faTitle":  "Two-Factor Authentication",
                  "verify2faDesc":  "Enter the 6-digit code from your authenticator app.",
                  "verificationCode":  "Verification Code",

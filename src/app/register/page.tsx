@@ -1,10 +1,12 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+
+const REF_STORAGE_KEY = "mining-farm-ref";
 
 function RegisterForm() {
   const router = useRouter();
@@ -13,20 +15,38 @@ function RegisterForm() {
   const tc = useTranslations("common");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
+  const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("ref");
+    if (fromUrl) {
+      const normalized = fromUrl.trim().toUpperCase();
+      setReferralCode(normalized);
+      localStorage.setItem(REF_STORAGE_KEY, normalized);
+      return;
+    }
+    const stored = localStorage.getItem(REF_STORAGE_KEY);
+    if (stored) setReferralCode(stored);
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const normalizedRef = referralCode.trim().toUpperCase();
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, referralCode: referralCode || undefined }),
+      body: JSON.stringify({
+        email,
+        password,
+        referralCode: normalizedRef || undefined,
+      }),
     });
     const data = await res.json();
     if (data.error) {
       setError(data.error);
     } else {
+      localStorage.removeItem(REF_STORAGE_KEY);
       router.push("/login");
     }
   }
@@ -54,9 +74,12 @@ function RegisterForm() {
           type="text"
           placeholder={t("referralCode")}
           value={referralCode}
-          onChange={(e) => setReferralCode(e.target.value)}
+          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
           className="w-full p-3 rounded bg-gray-700 text-white"
         />
+        {referralCode && (
+          <p className="text-xs text-green-400">{t("referralApplied")}</p>
+        )}
         <button
           type="submit"
           className="w-full p-3 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400"
