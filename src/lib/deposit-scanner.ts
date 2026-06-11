@@ -4,7 +4,6 @@ import { USDT, SCAN_BLOCKS } from "@/lib/constants";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail, depositConfirmedHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
-import { processAllDueMiningEarnings } from "@/lib/mining";
 import { sweepUsdtToAdmin } from "@/lib/sweep";
 import {
   ADMIN_WALLET_INDEX,
@@ -407,13 +406,9 @@ export function startDepositScanner() {
 
   const intervalMs = Number(process.env.DEPOSIT_SCAN_INTERVAL_MS || 120000);
 
-  scanDeposits()
-    .then(() => processAllDueMiningEarnings())
-    .catch(console.error);
+  scanDeposits().catch(console.error);
   scannerInterval = setInterval(() => {
-    scanDeposits()
-    .then(() => processAllDueMiningEarnings())
-    .catch(console.error);
+    scanDeposits().catch(console.error);
   }, intervalMs);
 
   console.log(`[DepositScanner] Started (every ${intervalMs / 1000}s)`);
