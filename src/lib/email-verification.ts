@@ -17,11 +17,16 @@ export async function sendVerificationEmail(userId: string, email: string) {
   });
   await resetVerificationAttempts(userId);
 
-  await sendEmail(
-    email,
-    `Verify your ${BRAND_NAME} email`,
-    emailVerificationHtml(code)
-  );
+  try {
+    await sendEmail(
+      email,
+      `Verify your ${BRAND_NAME} email`,
+      emailVerificationHtml(code)
+    );
+  } catch (err) {
+    console.error("[email-verification] SMTP send failed:", err);
+    throw err;
+  }
 }
 
 export async function sendWelcomeAfterVerification(userId: string, email: string) {

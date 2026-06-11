@@ -118,3 +118,44 @@ export function getPlatformDepositAddresses() {
 export function getNextWalletIndex(currentMax: number | null): number {
   return (currentMax ?? -1) + 1;
 }
+
+export class WalletConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "WalletConfigError";
+  }
+}
+
+/** Unique walletIndex per user; shared treasury addresses when using custom platform wallet. */
+export async function assignWalletForNewUser(prisma: {
+  user: { aggregate: (args: { _max: { walletIndex: true } }) => Promise<{ _max: { walletIndex: number | null } }> };
+}) {
+  const agg = await prisma.user.aggregate({ _max: { walletIndex: true } });
+  const walletIndex = getNextWalletIndex(agg._max.walletIndex);
+
+  if (usesCustomPlatformWallet()) {
+    if (!getConfiguredTreasuryAddresses()) {
+      throw new WalletConfigError(
+        "Platform wallet not configured. Set ADMIN_TREASURY_EVM and ADMIN_TREASURY_TRC20."
+      );
+    }
+    const platform = getPlatformDepositAddresses();
+    return {
+      walletIndex,
+      depositAddress: platform.depositAddress,
+      tronDepositAddress: platform.tronDepositAddress,
+    };
+  }
+
+  if (!hasHdWalletConfigured()) {
+    throw new WalletConfigError(
+      "Wallet not configured. Set USE_CUSTOM_PLATFORM_WALLET=true with treasury addresses, or MASTER_WALLET_MNEMONIC."
+    );
+  }
+
+  return {
+    walletIndex,
+    depositAddress: generateDepositAddress(walletIndex),
+    tronDepositAddress: generateTronDepositAddress(walletIndex),
+  };
+}

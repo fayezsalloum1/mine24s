@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import {
-  generateDepositAddress,
-  generateTronDepositAddress,
-  getConfiguredTreasuryAddresses,
-  getNextWalletIndex,
-  getPlatformDepositAddresses,
-  usesCustomPlatformWallet,
-} from "@/lib/wallet";
+import { assignWalletForNewUser, WalletConfigError } from "@/lib/wallet";
 import { normalizeReferralCode } from "@/lib/referral";
 import { sendVerificationEmail } from "@/lib/email-verification";
 import { isValidEmail } from "@/lib/password-strength";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, fullName, phoneNumber, referralCode, acceptTerms } = await req.json();
+    const body = await req.json();
+    const { email, password, fullName, phoneNumber, referralCode, acceptTerms } = body;
 
-    if (!email || !password || !fullName) {
+    if (!email || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
+    const resolvedFullName = String(fullName || "").trim() || normalizedEmail.split("@")[0];
 
     if (!isValidEmail(normalizedEmail)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
@@ -31,7 +27,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
     }
 
-    if (!acceptTerms) {
+    if (acceptTerms !== true) {
       return NextResponse.json({ error: "You must accept the terms of service" }, { status: 400 });
     }
 
@@ -49,28 +45,7 @@ export async function POST(req: Request) {
       if (referrer) referredBy = referrer.id;
     }
 
-    let walletIndex: number;
-    let depositAddress: string;
-    let tronDepositAddress: string;
-
-    if (usesCustomPlatformWallet()) {
-      if (!getConfiguredTreasuryAddresses()) {
-        return NextResponse.json(
-          { error: "Platform wallet not configured. Set ADMIN_TREASURY_EVM and ADMIN_TREASURY_TRC20." },
-          { status: 500 }
-        );
-      }
-      const platform = getPlatformDepositAddresses();
-      walletIndex = 0;
-      depositAddress = platform.depositAddress;
-      tronDepositAddress = platform.tronDepositAddress;
-    } else {
-      const agg = await prisma.user.aggregate({ _max: { walletIndex: true } });
-      walletIndex = getNextWalletIndex(agg._max.walletIndex);
-      depositAddress = generateDepositAddress(walletIndex);
-      tronDepositAddress = generateTronDepositAddress(walletIndex);
-    }
-
+    const { walletIndex, depositAddress, tronDepositAddress } = await assignWalletForNewUser(prisma);
     const hashedPassword = await bcrypt.hash(String(password), 10);
     const newReferralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -78,7 +53,7 @@ export async function POST(req: Request) {
       data: {
         email: normalizedEmail,
         password: hashedPassword,
-        fullName: String(fullName).trim(),
+        fullName: resolvedFullName,
         phoneNumber: phoneNumber ? String(phoneNumber).trim() : null,
         walletIndex,
         depositAddress,
@@ -89,14 +64,47 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendVerificationEmail(user.id, user.email);
+    let emailSent = true;
+    try {
+      await sendVerificationEmail(user.id, user.email);
+    } catch (emailErr) {
+      emailSent = false;
+      console.error("[register] verification email failed:", emailErr);
+    }
 
     return NextResponse.json({
       success: true,
       user: { id: user.id, email: user.email },
       requiresVerification: true,
+      emailSent,
     });
-  } catch {
+  } catch (err) {
+    console.error("[register]", err);
+
+    if (err instanceof WalletConfigError) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        return NextResponse.json({ error: "An account with this email already exists" }, { status: 400 });
+      }
+      if (err.code === "P2022") {
+        return NextResponse.json(
+          { error: "Database schema out of date. Run: npx prisma migrate deploy" },
+          { status: 500 }
+        );
+      }
+    }
+
+    const message = err instanceof Error ? err.message : "Unknown error";
+    if (message.includes("Unknown arg") || message.includes("does not exist")) {
+      return NextResponse.json(
+        { error: "Database migration required. Run: npx prisma migrate deploy" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
