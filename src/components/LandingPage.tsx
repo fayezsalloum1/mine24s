@@ -65,8 +65,8 @@ export default function LandingPage() {
       <AppHeader showNotifications={false} />
 
       <section className="hero-glow relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
-        <div className="relative grid lg:grid-cols-2 gap-6 sm:gap-8 items-center">
-          <div className="hero-content-panel text-center lg:text-start">
+        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+          <div className="hero-content-panel text-center lg:text-start order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs sm:text-sm font-semibold mb-5 sm:mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
               Live Cloud Mining Platform
@@ -86,13 +86,13 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-          <div className="relative z-10 h-48 sm:h-64 lg:h-72 rounded-2xl overflow-hidden border border-slate-700/50 shadow-panel hidden sm:block">
+          <div className="relative h-52 sm:h-64 lg:h-72 rounded-2xl overflow-hidden border border-slate-600/50 shadow-panel order-1 lg:order-2">
             <MiningHeroVideo />
-            <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between text-xs font-mono">
-              <span className="text-emerald-400 flex items-center gap-1">
+            <div className="absolute bottom-0 inset-x-0 z-10 flex justify-between px-4 py-3 bg-gradient-to-t from-black/80 to-transparent text-xs font-mono">
+              <span className="text-emerald-400 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 mining-status-pulse" /> LIVE
               </span>
-              <span className="text-amber-400">24/7 MINING</span>
+              <span className="text-amber-400">☁️ BTC · 24/7 MINING</span>
             </div>
           </div>
         </div>
