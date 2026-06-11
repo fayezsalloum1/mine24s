@@ -133,7 +133,8 @@
                  "hidePassword":  "Hide",
                  "strength_weak":  "Weak password",
                  "strength_medium":  "Medium strength",
-                 "strength_strong":  "Strong password"
+                 "strength_strong":  "Strong password",
+                 "fixFormErrors":  "Please fix the errors below before continuing."
              },
     "dashboard":  {
                       "title":  "Cloud Mining Dashboard",

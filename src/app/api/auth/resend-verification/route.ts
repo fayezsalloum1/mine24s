@@ -31,9 +31,12 @@ export async function POST(req: Request) {
       );
     }
 
-    await sendVerificationEmail(user.id, user.email);
+    const result = await sendVerificationEmail(user.id, user.email);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      autoVerified: result.autoVerified,
+    });
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

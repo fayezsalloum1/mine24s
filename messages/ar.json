@@ -133,7 +133,8 @@
                  "hidePassword":  "إخفاء",
                  "strength_weak":  "كلمة مرور ضعيفة",
                  "strength_medium":  "قوة متوسطة",
-                 "strength_strong":  "كلمة مرور قوية"
+                 "strength_strong":  "كلمة مرور قوية",
+                 "fixFormErrors":  "يرجى تصحيح الأخطاء أدناه قبل المتابعة."
              },
     "dashboard":  {
                       "title":  "لوحة Cloud Mining",

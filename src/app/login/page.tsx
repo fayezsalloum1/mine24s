@@ -101,14 +101,17 @@ function LoginForm() {
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
 
       {unverifiedEmail && (
-        <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-3 mb-4 text-sm">
+        <div className="bg-gray-800 border border-yellow-500/30 rounded-lg p-3 mb-4 text-sm space-y-2">
           <button
             type="button"
             onClick={handleResendVerification}
-            className="text-yellow-500 hover:underline"
+            className="text-yellow-500 hover:underline block"
           >
             {t("resendVerificationLink")}
           </button>
+          <Link href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`} className="text-yellow-500 hover:underline block">
+            {t("verifyEmailTitle")} →
+          </Link>
         </div>
       )}
 
@@ -138,22 +141,22 @@ function LoginForm() {
               {showPassword ? t("hidePassword") : t("showPassword")}
             </button>
           </div>
-          <div className="mt-1 text-right">
-            <Link href="/forgot-password" className="text-xs text-yellow-500 hover:underline">
-              {t("forgotPassword")}
-            </Link>
-          </div>
         </AuthField>
 
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="accent-yellow-500"
-          />
-          <span className="text-sm text-gray-400">{t("rememberMe")}</span>
-        </label>
+        <div className="flex items-center justify-between gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="accent-yellow-500"
+            />
+            <span className="text-sm text-gray-400">{t("rememberMe")}</span>
+          </label>
+          <Link href="/forgot-password" className="text-sm text-yellow-500 hover:underline font-medium">
+            {t("forgotPassword")}
+          </Link>
+        </div>
 
         <AuthButton loading={loading} type="submit">
           {tc("login")}

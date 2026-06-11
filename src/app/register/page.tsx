@@ -63,12 +63,17 @@ function RegisterForm() {
   }
 
   function validateAll() {
+    const fields = ["fullName", "email", "password", "confirmPassword", "acceptTerms"] as const;
     const next: Record<string, string> = {};
-    ["fullName", "email", "password", "confirmPassword", "acceptTerms"].forEach((field) => {
+    fields.forEach((field) => {
       const err = validateField(field);
       if (err) next[field] = err;
     });
     setErrors(next);
+    setTouched(Object.fromEntries(fields.map((f) => [f, true])));
+    if (Object.keys(next).length > 0) {
+      setFormError(t("fixFormErrors"));
+    }
     return Object.keys(next).length === 0;
   }
 
@@ -93,11 +98,22 @@ function RegisterForm() {
       });
       const data = await res.json();
       if (data.error) {
-        setFormError(data.error);
+        if (data.alreadyRegistered) {
+          setFormError(data.error);
+        } else {
+          setFormError(data.error);
+        }
         return;
       }
       localStorage.removeItem(REF_STORAGE_KEY);
       sessionStorage.setItem("verify_email", email.trim().toLowerCase());
+      if (data.autoVerified || !data.requiresVerification) {
+        router.push("/login?verified=1");
+        return;
+      }
+      if (data.existingAccount) {
+        sessionStorage.setItem("verify_notice", data.message || "");
+      }
       router.push(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     } finally {
       setLoading(false);
@@ -110,6 +126,15 @@ function RegisterForm() {
       <p className="text-gray-400 text-sm mb-6">{t("registerSubtitle")}</p>
 
       {formError && <p className="text-red-400 mb-4 text-sm">{formError}</p>}
+      {formError && formError.includes("log in") && (
+        <p className="text-yellow-500 mb-4 text-sm">
+          <Link href="/login" className="hover:underline">{t("backToLogin")}</Link>
+          {" · "}
+          <Link href={`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`} className="hover:underline">
+            {t("verifyEmailTitle")}
+          </Link>
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthField label={t("fullName")} error={touched.fullName ? errors.fullName : undefined}>

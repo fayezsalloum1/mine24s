@@ -1,26 +1,48 @@
 import { BRAND_NAME } from "./constants";
 
+export function isEmailConfigured() {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
+  return Boolean(host && user && pass);
+}
+
+export function getEmailConfigStatus() {
+  return {
+    configured: isEmailConfigured(),
+    host: Boolean(process.env.SMTP_HOST?.trim()),
+    user: Boolean(process.env.SMTP_USER?.trim()),
+    pass: Boolean(process.env.SMTP_PASS?.trim()),
+    from: Boolean((process.env.SMTP_FROM || process.env.SMTP_USER)?.trim()),
+    port: process.env.SMTP_PORT || "587",
+  };
+}
+
 export async function sendEmail(to: string, subject: string, html: string) {
-  if (!process.env.SMTP_HOST) {
+  if (!isEmailConfigured()) {
     console.log(`[Email skipped] To: ${to}, Subject: ${subject}`);
-    return;
+    return false;
   }
+
   const nodemailer = await import("nodemailer");
+  const port = Number(process.env.SMTP_PORT || 587);
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT) === 465,
+    port,
+    secure: port === 465,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
   });
+
   await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
     subject,
     html,
   });
+  return true;
 }
 
 export function welcomeEmailHtml(email: string, referralLink: string) {

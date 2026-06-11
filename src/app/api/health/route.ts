@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getEmailConfigStatus } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -8,6 +9,8 @@ export async function GET() {
       ok: true,
       database: "connected",
       environment: process.env.NODE_ENV ?? "development",
+      email: getEmailConfigStatus(),
+      nextauthUrl: Boolean(process.env.NEXTAUTH_URL?.trim()),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Database unreachable";

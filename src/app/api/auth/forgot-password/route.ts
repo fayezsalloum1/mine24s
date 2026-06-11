@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, passwordResetHtml } from "@/lib/email";
+import { sendEmail, passwordResetHtml, isEmailConfigured } from "@/lib/email";
 import { generateResetToken, PASSWORD_RESET_TTL_MS } from "@/lib/auth-codes";
 import {
   canRequestPasswordReset,
@@ -17,6 +17,13 @@ export async function POST(req: Request) {
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (!isEmailConfigured()) {
+      return NextResponse.json({
+        success: false,
+        error: "Password reset emails are not configured yet. Please contact support.",
+      }, { status: 503 });
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
@@ -38,16 +45,25 @@ export async function POST(req: Request) {
 
         const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        await sendEmail(
-          user.email,
-          `Reset your ${BRAND_NAME} password`,
-          passwordResetHtml(resetLink)
-        );
+        try {
+          await sendEmail(
+            user.email,
+            `Reset your ${BRAND_NAME} password`,
+            passwordResetHtml(resetLink)
+          );
+        } catch (sendErr) {
+          console.error("[forgot-password] SMTP send failed:", sendErr);
+          return NextResponse.json({
+            success: false,
+            error: "Could not send reset email. Check SMTP settings in Vercel (host, user, app password) and redeploy.",
+          }, { status: 502 });
+        }
       }
     }
 
     return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
-  } catch {
+  } catch (err) {
+    console.error("[forgot-password]", err);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

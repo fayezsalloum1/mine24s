@@ -16,6 +16,7 @@ function VerifyEmailForm() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [expired, setExpired] = useState(false);
   const [locked, setLocked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,12 @@ function VerifyEmailForm() {
   useEffect(() => {
     const fromUrl = searchParams.get("email");
     const stored = sessionStorage.getItem("verify_email");
+    const notice = sessionStorage.getItem("verify_notice");
     setEmail((fromUrl || stored || "").trim().toLowerCase());
+    if (notice) {
+      setInfo(notice);
+      sessionStorage.removeItem("verify_notice");
+    }
   }, [searchParams]);
 
   async function handleVerify(e: React.FormEvent) {
@@ -80,6 +86,7 @@ function VerifyEmailForm() {
       <h1 className="text-2xl font-bold text-white mb-2">{t("verifyEmailTitle")}</h1>
       <p className="text-gray-400 text-sm mb-6">{t("verifyEmailDesc")}</p>
 
+      {info && <p className="text-green-400 mb-4 text-sm">{info}</p>}
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
       {resent && <p className="text-green-400 mb-4 text-sm">{t("verificationSent")}</p>}
 

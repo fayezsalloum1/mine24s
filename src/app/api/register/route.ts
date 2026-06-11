@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { assignWalletForNewUser, WalletConfigError } from "@/lib/wallet";
 import { normalizeReferralCode } from "@/lib/referral";
-import { sendVerificationEmail } from "@/lib/email-verification";
+import { autoVerifyUser, sendVerificationEmail } from "@/lib/email-verification";
 import { isValidEmail } from "@/lib/password-strength";
+import { isEmailConfigured } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -33,7 +34,40 @@ export async function POST(req: Request) {
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+      if (!existing.emailVerified) {
+        let autoVerified = false;
+        try {
+          const result = await sendVerificationEmail(existing.id, existing.email);
+          autoVerified = result.autoVerified;
+        } catch (emailErr) {
+          console.error("[register] resend verification failed:", emailErr);
+          if (!isEmailConfigured()) {
+            await autoVerifyUser(existing.id, existing.email);
+            autoVerified = true;
+          }
+        }
+
+        if (autoVerified) {
+          return NextResponse.json({
+            success: true,
+            requiresVerification: false,
+            autoVerified: true,
+            existingAccount: true,
+            message: "Account activated. You can log in now.",
+          });
+        }
+
+        return NextResponse.json({
+          success: true,
+          requiresVerification: true,
+          existingAccount: true,
+          message: "Account already exists but email is not verified. A new verification code has been sent.",
+        });
+      }
+      return NextResponse.json(
+        { error: "An account with this email already exists. Please log in instead.", alreadyRegistered: true },
+        { status: 400 }
+      );
     }
 
     let referredBy = null;
@@ -64,19 +98,27 @@ export async function POST(req: Request) {
       },
     });
 
-    let emailSent = true;
+    let requiresVerification = true;
+    let autoVerified = false;
     try {
-      await sendVerificationEmail(user.id, user.email);
+      const result = await sendVerificationEmail(user.id, user.email);
+      requiresVerification = !result.autoVerified;
+      autoVerified = result.autoVerified;
     } catch (emailErr) {
-      emailSent = false;
       console.error("[register] verification email failed:", emailErr);
+      if (!isEmailConfigured()) {
+        await autoVerifyUser(user.id, user.email);
+        requiresVerification = false;
+        autoVerified = true;
+      }
     }
 
     return NextResponse.json({
       success: true,
       user: { id: user.id, email: user.email },
-      requiresVerification: true,
-      emailSent,
+      requiresVerification,
+      autoVerified,
+      emailSent: isEmailConfigured(),
     });
   } catch (err) {
     console.error("[register]", err);
