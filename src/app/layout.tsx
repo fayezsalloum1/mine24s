@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import SessionProvider from "@/components/SessionProvider";
 import LocaleProvider from "@/components/LocaleProvider";
 import MiningBackground from "@/components/MiningBackground";
+import RainingCoins from "@/components/RainingCoins";
 import AppProviders from "@/components/AppProviders";
 
 const cairo = Cairo({
@@ -28,6 +29,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${cairo.variable} font-sans text-white relative`}>
         <MiningBackground />
+        <RainingCoins />
         <div className="relative z-10">
           <SessionProvider session={session}>
             <LocaleProvider>

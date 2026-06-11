@@ -513,3 +513,45 @@ body {
     transform: none;
   }
 }
+
+@keyframes rain {
+  0% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
+.raining-coins-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.raining-coin {
+  position: absolute;
+  top: 0;
+  line-height: 1;
+  font-weight: 700;
+  user-select: none;
+  will-change: transform, opacity;
+  animation: rain linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raining-coins-layer {
+    display: none;
+  }
+}
