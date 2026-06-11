@@ -59,6 +59,8 @@
                     "totalUsers":  "المعدّنون المسجّلون",
                     "totalPaid":  "إجمالي المدفوعات",
                     "totalLiquidation":  "إجمالي التصفية",
+                    "activePlans":  "خطط التعدين النشطة",
+                    "miningNow":  "تعدين الآن",
                     "platformStatsHint":  "مؤشرات المنصة المحدّثة لحظياً.",
                     "liveCounter":  "مباشر",
                     "liquidationHint":  "إجمالي الأرباح المدفوعة للمعدّنين حول العالم",

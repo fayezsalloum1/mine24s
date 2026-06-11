@@ -12,11 +12,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import { RegisterIcon, DepositIcon, EarnIcon } from "@/components/StepIcons";
 import MiningHeroVideo from "@/components/MiningHeroVideo";
 import PlatformStatsShowcase from "@/components/PlatformStatsShowcase";
+import HeroStatsStrip from "@/components/HeroStatsStrip";
+import { PLATFORM_DISPLAY_DEFAULTS } from "@/lib/platform-display-stats";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
 interface Stats {
   totalUsers: number;
   totalLiquidation: number;
+  activePlans: number;
 }
 
 const STEPS = [
@@ -30,7 +33,11 @@ export default function LandingPage() {
   const tc = useTranslations("common");
   const tn = useTranslations("nav");
   const [plans, setPlans] = useState<ClientPlan[]>([]);
-  const [stats, setStats] = useState<Stats>({ totalUsers: 10299, totalLiquidation: 5_498_900 });
+  const [stats, setStats] = useState<Stats>({
+    totalUsers: PLATFORM_DISPLAY_DEFAULTS.totalUsers,
+    totalLiquidation: PLATFORM_DISPLAY_DEFAULTS.totalLiquidation,
+    activePlans: PLATFORM_DISPLAY_DEFAULTS.activePlans,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,8 +48,10 @@ export default function LandingPage() {
       .then(([plansData, statsData]) => {
         setPlans(Array.isArray(plansData) ? plansData : []);
         setStats({
-          totalUsers: statsData?.totalUsers ?? 10299,
-          totalLiquidation: statsData?.totalLiquidation ?? statsData?.totalPaid ?? 5_498_900,
+          totalUsers: statsData?.totalUsers ?? PLATFORM_DISPLAY_DEFAULTS.totalUsers,
+          totalLiquidation:
+            statsData?.totalLiquidation ?? statsData?.totalPaid ?? PLATFORM_DISPLAY_DEFAULTS.totalLiquidation,
+          activePlans: statsData?.activePlans ?? PLATFORM_DISPLAY_DEFAULTS.activePlans,
         });
       })
       .finally(() => setLoading(false));
@@ -88,6 +97,18 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <HeroStatsStrip
+        users={stats.totalUsers}
+        activePlans={stats.activePlans}
+        liquidation={stats.totalLiquidation}
+      />
+
+      <PlatformStatsShowcase
+        totalUsers={stats.totalUsers}
+        totalLiquidation={stats.totalLiquidation}
+        activePlans={stats.activePlans}
+      />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <h2 className="section-title">{t("howItWorks")}</h2>
@@ -151,11 +172,6 @@ export default function LandingPage() {
           </>
         )}
       </section>
-
-      <PlatformStatsShowcase
-        totalUsers={stats.totalUsers}
-        totalLiquidation={stats.totalLiquidation}
-      />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <ExternalLinksBar />

@@ -59,6 +59,8 @@
                     "totalUsers":  "Registered Miners",
                     "totalPaid":  "Total Paid Out",
                     "totalLiquidation":  "Total Liquidation",
+                    "activePlans":  "Active Mining Plans",
+                    "miningNow":  "Mining now",
                     "platformStatsHint":  "Live platform metrics updated in real time.",
                     "liveCounter":  "Live",
                     "liquidationHint":  "Cumulative profits paid to miners worldwide",

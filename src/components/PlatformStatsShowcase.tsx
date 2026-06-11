@@ -5,18 +5,20 @@ import { useTranslations } from "next-intl";
 import {
   formatLiquidationUsd,
   formatStatNumber,
+  PLATFORM_DISPLAY_DEFAULTS,
 } from "@/lib/platform-display-stats";
 
 type Props = {
   totalUsers: number;
   totalLiquidation: number;
+  activePlans: number;
 };
 
 function useCountUp(target: number, durationMs = 2200) {
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(target);
 
   useEffect(() => {
-    const start = Math.max(0, target * 0.92);
+    const start = Math.max(0, target * 0.94);
     const startTime = performance.now();
 
     let frame: number;
@@ -35,68 +37,83 @@ function useCountUp(target: number, durationMs = 2200) {
   return value;
 }
 
-function useLiveDrift(baseTarget: number, userDrift: boolean) {
+function useLiveDrift(baseTarget: number, step: number, intervalMs: number) {
   const [extra, setExtra] = useState(0);
 
   useEffect(() => {
     setExtra(0);
-    const intervalMs = userDrift ? 28_000 : 18_000;
-    const step = userDrift ? 1 : 127;
-
-    const id = setInterval(() => {
-      setExtra((e) => e + step);
-    }, intervalMs);
-
+    const id = setInterval(() => setExtra((e) => e + step), intervalMs);
     return () => clearInterval(id);
-  }, [baseTarget, userDrift]);
+  }, [baseTarget, step, intervalMs]);
 
   return baseTarget + extra;
 }
 
-export default function PlatformStatsShowcase({ totalUsers, totalLiquidation }: Props) {
+export default function PlatformStatsShowcase({
+  totalUsers = PLATFORM_DISPLAY_DEFAULTS.totalUsers,
+  totalLiquidation = PLATFORM_DISPLAY_DEFAULTS.totalLiquidation,
+  activePlans = PLATFORM_DISPLAY_DEFAULTS.activePlans,
+}: Props) {
   const t = useTranslations("landing");
-  const liveUsers = useLiveDrift(totalUsers, true);
-  const liveLiquidation = useLiveDrift(totalLiquidation, false);
+
+  const liveUsers = useLiveDrift(totalUsers, 1, 30_000);
+  const livePlans = useLiveDrift(activePlans, 1, 45_000);
+  const liveLiquidation = useLiveDrift(totalLiquidation, 215, 12_000);
+
   const animatedUsers = useCountUp(liveUsers);
-  const animatedLiquidation = useCountUp(liveLiquidation, 2600);
+  const animatedPlans = useCountUp(livePlans, 2000);
+  const animatedLiquidation = useCountUp(liveLiquidation, 2800);
 
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <h2 className="section-title">{t("platformStats")}</h2>
-      <p className="text-center text-slate-500 text-sm mb-8 max-w-lg mx-auto">{t("platformStatsHint")}</p>
+      <p className="text-center text-slate-500 text-sm mb-6 sm:mb-8 max-w-lg mx-auto">
+        {t("platformStatsHint")}
+      </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
-        <div className="stat-card-featured relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/15 transition-colors" />
-          <div className="relative z-10 flex flex-col items-center text-center py-2">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-2xl mb-4">
-              👥
-            </div>
-            <p className="text-4xl sm:text-5xl font-bold text-gradient-gold tabular-nums tracking-tight">
-              {formatStatNumber(animatedUsers)}
-            </p>
-            <p className="text-slate-300 font-semibold mt-3 text-sm sm:text-base">{t("totalUsers")}</p>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs text-emerald-400/90 uppercase tracking-wider font-medium">
-                {t("liveCounter")}
-              </span>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-5xl mx-auto">
+        {/* Users */}
+        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible">
+          <div className="w-11 h-11 mx-auto rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xl mb-3">
+            👥
           </div>
+          <p className="text-3xl sm:text-4xl font-bold text-gradient-gold tabular-nums leading-none">
+            {formatStatNumber(animatedUsers)}
+          </p>
+          <p className="text-slate-300 font-semibold mt-3 text-sm">{t("totalUsers")}</p>
+          <span className="inline-flex items-center gap-1 mt-2 text-[10px] text-emerald-400 uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            {t("liveCounter")}
+          </span>
         </div>
 
-        <div className="stat-card-featured relative overflow-hidden group border-emerald-500/25">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-colors" />
-          <div className="relative z-10 flex flex-col items-center text-center py-2">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-2xl mb-4">
-              💎
-            </div>
-            <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-emerald-400 tabular-nums tracking-tight">
-              {formatLiquidationUsd(animatedLiquidation)}
-            </p>
-            <p className="text-slate-300 font-semibold mt-3 text-sm sm:text-base">{t("totalLiquidation")}</p>
-            <p className="text-xs text-slate-500 mt-2 max-w-[220px] leading-relaxed">{t("liquidationHint")}</p>
+        {/* Active plans */}
+        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible border-cyan-500/20">
+          <div className="w-11 h-11 mx-auto rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-xl mb-3">
+            ⛏️
           </div>
+          <p className="text-3xl sm:text-4xl font-bold text-cyan-400 tabular-nums leading-none">
+            {formatStatNumber(animatedPlans)}
+          </p>
+          <p className="text-slate-300 font-semibold mt-3 text-sm">{t("activePlans")}</p>
+          <span className="inline-flex items-center gap-1 mt-2 text-[10px] text-cyan-400/80 uppercase tracking-wider">
+            {t("miningNow")}
+          </span>
+        </div>
+
+        {/* Total liquidation — full width on mobile for readability */}
+        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible border-emerald-500/25 sm:col-span-1 col-span-1 bg-gradient-to-b from-emerald-950/30 to-slate-900/80">
+          <div className="w-11 h-11 mx-auto rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl mb-3">
+            💰
+          </div>
+          <p
+            className="font-bold text-emerald-400 tabular-nums leading-tight break-words px-1"
+            style={{ fontSize: "clamp(1.35rem, 4.5vw, 2.25rem)" }}
+          >
+            {formatLiquidationUsd(animatedLiquidation)}
+          </p>
+          <p className="text-slate-200 font-semibold mt-3 text-sm">{t("totalLiquidation")}</p>
+          <p className="text-[11px] text-slate-500 mt-1.5 px-2 leading-snug">{t("liquidationHint")}</p>
         </div>
       </div>
     </section>
