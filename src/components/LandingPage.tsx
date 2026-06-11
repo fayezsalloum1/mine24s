@@ -11,11 +11,12 @@ import PlanCardSkeleton from "@/components/ui/PlanCardSkeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import { RegisterIcon, DepositIcon, EarnIcon } from "@/components/StepIcons";
 import MiningHeroVideo from "@/components/MiningHeroVideo";
+import PlatformStatsShowcase from "@/components/PlatformStatsShowcase";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
 interface Stats {
   totalUsers: number;
-  totalPaid: number;
+  totalLiquidation: number;
 }
 
 const STEPS = [
@@ -29,7 +30,7 @@ export default function LandingPage() {
   const tc = useTranslations("common");
   const tn = useTranslations("nav");
   const [plans, setPlans] = useState<ClientPlan[]>([]);
-  const [stats, setStats] = useState<Stats>({ totalUsers: 0, totalPaid: 0 });
+  const [stats, setStats] = useState<Stats>({ totalUsers: 10299, totalLiquidation: 5_498_900 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +40,10 @@ export default function LandingPage() {
     ])
       .then(([plansData, statsData]) => {
         setPlans(Array.isArray(plansData) ? plansData : []);
-        setStats(statsData ?? { totalUsers: 0, totalPaid: 0 });
+        setStats({
+          totalUsers: statsData?.totalUsers ?? 10299,
+          totalLiquidation: statsData?.totalLiquidation ?? statsData?.totalPaid ?? 5_498_900,
+        });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -148,21 +152,10 @@ export default function LandingPage() {
         )}
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        <h2 className="section-title">{t("platformStats")}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-2xl mx-auto">
-          <div className="stat-card text-center">
-            <p className="text-3xl sm:text-4xl font-bold text-gradient-gold">{stats.totalUsers.toLocaleString()}</p>
-            <p className="text-slate-400 mt-2 text-sm">{t("totalUsers")}</p>
-          </div>
-          <div className="stat-card text-center">
-            <p className="text-3xl sm:text-4xl font-bold text-emerald-400">
-              ${stats.totalPaid?.toLocaleString() ?? "0"}
-            </p>
-            <p className="text-slate-400 mt-2 text-sm">{t("totalPaid")}</p>
-          </div>
-        </div>
-      </section>
+      <PlatformStatsShowcase
+        totalUsers={stats.totalUsers}
+        totalLiquidation={stats.totalLiquidation}
+      />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <ExternalLinksBar />
