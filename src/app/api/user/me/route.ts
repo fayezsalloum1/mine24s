@@ -6,6 +6,9 @@ import { canWithdraw, getReferralStats } from "@/lib/referral";
 import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -42,19 +45,55 @@ export async function GET() {
       return NextResponse.json({ error: "User not found", staleSession: true }, { status: 404 });
     }
 
-    const referralStats = await getReferralStats(user.id);
-    const withdrawAllowed = await canWithdraw(user.id);
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const activePlans = user.userPlans.filter((plan) => plan.isActive);
-    const profitBalance = await getProfitBalanceForUser(user.id, user.balance, activePlans);
-    const pendingPoolJoins = await prisma.poolContribution.findMany({
-      where: { userId: user.id, pool: { status: "FILLING" } },
-      include: {
-        pool: {
-          include: { plan: true },
+
+    let profitBalance = {
+      creditedProfit: 0,
+      accruingProfit: 0,
+      totalProfit: 0,
+      pendingWithdrawalAmount: 0,
+      availableProfitBalance: 0,
+    };
+    let referralStats = { totalReferrals: 0, totalEarned: 0 };
+    let withdrawAllowed = false;
+    let pendingPoolJoins: Array<{
+      id: string;
+      amount: number;
+      planName: string;
+      targetAmount: number;
+      filledAmount: number;
+      progress: number;
+    }> = [];
+
+    try {
+      profitBalance = await getProfitBalanceForUser(user.id, user.balance, activePlans);
+    } catch (err) {
+      console.error("[user/me] profit balance failed:", err);
+    }
+
+    try {
+      referralStats = await getReferralStats(user.id);
+      withdrawAllowed = await canWithdraw(user.id);
+      const joins = await prisma.poolContribution.findMany({
+        where: { userId: user.id, pool: { status: "FILLING" } },
+        include: {
+          pool: {
+            include: { plan: true },
+          },
         },
-      },
-    });
+      });
+      pendingPoolJoins = joins.map((c) => ({
+        id: c.id,
+        amount: c.amount,
+        planName: c.pool.plan.name,
+        targetAmount: c.pool.targetAmount,
+        filledAmount: c.pool.filledAmount,
+        progress: (c.pool.filledAmount / c.pool.targetAmount) * 100,
+      }));
+    } catch (err) {
+      console.error("[user/me] secondary data failed:", err);
+    }
 
     return NextResponse.json({
       id: user.id,
@@ -75,14 +114,7 @@ export async function GET() {
       phoneNumber: user.phoneNumber,
       phoneVerified: user.phoneVerified,
       userPlans: user.userPlans,
-      pendingPoolJoins: pendingPoolJoins.map((c) => ({
-        id: c.id,
-        amount: c.amount,
-        planName: c.pool.plan.name,
-        targetAmount: c.pool.targetAmount,
-        filledAmount: c.pool.filledAmount,
-        progress: (c.pool.filledAmount / c.pool.targetAmount) * 100,
-      })),
+      pendingPoolJoins,
       transactions: user.transactions,
       totalReferrals: referralStats.totalReferrals,
       totalReferralEarned: referralStats.totalEarned,

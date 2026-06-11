@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { fetchJson } from "@/lib/fetch-json";
+import { fetchJsonWithRetry } from "@/lib/fetch-json";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
@@ -65,7 +65,7 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState("");
 
   const loadUser = useCallback(async () => {
-    const { data, ok, status } = await fetchJson<UserData & { error?: string; staleSession?: boolean }>("/api/user/me");
+    const { data, ok, status } = await fetchJsonWithRetry<UserData & { error?: string; staleSession?: boolean }>("/api/user/me");
 
     if (!data) {
       setLoadError(status === 404 ? "API not found. Restart the dev server on port 3000." : "Failed to load account data.");
@@ -80,7 +80,7 @@ export default function DashboardPage() {
       }
       setLoadError(
         data.error === "Failed to load user data"
-          ? "Server error loading account. On the server run: npm run db:migrate"
+          ? "Could not load account. Refresh the page or try again in a moment."
           : (data.error ?? "Failed to load account data.")
       );
       return;
