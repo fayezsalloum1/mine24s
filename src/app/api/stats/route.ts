@@ -23,3 +23,4 @@ export async function GET() {
     platformBalance: balanceSum._sum.balance ?? 0,
   });
 }
+export const dynamic = 'force-dynamic';
