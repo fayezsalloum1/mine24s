@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { TronWeb } from "tronweb";
 import { USDT } from "@/lib/constants";
+import { fetchNativeBalance, fetchUsdtBalance, getEvmProvider } from "@/lib/evm-rpc";
 import {
   ADMIN_WALLET_INDEX,
   generateDepositAddress,
@@ -25,17 +26,8 @@ export function isGasFundingEnabled() {
   return process.env.SWEEP_FUND_GAS !== "false";
 }
 
-async function getEvmUsdtBalance(network: "ERC20" | "BEP20", address: string) {
-  const config = USDT[network];
-  const provider = new ethers.JsonRpcProvider(config.rpc);
-  const usdt = new ethers.Contract(config.contract, ERC20_ABI, provider);
-  const balance = await usdt.balanceOf(address);
-  return { balance, formatted: Number(ethers.formatUnits(balance, config.decimals)) };
-}
-
 async function fundEvmGas(network: "ERC20" | "BEP20", toAddress: string) {
-  const config = USDT[network];
-  const provider = new ethers.JsonRpcProvider(config.rpc);
+  const provider = getEvmProvider(network);
   const adminWallet = getEvmWallet(ADMIN_WALLET_INDEX).connect(provider);
   const feeData = await provider.getFeeData();
   const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
@@ -56,7 +48,7 @@ async function sweepEvm(network: "ERC20" | "BEP20", walletIndex: number) {
   if (walletIndex === ADMIN_WALLET_INDEX) return null;
 
   const config = USDT[network];
-  const provider = new ethers.JsonRpcProvider(config.rpc);
+  const provider = getEvmProvider(network);
   const sourceWallet = getEvmWallet(walletIndex).connect(provider);
   const adminAddress = getSweepDestination(network);
   const usdt = new ethers.Contract(config.contract, ERC20_ABI, sourceWallet);
@@ -85,6 +77,15 @@ async function sweepEvm(network: "ERC20" | "BEP20", walletIndex: number) {
   };
 }
 
+function createTronWebReadOnly() {
+  return new TronWeb({
+    fullHost: "https://api.trongrid.io",
+    headers: process.env.TRONGRID_API_KEY
+      ? { "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY }
+      : {},
+  });
+}
+
 function createTronWeb(privateKeyHex: string) {
   return new TronWeb({
     fullHost: "https://api.trongrid.io",
@@ -98,7 +99,7 @@ function createTronWeb(privateKeyHex: string) {
 async function fundTronGas(toAddress: string) {
   const adminPk = getTronWallet(ADMIN_WALLET_INDEX).privateKey.slice(2);
   const tronWeb = createTronWeb(adminPk);
-  const amountSun = 15_000_000; // 15 TRX
+  const amountSun = 15_000_000;
   const fromAddress = tronWeb.defaultAddress.base58;
   if (!fromAddress || typeof fromAddress !== "string") {
     throw new Error("Admin TRON address not configured");
@@ -169,6 +170,8 @@ export async function sweepUsdtToAdmin(network: string, walletIndex: number) {
 
 export async function getAdminWalletStatus() {
   const addresses = getAdminAddresses();
+  const errors: string[] = [];
+
   const status: Record<string, unknown> = {
     walletIndex: addresses.walletIndex,
     source: addresses.source,
@@ -182,6 +185,7 @@ export async function getAdminWalletStatus() {
     gasFundingEnabled: isGasFundingEnabled(),
     usdtBalances: {} as Record<string, number>,
     nativeBalances: {} as Record<string, number>,
+    balanceErrors: {} as Record<string, string>,
   };
 
   const custom = getConfiguredTreasuryAddresses();
@@ -189,24 +193,38 @@ export async function getAdminWalletStatus() {
     return { ...status, configured: false };
   }
 
+  status.configured = true;
+
+  const erc20Usdt = await fetchUsdtBalance("ERC20", addresses.ERC20);
+  (status.usdtBalances as Record<string, number>).ERC20 = erc20Usdt.formatted;
+  if (erc20Usdt.error) {
+    (status.balanceErrors as Record<string, string>).ERC20 = erc20Usdt.error;
+    errors.push(`ERC20: ${erc20Usdt.error}`);
+  }
+
+  const bep20Usdt = await fetchUsdtBalance("BEP20", addresses.BEP20);
+  (status.usdtBalances as Record<string, number>).BEP20 = bep20Usdt.formatted;
+  if (bep20Usdt.error) {
+    (status.balanceErrors as Record<string, string>).BEP20 = bep20Usdt.error;
+    errors.push(`BEP20: ${bep20Usdt.error}`);
+  }
+
+  const ethNative = await fetchNativeBalance("ERC20", addresses.ERC20);
+  (status.nativeBalances as Record<string, number>).ETH = ethNative.formatted;
+  if (ethNative.error) {
+    (status.balanceErrors as Record<string, string>).ETH = ethNative.error;
+  }
+
+  const bnbNative = await fetchNativeBalance("BEP20", addresses.BEP20);
+  (status.nativeBalances as Record<string, number>).BNB = bnbNative.formatted;
+  if (bnbNative.error) {
+    (status.balanceErrors as Record<string, string>).BNB = bnbNative.error;
+  }
+
   try {
-    const ethProvider = new ethers.JsonRpcProvider(USDT.ERC20.rpc);
-    const bscProvider = new ethers.JsonRpcProvider(USDT.BEP20.rpc);
-
-    const [erc20, bep20] = await Promise.all([
-      getEvmUsdtBalance("ERC20", addresses.ERC20),
-      getEvmUsdtBalance("BEP20", addresses.BEP20),
-    ]);
-
-    const ethNative = await ethProvider.getBalance(addresses.ERC20);
-    const bnbNative = await bscProvider.getBalance(addresses.BEP20);
-
-    (status.usdtBalances as Record<string, number>).ERC20 = erc20.formatted;
-    (status.usdtBalances as Record<string, number>).BEP20 = bep20.formatted;
-    (status.nativeBalances as Record<string, number>).ETH = Number(ethers.formatEther(ethNative));
-    (status.nativeBalances as Record<string, number>).BNB = Number(ethers.formatEther(bnbNative));
-
-    const tronWeb = createTronWeb(getEvmWallet(ADMIN_WALLET_INDEX).privateKey.slice(2));
+    const tronWeb = usesCustomPlatformWallet()
+      ? createTronWebReadOnly()
+      : createTronWeb(getEvmWallet(ADMIN_WALLET_INDEX).privateKey.slice(2));
     const tronContract = await tronWeb.contract().at(USDT.TRC20.contract);
     const trcBal = await tronContract.balanceOf(addresses.TRC20).call();
     const trxNative = await tronWeb.trx.getBalance(addresses.TRC20);
@@ -214,10 +232,14 @@ export async function getAdminWalletStatus() {
     (status.usdtBalances as Record<string, number>).TRC20 =
       Number(trcBal.toString()) / Math.pow(10, USDT.TRC20.decimals);
     (status.nativeBalances as Record<string, number>).TRX = trxNative / 1_000_000;
-    status.configured = true;
   } catch (error) {
-    status.configured = true;
-    status.balanceError = error instanceof Error ? error.message : "Failed to fetch balances";
+    const msg = error instanceof Error ? error.message : "TRC20 balance fetch failed";
+    (status.balanceErrors as Record<string, string>).TRC20 = msg;
+    errors.push(`TRC20: ${msg}`);
+  }
+
+  if (errors.length > 0) {
+    status.balanceError = errors.join(" | ");
   }
 
   return status;

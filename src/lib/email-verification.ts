@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendEmail, emailVerificationHtml, welcomeEmailHtml, isEmailConfigured } from "@/lib/email";
+import { sendEmail, emailVerificationHtml, welcomeEmailHtml } from "@/lib/email";
 import { generateSixDigitCode, EMAIL_VERIFICATION_TTL_MS } from "@/lib/auth-codes";
 import { resetVerificationAttempts } from "@/lib/auth-rate-limit";
 import { BRAND_NAME } from "@/lib/constants";
@@ -16,20 +16,10 @@ export async function autoVerifyUser(userId: string, email: string) {
     },
   });
   await resetVerificationAttempts(userId);
-  try {
-    await sendWelcomeAfterVerification(userId, email);
-  } catch (err) {
-    console.error("[email-verification] welcome email failed:", err);
-  }
+  await sendWelcomeAfterVerification(userId, email);
 }
 
 export async function sendVerificationEmail(userId: string, email: string) {
-  if (!isEmailConfigured()) {
-    console.log(`[email-verification] SMTP not configured — auto-verifying ${email}`);
-    await autoVerifyUser(userId, email);
-    return { sent: false, autoVerified: true };
-  }
-
   const code = generateSixDigitCode();
   const expiry = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 
@@ -42,18 +32,19 @@ export async function sendVerificationEmail(userId: string, email: string) {
   });
   await resetVerificationAttempts(userId);
 
-  try {
-    await sendEmail(
-      email,
-      `Verify your ${BRAND_NAME} email`,
-      emailVerificationHtml(code)
-    );
-    return { sent: true, autoVerified: false };
-  } catch (err) {
-    console.error("[email-verification] SMTP send failed, auto-verifying user:", err);
+  const result = await sendEmail(
+    email,
+    `Verify your ${BRAND_NAME} email`,
+    emailVerificationHtml(code)
+  );
+
+  if (!result.sent) {
+    console.error("[email-verification] send failed, auto-verifying:", result.error);
     await autoVerifyUser(userId, email);
     return { sent: false, autoVerified: true, emailFailed: true };
   }
+
+  return { sent: true, autoVerified: false };
 }
 
 export async function sendWelcomeAfterVerification(userId: string, email: string) {

@@ -11,6 +11,8 @@ import { BRAND_NAME } from "@/lib/constants";
 const GENERIC_SUCCESS =
   "If an account exists with that email, you will receive a password reset link shortly.";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -20,10 +22,13 @@ export async function POST(req: Request) {
     }
 
     if (!isEmailConfigured()) {
-      return NextResponse.json({
-        success: false,
-        error: "Password reset emails are not configured yet. Please contact support.",
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Password reset emails are not configured yet. Please contact support.",
+        },
+        { status: 503 }
+      );
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
@@ -45,18 +50,20 @@ export async function POST(req: Request) {
 
         const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        try {
-          await sendEmail(
-            user.email,
-            `Reset your ${BRAND_NAME} password`,
-            passwordResetHtml(resetLink)
+        const result = await sendEmail(
+          user.email,
+          `Reset your ${BRAND_NAME} password`,
+          passwordResetHtml(resetLink)
+        );
+
+        if (!result.sent) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: result.error || "Could not send reset email.",
+            },
+            { status: 502 }
           );
-        } catch (sendErr) {
-          console.error("[forgot-password] SMTP send failed:", sendErr);
-          return NextResponse.json({
-            success: false,
-            error: "Could not send reset email. Check SMTP settings in Vercel (host, user, app password) and redeploy.",
-          }, { status: 502 });
         }
       }
     }

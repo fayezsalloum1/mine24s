@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { getAdminWalletStatus } from "@/lib/sweep";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
@@ -9,3 +11,4 @@ export async function GET() {
   const status = await getAdminWalletStatus();
   return NextResponse.json(status);
 }
+

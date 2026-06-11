@@ -134,7 +134,10 @@
                  "strength_weak":  "كلمة مرور ضعيفة",
                  "strength_medium":  "قوة متوسطة",
                  "strength_strong":  "كلمة مرور قوية",
-                 "fixFormErrors":  "يرجى تصحيح الأخطاء أدناه قبل المتابعة."
+                 "fixFormErrors":  "يرجى تصحيح الأخطاء أدناه قبل المتابعة.",
+                 "serverError":  "خطأ في الخادم. يرجى المحاولة مرة أخرى.",
+                 "networkError":  "خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.",
+                 "referralOptional":  "اختياري — اتركه فارغاً إن لم يكن لديك رمز"
              },
     "dashboard":  {
                       "title":  "لوحة Cloud Mining",

@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { prisma } from "@/lib/prisma";
 import { USDT, SCAN_BLOCKS } from "@/lib/constants";
+import { getEvmProvider } from "@/lib/evm-rpc";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail, depositConfirmedHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
@@ -86,7 +87,7 @@ async function scanEvmNetwork(
   users: Array<{ id: string; walletIndex: number; depositAddress: string; email: string; phoneNumber: string | null; phoneVerified: boolean }>
 ) {
   const config = USDT[network];
-  const provider = new ethers.JsonRpcProvider(config.rpc);
+  const provider = getEvmProvider(network);
   const usdt = new ethers.Contract(config.contract, ERC20_ABI, provider);
   const currentBlock = await provider.getBlockNumber();
 
@@ -248,7 +249,7 @@ async function scanCustomTreasuryNetwork(network: "ERC20" | "BEP20") {
   if (!treasury) return 0;
 
   const config = USDT[network];
-  const provider = new ethers.JsonRpcProvider(config.rpc);
+  const provider = getEvmProvider(network);
   const usdt = new ethers.Contract(config.contract, ERC20_ABI, provider);
   const currentBlock = await provider.getBlockNumber();
 

@@ -5,7 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
-import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
+import {
+  AuthAlert,
+  AuthButton,
+  AuthField,
+  AuthInput,
+  AuthPanel,
+} from "@/components/auth/AuthForm";
 import { getPasswordStrength, isValidEmail } from "@/lib/password-strength";
 
 const REF_STORAGE_KEY = "mining-farm-ref";
@@ -26,6 +32,7 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -43,7 +50,7 @@ function RegisterForm() {
     if (stored) setReferralCode(stored);
   }, [searchParams]);
 
-  function validateField(field: string, value?: string) {
+  function validateField(field: string) {
     switch (field) {
       case "fullName":
         return !fullName.trim() ? t("fullNameRequired") : "";
@@ -58,7 +65,7 @@ function RegisterForm() {
       case "acceptTerms":
         return !acceptTerms ? t("termsRequired") : "";
       default:
-        return value ?? "";
+        return "";
     }
   }
 
@@ -73,13 +80,15 @@ function RegisterForm() {
     setTouched(Object.fromEntries(fields.map((f) => [f, true])));
     if (Object.keys(next).length > 0) {
       setFormError(t("fixFormErrors"));
+      return false;
     }
-    return Object.keys(next).length === 0;
+    return true;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+    setAlreadyRegistered(false);
     if (!validateAll()) return;
 
     setLoading(true);
@@ -93,54 +102,81 @@ function RegisterForm() {
           phoneNumber: phoneNumber.trim() || undefined,
           password,
           referralCode: referralCode.trim().toUpperCase() || undefined,
-          acceptTerms,
+          acceptTerms: true,
         }),
       });
-      const data = await res.json();
-      if (data.error) {
-        if (data.alreadyRegistered) {
-          setFormError(data.error);
-        } else {
-          setFormError(data.error);
-        }
+
+      let data: Record<string, unknown> = {};
+      try {
+        data = await res.json();
+      } catch {
+        setFormError(t("serverError"));
         return;
       }
+
+      if (data.error) {
+        setFormError(String(data.error));
+        setAlreadyRegistered(Boolean(data.alreadyRegistered));
+        return;
+      }
+
+      if (!data.success) {
+        setFormError(t("serverError"));
+        return;
+      }
+
       localStorage.removeItem(REF_STORAGE_KEY);
       sessionStorage.setItem("verify_email", email.trim().toLowerCase());
+
       if (data.autoVerified || !data.requiresVerification) {
         router.push("/login?verified=1");
         return;
       }
-      if (data.existingAccount) {
-        sessionStorage.setItem("verify_notice", data.message || "");
+
+      if (data.existingAccount && data.message) {
+        sessionStorage.setItem("verify_notice", String(data.message));
       }
       router.push(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+    } catch {
+      setFormError(t("networkError"));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <AuthPanel>
-      <h1 className="text-2xl font-bold text-white mb-2">{t("registerTitle")}</h1>
-      <p className="text-gray-400 text-sm mb-6">{t("registerSubtitle")}</p>
+    <AuthPanel wide>
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-yellow-500/10 border border-yellow-500/30 mb-4">
+          <span className="text-2xl">⛏️</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">{t("registerTitle")}</h1>
+        <p className="text-gray-400 text-sm mt-2">{t("registerSubtitle")}</p>
+      </div>
 
-      {formError && <p className="text-red-400 mb-4 text-sm">{formError}</p>}
-      {formError && formError.includes("log in") && (
-        <p className="text-yellow-500 mb-4 text-sm">
-          <Link href="/login" className="hover:underline">{t("backToLogin")}</Link>
-          {" · "}
-          <Link href={`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`} className="hover:underline">
-            {t("verifyEmailTitle")}
-          </Link>
-        </p>
+      {formError && (
+        <AuthAlert type="error">
+          {formError}
+          {alreadyRegistered && (
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link href="/login" className="text-yellow-400 hover:underline font-medium">
+                {t("backToLogin")} →
+              </Link>
+              <Link href="/forgot-password" className="text-yellow-400 hover:underline font-medium">
+                {t("forgotPassword")} →
+              </Link>
+            </div>
+          )}
+        </AuthAlert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <AuthField label={t("fullName")} error={touched.fullName ? errors.fullName : undefined}>
           <AuthInput
             type="text"
+            placeholder="John Smith"
             value={fullName}
+            aria-invalid={Boolean(touched.fullName && errors.fullName)}
             onChange={(e) => setFullName(e.target.value)}
             onBlur={() => {
               setTouched((p) => ({ ...p, fullName: true }));
@@ -153,7 +189,9 @@ function RegisterForm() {
         <AuthField label={tc("email")} error={touched.email ? errors.email : undefined}>
           <AuthInput
             type="email"
+            placeholder="you@example.com"
             value={email}
+            aria-invalid={Boolean(touched.email && errors.email)}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => {
               setTouched((p) => ({ ...p, email: true }));
@@ -163,12 +201,12 @@ function RegisterForm() {
           />
         </AuthField>
 
-        <AuthField label={t("phoneNumber")}>
+        <AuthField label={t("phoneNumber")} hint={t("phoneOptional")}>
           <AuthInput
             type="tel"
+            placeholder="+1 234 567 8900"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder={t("phoneOptional")}
           />
         </AuthField>
 
@@ -176,7 +214,9 @@ function RegisterForm() {
           <div className="relative">
             <AuthInput
               type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
               value={password}
+              aria-invalid={Boolean(touched.password && errors.password)}
               onChange={(e) => setPassword(e.target.value)}
               onBlur={() => {
                 setTouched((p) => ({ ...p, password: true }));
@@ -187,7 +227,7 @@ function RegisterForm() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs hover:text-white px-1"
             >
               {showPassword ? t("hidePassword") : t("showPassword")}
             </button>
@@ -198,7 +238,7 @@ function RegisterForm() {
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className={`h-1 flex-1 rounded ${
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
                       (strength === "weak" && i === 1) ||
                       (strength === "medium" && i <= 2) ||
                       (strength === "strong" && i <= 3)
@@ -207,22 +247,35 @@ function RegisterForm() {
                           : strength === "medium"
                             ? "bg-yellow-500"
                             : "bg-green-500"
-                        : "bg-gray-700"
+                        : "bg-gray-800"
                     }`}
                   />
                 ))}
               </div>
-              <p className={`text-xs ${strength === "weak" ? "text-red-400" : strength === "medium" ? "text-yellow-400" : "text-green-400"}`}>
+              <p
+                className={`text-xs ${
+                  strength === "weak"
+                    ? "text-red-400"
+                    : strength === "medium"
+                      ? "text-yellow-400"
+                      : "text-green-400"
+                }`}
+              >
                 {t(`strength_${strength}`)}
               </p>
             </div>
           )}
         </AuthField>
 
-        <AuthField label={t("confirmPassword")} error={touched.confirmPassword ? errors.confirmPassword : undefined}>
+        <AuthField
+          label={t("confirmPassword")}
+          error={touched.confirmPassword ? errors.confirmPassword : undefined}
+        >
           <AuthInput
             type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
             value={confirmPassword}
+            aria-invalid={Boolean(touched.confirmPassword && errors.confirmPassword)}
             onChange={(e) => setConfirmPassword(e.target.value)}
             onBlur={() => {
               setTouched((p) => ({ ...p, confirmPassword: true }));
@@ -232,47 +285,60 @@ function RegisterForm() {
           />
         </AuthField>
 
-        <AuthField label={t("referralCode")}>
+        <AuthField label={t("referralCode")} hint={t("referralOptional")}>
           <AuthInput
             type="text"
+            placeholder="ABC123XY"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
           />
           {referralCode && (
-            <p className="text-xs text-green-400 mt-1">{t("referralApplied")}</p>
+            <p className="text-xs text-green-400 mt-1.5">{t("referralApplied")}</p>
           )}
         </AuthField>
 
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={acceptTerms}
-            onChange={(e) => {
-              setAcceptTerms(e.target.checked);
-              setTouched((p) => ({ ...p, acceptTerms: true }));
-              setErrors((p) => ({ ...p, acceptTerms: e.target.checked ? "" : t("termsRequired") }));
-            }}
-            className="mt-1 accent-yellow-500"
-          />
-          <span className="text-sm text-gray-400">
-            {t("acceptTerms")}{" "}
-            <Link href="/terms" target="_blank" className="text-yellow-500 hover:underline">
-              {t("termsOfService")}
-            </Link>
-          </span>
-        </label>
-        {touched.acceptTerms && errors.acceptTerms && (
-          <p className="text-red-400 text-xs -mt-2">{errors.acceptTerms}</p>
-        )}
+        <div
+          className={`rounded-lg border p-4 transition-colors ${
+            touched.acceptTerms && errors.acceptTerms
+              ? "border-red-500/50 bg-red-950/20"
+              : "border-gray-800 bg-gray-950/50"
+          }`}
+        >
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => {
+                setAcceptTerms(e.target.checked);
+                setTouched((p) => ({ ...p, acceptTerms: true }));
+                setErrors((p) => ({
+                  ...p,
+                  acceptTerms: e.target.checked ? "" : t("termsRequired"),
+                }));
+                if (e.target.checked) setFormError("");
+              }}
+              className="mt-0.5 w-4 h-4 accent-yellow-500 shrink-0"
+            />
+            <span className="text-sm text-gray-300 leading-relaxed">
+              {t("acceptTerms")}{" "}
+              <Link href="/terms" target="_blank" className="text-yellow-500 hover:underline">
+                {t("termsOfService")}
+              </Link>
+            </span>
+          </label>
+          {touched.acceptTerms && errors.acceptTerms && (
+            <p className="text-red-400 text-xs mt-2 ml-7">{errors.acceptTerms}</p>
+          )}
+        </div>
 
         <AuthButton loading={loading} type="submit">
           {tc("register")}
         </AuthButton>
       </form>
 
-      <p className="text-gray-400 mt-6 text-center text-sm">
+      <p className="text-gray-400 mt-8 text-center text-sm">
         {t("haveAccount")}{" "}
-        <Link href="/login" className="text-yellow-500 hover:underline">
+        <Link href="/login" className="text-yellow-500 hover:underline font-medium">
           {tc("login")}
         </Link>
       </p>
@@ -283,9 +349,9 @@ function RegisterForm() {
 export default function RegisterPage() {
   const tc = useTranslations("common");
   return (
-    <div className="page-shell bg-gray-950">
+    <div className="page-shell bg-gradient-to-b from-gray-950 via-[#020b1a] to-gray-950">
       <AppHeader showNotifications={false} />
-      <div className="flex items-center justify-center p-6 min-h-[calc(100vh-64px)]">
+      <div className="flex items-center justify-center px-4 py-10 min-h-[calc(100vh-64px)]">
         <Suspense fallback={<div className="text-white">{tc("loading")}</div>}>
           <RegisterForm />
         </Suspense>

@@ -1,48 +1,261 @@
 import { BRAND_NAME } from "./constants";
 
-export function isEmailConfigured() {
+export type SmtpConfig = {
+  host: string;
+  user: string;
+  pass: string;
+  port: number;
+  from: string;
+  fromName: string;
+  service?: string;
+  secure: boolean;
+};
+
+function validateSenderEmail(email: string): string | null {
+  if (email.endsWith("@smtp-brevo.com")) {
+    return "SMTP_FROM cannot be your @smtp-brevo.com login. Use a verified sender email from Brevo → Senders (e.g. your Gmail or noreply@yourdomain.com).";
+  }
+  return null;
+}
+
+function getBrevoApiKey() {
+  return process.env.BREVO_API_KEY?.trim();
+}
+
+function getSenderEmail() {
+  return (process.env.SMTP_FROM || process.env.BREVO_SENDER_EMAIL)?.trim() || null;
+}
+
+function getSenderName() {
+  return (process.env.SMTP_FROM_NAME || process.env.BREVO_SENDER_NAME || BRAND_NAME).trim();
+}
+
+export function getEmailMode(): "brevo-api" | "brevo-smtp" | "smtp" | "none" {
+  if (getBrevoApiKey() && getSenderEmail()) return "brevo-api";
+  const config = getSmtpConfig();
+  if (!config) return "none";
+  if (isBrevoHost(config.host)) return "brevo-smtp";
+  return "smtp";
+}
+
+function isBrevoHost(host: string) {
+  return /brevo|sendinblue/i.test(host);
+}
+
+export function getSmtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST?.trim();
   const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  return Boolean(host && user && pass);
+  let pass = process.env.SMTP_PASS?.trim();
+  if (!host || !user || !pass) return null;
+
+  if (host.includes("gmail")) {
+    pass = pass.replace(/\s/g, "");
+  }
+
+  const port = Number(process.env.SMTP_PORT || (isBrevoHost(host) ? 587 : 587));
+  const sender = getSenderEmail();
+  if (isBrevoHost(host) && !sender) return null;
+  const from = (sender || user).trim();
+  const fromName = getSenderName();
+  const service = process.env.SMTP_SERVICE?.trim() || undefined;
+  const secure = process.env.SMTP_SECURE === "true" || port === 465;
+
+  return { host, user, pass, port, from, fromName, service, secure };
+}
+
+export function isEmailConfigured() {
+  return getEmailMode() !== "none";
 }
 
 export function getEmailConfigStatus() {
+  const mode = getEmailMode();
+  const sender = getSenderEmail();
   return {
-    configured: isEmailConfigured(),
+    configured: mode !== "none",
+    mode,
+    brevoApiKey: Boolean(getBrevoApiKey()),
     host: Boolean(process.env.SMTP_HOST?.trim()),
     user: Boolean(process.env.SMTP_USER?.trim()),
     pass: Boolean(process.env.SMTP_PASS?.trim()),
-    from: Boolean((process.env.SMTP_FROM || process.env.SMTP_USER)?.trim()),
+    sender: Boolean(sender),
+    from: Boolean(sender),
     port: process.env.SMTP_PORT || "587",
   };
 }
 
-export async function sendEmail(to: string, subject: string, html: string) {
-  if (!isEmailConfigured()) {
-    console.log(`[Email skipped] To: ${to}, Subject: ${subject}`);
-    return false;
+function formatBrevoApiError(status: number, body: string): string {
+  if (status === 401 || status === 403) {
+    return "Brevo API key invalid. Set BREVO_API_KEY in Vercel (Brevo → SMTP & API → API keys).";
+  }
+  if (body.includes("sender") || body.includes("not verified")) {
+    return "Brevo sender not verified. Add SMTP_FROM as a verified sender in Brevo → Senders & IP.";
+  }
+  if (body.includes("permission")) {
+    return "Brevo API key lacks permission. Enable “Send transactional emails” on the key.";
+  }
+  try {
+    const parsed = JSON.parse(body) as { message?: string };
+    if (parsed.message) return `Brevo: ${parsed.message}`;
+  } catch {
+    /* ignore */
+  }
+  return `Brevo API error (${status})`;
+}
+
+export function formatSmtpError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+
+  if (msg.startsWith("Brevo:") || msg.startsWith("Brevo API")) return msg;
+
+  if (
+    msg.includes("535") ||
+    msg.includes("534") ||
+    /invalid login|authentication failed|auth/i.test(msg)
+  ) {
+    if (/brevo|sendinblue/i.test(process.env.SMTP_HOST || "")) {
+      return "Brevo SMTP login failed. SMTP_USER = your Brevo login email. SMTP_PASS = SMTP key (not API key) from Brevo → SMTP & API → SMTP keys.";
+    }
+    return "SMTP login failed. Check SMTP_USER and SMTP_PASS.";
+  }
+  if (msg.includes("EAUTH") || code === "EAUTH") {
+    return "SMTP authentication rejected. For Brevo use your SMTP key as SMTP_PASS, or set BREVO_API_KEY instead.";
+  }
+  if (msg.includes("ECONNECTION") || msg.includes("ETIMEDOUT") || code === "ECONNECTION") {
+    return "Could not connect to mail server. Brevo SMTP: smtp-relay.brevo.com port 587.";
+  }
+  if (msg.includes("Message failed") || msg.includes("sender")) {
+    return "Sender rejected. SMTP_FROM must be a verified sender in your Brevo account.";
   }
 
-  const nodemailer = await import("nodemailer");
-  const port = Number(process.env.SMTP_PORT || 587);
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+  return `Email send failed: ${msg.length > 120 ? `${msg.slice(0, 120)}…` : msg}`;
+}
+
+async function sendViaBrevoApi(to: string, subject: string, html: string) {
+  const apiKey = getBrevoApiKey();
+  const senderEmail = getSenderEmail();
+  if (!apiKey || !senderEmail) {
+    throw new Error("Brevo API not configured (need BREVO_API_KEY + SMTP_FROM)");
+  }
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
+    body: JSON.stringify({
+      sender: { name: getSenderName(), email: senderEmail },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
   });
 
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(formatBrevoApiError(res.status, body));
+  }
+}
+
+async function createMailTransporter() {
+  const config = getSmtpConfig();
+  if (!config) throw new Error("SMTP not configured");
+
+  const nodemailer = await import("nodemailer");
+
+  if (config.service) {
+    return nodemailer.createTransport({
+      service: config.service,
+      auth: { user: config.user, pass: config.pass },
+    });
+  }
+
+  if (isBrevoHost(config.host)) {
+    return nodemailer.createTransport({
+      host: config.host,
+      port: config.port || 587,
+      secure: false,
+      auth: { user: config.user, pass: config.pass },
+    });
+  }
+
+  return nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: { user: config.user, pass: config.pass },
+    requireTLS: !config.secure && config.port === 587,
+    tls: { minVersion: "TLSv1.2" },
+  });
+}
+
+async function sendViaSmtp(to: string, subject: string, html: string) {
+  const config = getSmtpConfig();
+  if (!config) throw new Error("SMTP not configured");
+
+  const transporter = await createMailTransporter();
+  const fromHeader = config.fromName
+    ? `"${config.fromName}" <${config.from}>`
+    : config.from;
+
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: fromHeader,
     to,
     subject,
     html,
   });
+}
+
+/** Verify email credentials (admin test). */
+export async function verifyEmailConnection() {
+  const mode = getEmailMode();
+  if (mode === "brevo-api") {
+    const apiKey = getBrevoApiKey()!;
+    const res = await fetch("https://api.brevo.com/v3/account", {
+      headers: { "api-key": apiKey, Accept: "application/json" },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(formatBrevoApiError(res.status, body));
+    }
+    return true;
+  }
+  if (mode === "none") throw new Error("Email not configured");
+  const transporter = await createMailTransporter();
+  await transporter.verify();
   return true;
+}
+
+/** @deprecated use verifyEmailConnection */
+export const verifySmtpConnection = verifyEmailConnection;
+
+export async function sendEmail(to: string, subject: string, html: string) {
+  const mode = getEmailMode();
+  if (mode === "none") {
+    console.log(`[Email skipped] To: ${to}, Subject: ${subject}`);
+    return { sent: false as const, error: "Email not configured" };
+  }
+
+  const senderEmail = getSenderEmail();
+  if (senderEmail) {
+    const senderError = validateSenderEmail(senderEmail);
+    if (senderError) return { sent: false as const, error: senderError };
+  }
+
+  try {
+    if (mode === "brevo-api") {
+      await sendViaBrevoApi(to, subject, html);
+    } else {
+      await sendViaSmtp(to, subject, html);
+    }
+    return { sent: true as const };
+  } catch (err) {
+    const error = formatSmtpError(err);
+    console.error(`[Email] Failed (${mode}) to ${to}:`, err);
+    return { sent: false as const, error };
+  }
 }
 
 export function welcomeEmailHtml(email: string, referralLink: string) {

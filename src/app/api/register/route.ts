@@ -8,6 +8,8 @@ import { autoVerifyUser, sendVerificationEmail } from "@/lib/email-verification"
 import { isValidEmail } from "@/lib/password-strength";
 import { isEmailConfigured } from "@/lib/email";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -28,23 +30,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
     }
 
-    if (acceptTerms !== true) {
+    if (acceptTerms !== true && acceptTerms !== "true") {
       return NextResponse.json({ error: "You must accept the terms of service" }, { status: 400 });
     }
+
+    const hashedPassword = await bcrypt.hash(String(password), 10);
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       if (!existing.emailVerified) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            password: hashedPassword,
+            fullName: resolvedFullName,
+            phoneNumber: phoneNumber ? String(phoneNumber).trim() : null,
+          },
+        });
+
         let autoVerified = false;
         try {
           const result = await sendVerificationEmail(existing.id, existing.email);
           autoVerified = result.autoVerified;
         } catch (emailErr) {
           console.error("[register] resend verification failed:", emailErr);
-          if (!isEmailConfigured()) {
-            await autoVerifyUser(existing.id, existing.email);
-            autoVerified = true;
-          }
+          await autoVerifyUser(existing.id, existing.email);
+          autoVerified = true;
         }
 
         if (autoVerified) {
@@ -61,11 +72,11 @@ export async function POST(req: Request) {
           success: true,
           requiresVerification: true,
           existingAccount: true,
-          message: "Account already exists but email is not verified. A new verification code has been sent.",
+          message: "Account found — we sent a new verification code to your email.",
         });
       }
       return NextResponse.json(
-        { error: "An account with this email already exists. Please log in instead.", alreadyRegistered: true },
+        { error: "This email is already registered. Please log in or reset your password.", alreadyRegistered: true },
         { status: 400 }
       );
     }
@@ -80,7 +91,6 @@ export async function POST(req: Request) {
     }
 
     const { walletIndex, depositAddress, tronDepositAddress } = await assignWalletForNewUser(prisma);
-    const hashedPassword = await bcrypt.hash(String(password), 10);
     const newReferralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const user = await prisma.user.create({
@@ -106,11 +116,9 @@ export async function POST(req: Request) {
       autoVerified = result.autoVerified;
     } catch (emailErr) {
       console.error("[register] verification email failed:", emailErr);
-      if (!isEmailConfigured()) {
-        await autoVerifyUser(user.id, user.email);
-        requiresVerification = false;
-        autoVerified = true;
-      }
+      await autoVerifyUser(user.id, user.email);
+      requiresVerification = false;
+      autoVerified = true;
     }
 
     return NextResponse.json({

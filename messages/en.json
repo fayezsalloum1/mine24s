@@ -134,7 +134,10 @@
                  "strength_weak":  "Weak password",
                  "strength_medium":  "Medium strength",
                  "strength_strong":  "Strong password",
-                 "fixFormErrors":  "Please fix the errors below before continuing."
+                 "fixFormErrors":  "Please fix the errors below before continuing.",
+                 "serverError":  "Server error. Please try again in a moment.",
+                 "networkError":  "Network error. Check your connection and try again.",
+                 "referralOptional":  "Optional — leave blank if you don't have one"
              },
     "dashboard":  {
                       "title":  "Cloud Mining Dashboard",
