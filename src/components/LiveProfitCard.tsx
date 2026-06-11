@@ -2,19 +2,21 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { getLiveAccruingProfit, formatCountdown } from "@/lib/mining-math";
-import { useMidnightCountdown } from "@/hooks/useMidnightCountdown";
+import { getLiveAccruingProfit, getSoonestPlanPayoutMs, formatCountdown } from "@/lib/mining-math";
+import { useNow } from "@/hooks/useNow";
 
 interface UserPlan {
   purchasedAt: string;
   isActive: boolean;
   purchasePrice?: number;
   dailyReturnPercentSnapshot?: number;
+  durationDaysSnapshot?: number;
   daysCredited?: number;
   principalReturned?: boolean;
   plan: {
     price: number;
     dailyReturnPercent: number;
+    durationDays?: number;
   };
 }
 
@@ -26,12 +28,16 @@ interface LiveProfitCardProps {
 
 export default function LiveProfitCard({ creditedProfit, balance, userPlans }: LiveProfitCardProps) {
   const t = useTranslations("dashboard");
-  const countdown = useMidnightCountdown();
+  const now = useNow();
 
-  const now = useMemo(() => new Date(), [countdown]);
+  const activePlans = useMemo(() => userPlans.filter((p) => p.isActive), [userPlans]);
   const accruingProfit = useMemo(
-    () => getLiveAccruingProfit(userPlans.filter((p) => p.isActive), now),
-    [userPlans, now]
+    () => getLiveAccruingProfit(activePlans, now),
+    [activePlans, now]
+  );
+  const nextPayoutMs = useMemo(
+    () => getSoonestPlanPayoutMs(activePlans, now),
+    [activePlans, now]
   );
 
   const totalLiveProfit = creditedProfit + accruingProfit;
@@ -51,7 +57,7 @@ export default function LiveProfitCard({ creditedProfit, balance, userPlans }: L
         </div>
         <div className="text-right">
           <p className="text-gray-400 text-sm">{t("nextPayout")}</p>
-          <p className="text-2xl font-mono text-yellow-500">{formatCountdown(countdown)}</p>
+          <p className="text-2xl font-mono text-yellow-500">{formatCountdown(nextPayoutMs)}</p>
           <p className="text-xs text-gray-500 mt-1">{t("profitUpdatesLive")}</p>
         </div>
       </div>

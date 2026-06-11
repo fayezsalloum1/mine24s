@@ -18,8 +18,8 @@ type PlanProgressInput = {
   };
 };
 
-function startOfUtcDay(date: Date) {
-  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+function toDate(value: Date | string) {
+  return typeof value === "string" ? new Date(value) : value;
 }
 
 export function getPlanDurationDays(userPlan: PlanProgressInput) {
@@ -40,9 +40,10 @@ export function getDailyProfit(userPlan: PlanProgressInput) {
   return (principal * dailyReturnPercent) / 100;
 }
 
+/** Full 24-hour periods elapsed since purchase (not UTC midnight). */
 export function elapsedMiningDays(purchasedAt: Date | string, now = new Date()) {
-  const purchased = typeof purchasedAt === "string" ? new Date(purchasedAt) : purchasedAt;
-  return Math.max(0, Math.floor((startOfUtcDay(now) - startOfUtcDay(purchased)) / MS_PER_DAY));
+  const purchased = toDate(purchasedAt);
+  return Math.max(0, Math.floor((now.getTime() - purchased.getTime()) / MS_PER_DAY));
 }
 
 export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
@@ -76,29 +77,118 @@ export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
   };
 }
 
-export function getMsUntilMidnightUTC(now = new Date()) {
-  const midnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-  return midnight.getTime() - now.getTime();
+/** Start of the current in-progress 24h accrual window (from purchase time). */
+export function getAccrualPeriodStartMs(
+  purchasedAt: Date | string,
+  daysCredited: number,
+  payableDays: number
+) {
+  const purchased = toDate(purchasedAt);
+  const periodIndex = Math.max(daysCredited, payableDays);
+  return purchased.getTime() + periodIndex * MS_PER_DAY;
 }
 
-export function getTodayAccrualFraction(now = new Date()) {
-  const msIntoDay = now.getTime() - startOfUtcDay(now);
-  return Math.min(1, msIntoDay / MS_PER_DAY);
+/** Fraction of the current 24h period elapsed (0–1). */
+export function getCurrentPeriodAccrualFraction(
+  purchasedAt: Date | string,
+  daysCredited: number,
+  payableDays: number,
+  durationDays: number,
+  now = new Date()
+) {
+  if (daysCredited >= durationDays) return 0;
+  const periodStart = getAccrualPeriodStartMs(purchasedAt, daysCredited, payableDays);
+  if (now.getTime() < periodStart) return 0;
+  const elapsed = now.getTime() - periodStart;
+  return Math.min(1, elapsed / MS_PER_DAY);
+}
+
+/** Ms until the next payout for this plan (0 if overdue or complete). */
+export function getMsUntilNextPlanPayout(
+  purchasedAt: Date | string,
+  daysCredited: number,
+  payableDays: number,
+  durationDays: number,
+  now = new Date()
+) {
+  if (daysCredited >= durationDays) return 0;
+  if (daysCredited < payableDays) return 0;
+  const purchased = toDate(purchasedAt);
+  const nextPayoutAt = purchased.getTime() + (daysCredited + 1) * MS_PER_DAY;
+  return Math.max(0, nextPayoutAt - now.getTime());
+}
+
+/** Progress through the current 24h payout cycle (0–100). */
+export function getPlanPayoutCycleProgress(
+  purchasedAt: Date | string,
+  daysCredited: number,
+  payableDays: number,
+  durationDays: number,
+  now = new Date()
+) {
+  if (daysCredited >= durationDays) return 100;
+  const fraction = getCurrentPeriodAccrualFraction(
+    purchasedAt,
+    daysCredited,
+    payableDays,
+    durationDays,
+    now
+  );
+  return fraction * 100;
+}
+
+export function getSoonestPlanPayoutMs(userPlans: PlanProgressInput[], now = new Date()) {
+  const active = userPlans.filter((plan) => plan.isActive !== false);
+  if (active.length === 0) return 0;
+
+  return Math.min(
+    ...active.map((plan) => {
+      const progress = getPlanProgress(plan, now);
+      return getMsUntilNextPlanPayout(
+        plan.purchasedAt,
+        progress.daysCredited,
+        progress.payableDays,
+        progress.durationDays,
+        now
+      );
+    })
+  );
 }
 
 export function getLivePlanStats(userPlan: PlanProgressInput, now = new Date()) {
   const progress = getPlanProgress(userPlan, now);
-  const accrualFraction = getTodayAccrualFraction(now);
-  const isAccruingToday =
-    progress.payableDays < progress.durationDays &&
-    progress.daysCredited >= progress.payableDays;
-  const accruingToday = isAccruingToday ? progress.dailyProfit * accrualFraction : 0;
+  const accrualFraction = getCurrentPeriodAccrualFraction(
+    userPlan.purchasedAt,
+    progress.daysCredited,
+    progress.payableDays,
+    progress.durationDays,
+    now
+  );
+  const isAccruing =
+    progress.daysCredited < progress.durationDays && userPlan.isActive !== false;
+  const accruingToday = isAccruing ? progress.dailyProfit * accrualFraction : 0;
   const liveTotalEarned = progress.totalEarned + progress.earningsDue + accruingToday;
+  const msUntilPayout = getMsUntilNextPlanPayout(
+    userPlan.purchasedAt,
+    progress.daysCredited,
+    progress.payableDays,
+    progress.durationDays,
+    now
+  );
+  const payoutCycleProgress = getPlanPayoutCycleProgress(
+    userPlan.purchasedAt,
+    progress.daysCredited,
+    progress.payableDays,
+    progress.durationDays,
+    now
+  );
 
   return {
     ...progress,
     accruingToday,
     liveTotalEarned,
+    msUntilPayout,
+    payoutCycleProgress,
   };
 }
 

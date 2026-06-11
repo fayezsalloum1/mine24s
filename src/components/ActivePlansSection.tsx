@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { getLivePlanStats, formatCountdown } from "@/lib/mining-math";
-import { useMidnightCountdown } from "@/hooks/useMidnightCountdown";
+import { useNow } from "@/hooks/useNow";
 import MachineImage from "@/components/MachineImage";
 import EmptyState from "@/components/ui/EmptyState";
 import Link from "next/link";
@@ -32,7 +32,7 @@ interface UserPlan {
 
 export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[] }) {
   const t = useTranslations("dashboard");
-  const countdown = useMidnightCountdown();
+  const now = useNow();
 
   const activePlans = userPlans.filter((p) => p.isActive);
 
@@ -53,8 +53,7 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {activePlans.map((up) => {
-        const stats = getLivePlanStats(up);
-        const nextPayoutProgress = ((86400000 - countdown) / 86400000) * 100;
+        const stats = getLivePlanStats(up, now);
         const durationDays = stats.durationDays;
         const planProgress = Math.min(100, (stats.payableDays / durationDays) * 100);
         const isShared = up.plan.planType === "POOLED" || Boolean(up.poolId);
@@ -117,12 +116,12 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
                 </div>
                 <div className="flex justify-between text-xs text-gray-400 mb-1">
                   <span>{t("nextPayout")}</span>
-                  <span className="font-mono text-yellow-500">{formatCountdown(countdown)}</span>
+                  <span className="font-mono text-yellow-500">{formatCountdown(stats.msUntilPayout)}</span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-yellow-500 h-2 rounded-full transition-all"
-                    style={{ width: `${nextPayoutProgress}%` }}
+                    style={{ width: `${stats.payoutCycleProgress}%` }}
                   />
                 </div>
               </div>

@@ -12,7 +12,9 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "admin:addresses": "node scripts/show-admin-wallet.mjs",
-    "wallets:fix-tron": "npx tsx src/backfill-wallets.ts"
+    "wallets:fix-tron": "npx tsx src/backfill-wallets.ts",
+    "plans:add": "npx tsx src/addPlans.ts",
+    "admin:create": "npx tsx src/createAdmin.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

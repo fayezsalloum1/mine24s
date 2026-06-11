@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import ReferralLinkActions from "@/components/ReferralLinkActions";
-import { formatCountdown } from "@/lib/mining-math";
-import { useMidnightCountdown } from "@/hooks/useMidnightCountdown";
+import { formatCountdown, getSoonestPlanPayoutMs } from "@/lib/mining-math";
+import { useNow } from "@/hooks/useNow";
 import { fetchJson } from "@/lib/fetch-json";
 
 interface WithdrawData {
@@ -21,6 +21,16 @@ interface WithdrawData {
   creditedProfit?: number;
   pendingWithdrawalAmount?: number;
   totalDailyProfit?: number;
+  userPlans?: Array<{
+    purchasedAt: string;
+    isActive: boolean;
+    purchasePrice?: number;
+    dailyReturnPercentSnapshot?: number;
+    durationDaysSnapshot?: number;
+    daysCredited?: number;
+    principalReturned?: boolean;
+    plan: { price: number; dailyReturnPercent: number; durationDays?: number };
+  }>;
 }
 
 export default function WithdrawPage() {
@@ -29,7 +39,7 @@ export default function WithdrawPage() {
   const t = useTranslations("withdraw");
   const tc = useTranslations("common");
   const td = useTranslations("dashboard");
-  const countdown = useMidnightCountdown();
+  const now = useNow();
   const [amount, setAmount] = useState("");
   const [network, setNetwork] = useState("ERC20");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
@@ -59,11 +69,15 @@ export default function WithdrawPage() {
     if (!data) return 0;
     const pending = data.pendingWithdrawalAmount ?? 0;
     const credited = data.creditedProfit ?? 0;
-    const accrualFraction = 1 - countdown / 86400000;
-    const liveAccruing = (data.totalDailyProfit ?? 0) * accrualFraction;
+    const liveAccruing = data.accruingProfit ?? 0;
     const totalProfit = credited + liveAccruing;
     return Math.max(0, Math.min(data.balance - pending, totalProfit - pending));
-  }, [data, countdown]);
+  }, [data]);
+
+  const nextPayoutMs = useMemo(() => {
+    if (!data?.userPlans?.length) return 0;
+    return getSoonestPlanPayoutMs(data.userPlans, now);
+  }, [data, now]);
 
   const parsedAmount = parseFloat(amount);
   const isOverLimit = Number.isFinite(parsedAmount) && parsedAmount > availableProfit;
@@ -154,9 +168,9 @@ export default function WithdrawPage() {
           <p className="text-2xl font-bold text-green-400">${availableProfit.toFixed(4)}</p>
           <div className="flex justify-between text-sm text-gray-500 mt-2">
             <span>
-              {td("accruingNow")}: ${((data?.totalDailyProfit ?? 0) * (1 - countdown / 86400000)).toFixed(4)}
+              {td("accruingNow")}: ${(data?.accruingProfit ?? 0).toFixed(4)}
             </span>
-            <span className="font-mono text-yellow-500">{formatCountdown(countdown)}</span>
+            <span className="font-mono text-yellow-500">{formatCountdown(nextPayoutMs)}</span>
           </div>
         </div>
 

@@ -136,5 +136,19 @@ export async function GET() {
     creditedProfit: profitBalance.creditedProfit,
     pendingWithdrawalAmount: profitBalance.pendingWithdrawalAmount,
     totalDailyProfit,
+    userPlans: user.userPlans.map((up) => ({
+      purchasedAt: up.purchasedAt.toISOString(),
+      isActive: up.isActive,
+      purchasePrice: up.purchasePrice,
+      dailyReturnPercentSnapshot: up.dailyReturnPercentSnapshot,
+      durationDaysSnapshot: up.durationDaysSnapshot,
+      daysCredited: up.daysCredited,
+      principalReturned: up.principalReturned,
+      plan: {
+        price: up.plan.price,
+        dailyReturnPercent: up.plan.dailyReturnPercent,
+        durationDays: up.plan.durationDays,
+      },
+    })),
   });
 }
