@@ -41,24 +41,34 @@ enum Status {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  email              String   @unique
-  password           String
-  role               Role     @default(USER)
-  walletIndex        Int      @unique
-  depositAddress     String
-  tronDepositAddress String
-  balance            Float    @default(0)
-  isFrozen           Boolean  @default(false)
-  referralCode       String   @unique
-  referredBy         String?
-  twoFactorSecret    String?
-  twoFactorEnabled   Boolean  @default(false)
-  phoneNumber        String?
-  phoneVerified      Boolean   @default(false)
-  phoneOtpCode       String?
-  phoneOtpExpiresAt  DateTime?
-  createdAt          DateTime  @default(now())
+  id                          String    @id @default(cuid())
+  email                       String    @unique
+  password                    String
+  fullName                    String?
+  role                        Role      @default(USER)
+  walletIndex                 Int       @unique
+  depositAddress              String
+  tronDepositAddress          String
+  balance                     Float     @default(0)
+  isFrozen                    Boolean   @default(false)
+  referralCode                String    @unique
+  referredBy                  String?
+  twoFactorSecret             String?
+  twoFactorEnabled            Boolean   @default(false)
+  phoneNumber                 String?
+  phoneVerified               Boolean   @default(false)
+  phoneOtpCode                String?
+  phoneOtpExpiresAt           DateTime?
+  emailVerified               Boolean   @default(false)
+  emailVerificationCode       String?
+  emailVerificationExpiry     DateTime?
+  emailVerificationAttempts   Int       @default(0)
+  emailVerificationLockedUntil DateTime?
+  passwordResetToken          String?
+  passwordResetExpiry         DateTime?
+  passwordResetRequestCount   Int       @default(0)
+  passwordResetRequestWindow  DateTime?
+  createdAt                   DateTime  @default(now())
 
   userPlans          UserPlan[]
   transactions       Transaction[]

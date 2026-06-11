@@ -39,6 +39,7 @@ async function main() {
     update: {
       depositAddress,
       tronDepositAddress,
+      emailVerified: true,
     },
     create: {
       email: adminEmail,
@@ -48,6 +49,7 @@ async function main() {
       depositAddress,
       tronDepositAddress,
       referralCode: "ADMIN001",
+      emailVerified: true,
     },
   });
 

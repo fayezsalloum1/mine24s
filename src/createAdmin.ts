@@ -5,7 +5,7 @@ async function main() {
   const hash = await bcrypt.hash("admin123", 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@yourdomain.com" },
-    update: { password: hash, role: "ADMIN" },
+    update: { password: hash, role: "ADMIN", emailVerified: true },
     create: {
       email: "admin@yourdomain.com",
       password: hash,
@@ -15,6 +15,7 @@ async function main() {
       tronDepositAddress: "ADMIN_ADDRESS",
       referralCode: "ADMIN001",
       isFrozen: false,
+      emailVerified: true,
     },
   });
   console.log("Admin created:", admin.email);

@@ -9,19 +9,33 @@ import {
   getPlatformDepositAddresses,
   usesCustomPlatformWallet,
 } from "@/lib/wallet";
-import { sendEmail, welcomeEmailHtml } from "@/lib/email";
-import { BRAND_NAME } from "@/lib/constants";
 import { normalizeReferralCode } from "@/lib/referral";
+import { sendVerificationEmail } from "@/lib/email-verification";
+import { isValidEmail } from "@/lib/password-strength";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, referralCode } = await req.json();
+    const { email, password, fullName, phoneNumber, referralCode, acceptTerms } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!email || !password || !fullName) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    if (!isValidEmail(normalizedEmail)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    if (String(password).length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    if (!acceptTerms) {
+      return NextResponse.json({ error: "You must accept the terms of service" }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
@@ -56,30 +70,32 @@ export async function POST(req: Request) {
       depositAddress = generateDepositAddress(walletIndex);
       tronDepositAddress = generateTronDepositAddress(walletIndex);
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const hashedPassword = await bcrypt.hash(String(password), 10);
     const newReferralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
+        fullName: String(fullName).trim(),
+        phoneNumber: phoneNumber ? String(phoneNumber).trim() : null,
         walletIndex,
         depositAddress,
         tronDepositAddress,
         referralCode: newReferralCode,
         referredBy,
+        emailVerified: false,
       },
     });
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const referralLink = `${baseUrl}/register?ref=${newReferralCode}`;
-    await sendEmail(
-      email,
-      `Welcome to ${BRAND_NAME}`,
-      welcomeEmailHtml(email, referralLink)
-    );
+    await sendVerificationEmail(user.id, user.email);
 
-    return NextResponse.json({ success: true, user: { id: user.id, email: user.email } });
+    return NextResponse.json({
+      success: true,
+      user: { id: user.id, email: user.email },
+      requiresVerification: true,
+    });
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

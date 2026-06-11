@@ -48,7 +48,7 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
-    update: { depositAddress, tronDepositAddress },
+    update: { depositAddress, tronDepositAddress, emailVerified: true },
     create: {
       email: adminEmail,
       password,
@@ -57,6 +57,7 @@ async function main() {
       depositAddress,
       tronDepositAddress,
       referralCode: "ADMIN001",
+      emailVerified: true,
     },
   });
 

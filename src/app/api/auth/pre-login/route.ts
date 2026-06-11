@@ -9,7 +9,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (!user) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
@@ -21,6 +22,13 @@ export async function POST(req: Request) {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
+
+  if (!user.emailVerified) {
+    return NextResponse.json(
+      { error: "Please verify your email before logging in.", emailUnverified: true, email: user.email },
+      { status: 403 }
+    );
   }
 
   if (user.twoFactorEnabled) {

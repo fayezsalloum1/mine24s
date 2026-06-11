@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { check2FAVerified, clear2FAVerified } from "@/lib/otp-store";
 
+const SESSION_MAX_AGE_REMEMBER = 30 * 24 * 60 * 60;
+const SESSION_MAX_AGE_DEFAULT = 24 * 60 * 60;
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -12,16 +15,18 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         twoFactorVerified: { label: "2FA Verified", type: "text" },
+        rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email.trim().toLowerCase() },
         });
 
         if (!user) return null;
         if (user.isFrozen) return null;
+        if (!user.emailVerified) return null;
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;
@@ -36,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           role: user.role,
+          rememberMe: credentials.rememberMe === "true",
         };
       },
     }),
@@ -45,6 +51,9 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role: string }).role;
+        const rememberMe = (user as { rememberMe?: boolean }).rememberMe;
+        const maxAge = rememberMe ? SESSION_MAX_AGE_REMEMBER : SESSION_MAX_AGE_DEFAULT;
+        token.exp = Math.floor(Date.now() / 1000) + maxAge;
       }
       return token;
     },
@@ -61,6 +70,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_REMEMBER,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
