@@ -26,10 +26,9 @@ export default function MiningHeroVideo() {
       <BrandVideo
         src={SITE_VIDEOS.hero}
         title="Simple Mining — hero"
-        className="absolute inset-0 rounded-2xl bg-black"
+        className="absolute inset-0 rounded-2xl"
         fallback={<CloudBitcoinFallback />}
         overlay={false}
-        objectFit="contain"
       />
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-gold-500/20" />
       <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-emerald-500/30 bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-emerald-400 backdrop-blur-sm">

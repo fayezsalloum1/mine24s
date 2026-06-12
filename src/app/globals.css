@@ -287,32 +287,32 @@ body {
   }
 
   .hero-split {
-    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center;
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch;
   }
 
   .hero-video-col {
-    @apply relative w-full max-w-xl mx-auto lg:max-w-none lg:mx-0;
+    @apply relative w-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem];
   }
 
   .hero-video-frame {
-    @apply relative aspect-[9/16] sm:aspect-[4/5] lg:aspect-[3/4] w-full max-h-[34rem] mx-auto rounded-2xl overflow-hidden shadow-2xl shadow-black/50;
+    @apply relative h-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem] w-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50;
     border: 1px solid rgb(245 158 11 / 0.15);
   }
 
   .company-video-grid {
-    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center;
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-stretch;
   }
 
   .company-video-player {
-    @apply relative aspect-video w-full min-h-[14rem];
+    @apply relative w-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[36rem];
   }
 
   .about-video-grid {
-    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 items-center;
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch;
   }
 
   .about-video-player {
-    @apply relative aspect-video w-full min-h-[14rem];
+    @apply relative w-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[36rem];
   }
 
   .marketing-clips-grid {
@@ -324,7 +324,7 @@ body {
   }
 
   .marketing-clip-video-wrap {
-    @apply relative aspect-[9/16] max-h-[28rem] mx-auto w-full bg-navy-900;
+    @apply relative aspect-[9/16] w-full;
   }
 
   .hero-badge {

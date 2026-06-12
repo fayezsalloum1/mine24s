@@ -34,6 +34,7 @@ export default function AboutPage() {
             src={SITE_VIDEOS.about}
             title={t("aboutVideoTitle")}
             className="about-video-player rounded-2xl border border-gray-800/80 shadow-2xl shadow-black/40"
+            overlay={false}
             fallback={
               <div className="about-video-player flex items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-navy-800/60">
                 <div className="px-6 text-center">

@@ -25,9 +25,9 @@ export default function AuthSplitLayout({ children }: { children: React.ReactNod
           src={SITE_VIDEOS.auth}
           title="Simple Mining"
           className="absolute inset-0"
-          overlay
+          overlay={false}
         />
-        <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/20 to-transparent pointer-events-none" />
         <div className="relative z-10 max-w-md mt-auto">
           <p className="text-gold-400 text-sm font-semibold uppercase tracking-wider mb-4">
             {t("authPanelBadge")}

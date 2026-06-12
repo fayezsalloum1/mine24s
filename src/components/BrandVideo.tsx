@@ -42,12 +42,12 @@ export default function BrandVideo({
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         aria-label={title}
         onError={() => setFailed(true)}
       />
       {overlay && (
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/15 to-slate-950/35" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent" />
       )}
     </div>
   );

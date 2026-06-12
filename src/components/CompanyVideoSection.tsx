@@ -34,6 +34,7 @@ export default function CompanyVideoSection() {
           src={SITE_VIDEOS.operations}
           title={t("operationsTitle")}
           className="company-video-player rounded-2xl border border-gray-800/80 shadow-2xl shadow-black/40"
+          overlay={false}
           fallback={
             <div className="company-video-player flex items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-navy-800/60">
               <div className="px-6 text-center">

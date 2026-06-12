@@ -63,7 +63,6 @@ export default function LandingPage() {
 
   const soloPlans = plans.filter((p) => !p.isPooled);
   const pooledPlans = plans.filter((p) => p.isPooled);
-  const featuredSolo = soloPlans.slice(0, 3);
 
   return (
     <div className="page-shell">
@@ -158,11 +157,11 @@ export default function LandingPage() {
           <EmptyState title={t("noPlansYet")} description={t("noPlansYetDesc")} />
         ) : (
           <>
-            {featuredSolo.length > 0 && (
+            {soloPlans.length > 0 && (
               <div className="mb-12">
                 <h3 className="section-heading-accent">{t("soloPlans")}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {featuredSolo.map((plan, index) => (
+                  {soloPlans.map((plan, index) => (
                     <SoloPlanCard
                       key={plan.id}
                       plan={plan}

@@ -23,7 +23,7 @@ export default function MarketingClipsSection() {
                 src={clip.src}
                 controls
                 playsInline
-                preload="metadata"
+                preload="auto"
                 aria-label={t(clip.titleKey)}
               />
             </div>
