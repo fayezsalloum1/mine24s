@@ -16,6 +16,7 @@ import HeroStatsStrip from "@/components/HeroStatsStrip";
 import PlatformStatsShowcase from "@/components/PlatformStatsShowcase";
 import MiningHeroVideo from "@/components/MiningHeroVideo";
 import CompanyVideoSection from "@/components/CompanyVideoSection";
+import MarketingClipsSection from "@/components/MarketingClipsSection";
 import { PLATFORM_DISPLAY_DEFAULTS } from "@/lib/platform-display-stats";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
@@ -189,6 +190,7 @@ export default function LandingPage() {
       </section>
 
       <TrustBadges />
+      <MarketingClipsSection />
       <TestimonialsSection />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8">

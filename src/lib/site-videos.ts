@@ -14,3 +14,16 @@ export const SITE_VIDEOS = {
   operations:
     process.env.NEXT_PUBLIC_OPERATIONS_VIDEO_URL || "/videos/operations.mp4",
 } as const;
+
+export const MARKETING_CLIPS = [
+  {
+    src: "/videos/clip-mstr-shares.mp4",
+    titleKey: "clipMstrSharesTitle" as const,
+    descKey: "clipMstrSharesDesc" as const,
+  },
+  {
+    src: "/videos/clip-mstr-exposure.mp4",
+    titleKey: "clipMstrExposureTitle" as const,
+    descKey: "clipMstrExposureDesc" as const,
+  },
+] as const;

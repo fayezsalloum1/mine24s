@@ -134,7 +134,14 @@
                     "operationsPoint2":  "مراقبة مباشرة ودورات دفع شفافة",
                     "operationsPoint3":  "فريق دعم مخصص على مدار الساعة",
                     "videoPlaceholderTitle":  "ارفع الفيديو",
-                    "videoPlaceholderHint":  "ضع operations.mp4 في public/videos/ أو عيّن NEXT_PUBLIC_OPERATIONS_VIDEO_URL"
+                    "videoPlaceholderHint":  "ضع operations.mp4 في public/videos/ أو عيّن NEXT_PUBLIC_OPERATIONS_VIDEO_URL",
+                    "clipsBadge":  "من Simple Mining",
+                    "clipsTitle":  "تعلّم قبل أن تستثمر",
+                    "clipsDesc":  "رؤى قصيرة من فريق Simple Mining حول البيتكوين والمعدات وبناء ثروة تعدين حقيقية.",
+                    "clipMstrSharesTitle":  "امتلك البيتكوين عبر MSTR",
+                    "clipMstrSharesDesc":  "عند شراء MSTR، تمتلك أسهماً في شركة تحتفظ بالبيتكوين في ميزانيتها.",
+                    "clipMstrExposureTitle":  "اعرف ما بينك وبين BTC",
+                    "clipMstrExposureDesc":  "التعرّض للبيتكوين ليس دائماً مباشراً — افهم الطبقات قبل الاستثمار."
                 },
     "auth":  {
                  "loginTitle":  "تسجيل الدخول",

@@ -134,7 +134,14 @@
                     "operationsPoint2":  "Live monitoring and transparent payout cycles",
                     "operationsPoint3":  "Dedicated support team available 24/7",
                     "videoPlaceholderTitle":  "Upload your video",
-                    "videoPlaceholderHint":  "Place operations.mp4 in public/videos/ or set NEXT_PUBLIC_OPERATIONS_VIDEO_URL in .env"
+                    "videoPlaceholderHint":  "Place operations.mp4 in public/videos/ or set NEXT_PUBLIC_OPERATIONS_VIDEO_URL in .env",
+                    "clipsBadge":  "From Simple Mining",
+                    "clipsTitle":  "Learn before you invest",
+                    "clipsDesc":  "Short insights from the Simple Mining team on Bitcoin, equipment, and building real mining wealth.",
+                    "clipMstrSharesTitle":  "Own Bitcoin through MSTR",
+                    "clipMstrSharesDesc":  "When you buy MSTR, you own shares in a company that holds Bitcoin on its balance sheet.",
+                    "clipMstrExposureTitle":  "Count what's between you & BTC",
+                    "clipMstrExposureDesc":  "Bitcoin exposure isn't always direct — understand the layers before you invest."
                 },
     "auth":  {
                  "loginTitle":  "Login",
