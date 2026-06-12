@@ -95,7 +95,7 @@ function LoginForm() {
 
   return (
     <AuthPanel>
-      <h1 className="text-2xl font-bold text-white mb-6">{t("loginTitle")}</h1>
+      <h1 className="auth-title">{t("loginTitle")}</h1>
 
       {info && <p className="text-green-400 mb-4 text-sm">{info}</p>}
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}

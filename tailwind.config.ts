@@ -24,10 +24,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-cairo)", "system-ui", "sans-serif"],
-        display: ["var(--font-cairo)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-cairo)", "system-ui", "sans-serif"],
+        mono: ["var(--font-display)", "ui-monospace", "monospace"],
       },
       letterSpacing: {
         widest2: "0.2em",
+        display: "0.06em",
       },
       boxShadow: {
         gold: "0 0 48px -8px rgb(245 166 35 / 0.45)",

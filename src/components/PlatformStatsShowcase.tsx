@@ -67,7 +67,7 @@ export default function PlatformStatsShowcase({
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       <div className="section-eyebrow">
-        <span className="text-xs font-bold uppercase tracking-widest2 text-amber-400/80">{t("platformStats")}</span>
+        <span>{t("platformStats")}</span>
       </div>
       <h2 className="section-title">{t("platformStats")}</h2>
       <p className="section-subtitle">{t("platformStatsHint")}</p>
@@ -78,7 +78,7 @@ export default function PlatformStatsShowcase({
           <div className="step-icon-wrap w-12 h-12 mb-4 mx-auto text-lg">
             👥
           </div>
-          <p className="text-3xl sm:text-4xl font-black text-gradient-gold tabular-nums leading-none">
+          <p className="text-3xl sm:text-4xl stat-number text-gradient-gold leading-none">
             {formatStatNumber(animatedUsers)}
           </p>
           <p className="text-slate-300 font-semibold mt-3 text-sm">{t("totalUsers")}</p>
@@ -92,7 +92,7 @@ export default function PlatformStatsShowcase({
           <div className="step-icon-wrap w-12 h-12 mb-4 mx-auto text-lg border-cyan-500/25 bg-cyan-500/10">
             ⛏️
           </div>
-          <p className="text-3xl sm:text-4xl font-black text-gradient-cyan tabular-nums leading-none">
+          <p className="text-3xl sm:text-4xl stat-number text-gradient-cyan leading-none">
             {formatStatNumber(animatedPlans)}
           </p>
           <p className="text-slate-300 font-semibold mt-3 text-sm">{t("activePlans")}</p>
@@ -107,7 +107,7 @@ export default function PlatformStatsShowcase({
             💰
           </div>
           <p
-            className="font-black text-emerald-400 tabular-nums leading-tight break-words px-1"
+            className="stat-number text-emerald-400 leading-tight break-words px-1"
             style={{ fontSize: "clamp(1.35rem, 4.5vw, 2.25rem)" }}
           >
             {formatLiquidationUsd(animatedLiquidation)}

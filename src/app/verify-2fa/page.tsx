@@ -74,7 +74,7 @@ export default function Verify2FAPage() {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-2xl mb-4">
               🔐
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">{t("verify2faTitle")}</h1>
+            <h1 className="auth-title mb-0">{t("verify2faTitle")}</h1>
             <p className="text-slate-400 text-sm mt-2">{t("verify2faDesc")}</p>
           </div>
           {error && <p className="text-red-400 mb-4 text-sm text-center">{error}</p>}

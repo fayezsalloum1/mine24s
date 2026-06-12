@@ -69,7 +69,7 @@ function ResetPasswordForm() {
   if (!tokenValid) {
     return (
       <AuthPanel>
-        <h1 className="text-2xl font-bold text-white mb-4">{t("resetPasswordTitle")}</h1>
+        <h1 className="auth-title mb-4">{t("resetPasswordTitle")}</h1>
         <p className="text-red-400 mb-4">{t("resetTokenInvalid")}</p>
         <Link href="/forgot-password" className="text-yellow-500 hover:underline text-sm">
           {t("requestNewReset")}
@@ -80,7 +80,7 @@ function ResetPasswordForm() {
 
   return (
     <AuthPanel>
-      <h1 className="text-2xl font-bold text-white mb-2">{t("resetPasswordTitle")}</h1>
+      <h1 className="auth-title mb-2">{t("resetPasswordTitle")}</h1>
       <p className="text-gray-400 text-sm mb-6">{t("resetPasswordDesc")}</p>
 
       {errors.form && <p className="text-red-400 text-sm mb-4">{errors.form}</p>}

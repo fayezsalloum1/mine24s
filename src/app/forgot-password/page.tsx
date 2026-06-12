@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       <AppHeader showNotifications={false} />
       <div className="auth-shell">
         <AuthPanel>
-          <h1 className="text-2xl font-bold text-white mb-2">{t("forgotPasswordTitle")}</h1>
+          <h1 className="auth-title mb-2">{t("forgotPasswordTitle")}</h1>
           <p className="text-gray-400 text-sm mb-6">{t("forgotPasswordDesc")}</p>
 
           {sent ? (

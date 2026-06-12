@@ -47,7 +47,7 @@ export default function BrandLogo({ size = "md", showName = true, className = ""
         </svg>
       </span>
       {showName && (
-        <span className={`${s.text} font-black text-gradient-gold tracking-tight`}>
+        <span className={`${s.text} font-bold text-gradient-gold`}>
           {BRAND_NAME}
         </span>
       )}

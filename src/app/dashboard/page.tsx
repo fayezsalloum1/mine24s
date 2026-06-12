@@ -143,13 +143,13 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="stat-card">
             <p className="iconic-stat-label">{t("availableBalance")}</p>
-            <p className="text-2xl sm:text-3xl font-black text-gradient-gold tabular-nums">
+            <p className="text-2xl sm:text-3xl stat-number text-gradient-gold">
               ${userData?.balance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
           <div className="stat-card">
             <p className="iconic-stat-label">{t("withdrawableProfit")}</p>
-            <p className="text-2xl sm:text-3xl font-black text-emerald-400 tabular-nums">
+            <p className="text-2xl sm:text-3xl stat-number text-emerald-400">
               ${userData?.availableProfitBalance?.toFixed(2) ?? "0.00"}
             </p>
           </div>

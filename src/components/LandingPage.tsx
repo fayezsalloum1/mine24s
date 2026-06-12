@@ -70,7 +70,7 @@ export default function LandingPage() {
             <div className="iconic-badge iconic-badge-live mb-6 sm:mb-7">
               Live Cloud Mining Platform
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] font-black mb-5 sm:mb-6 text-balance text-gradient-gold leading-[1.08] tracking-tight">
+            <h1 className="hero-title text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] mb-5 sm:mb-6 text-gradient-gold">
               {t("heroTitle")}
             </h1>
             <p className="text-sm sm:text-lg text-slate-300/90 mb-8 sm:mb-10 max-w-2xl mx-auto lg:mx-0 text-balance leading-relaxed">
@@ -115,9 +115,9 @@ export default function LandingPage() {
           <div className="iconic-banner-glow -bottom-16 -left-16 w-40 h-40 bg-emerald-500/10" />
           <div className="relative z-10">
             <p className="iconic-badge mb-5 mx-auto w-fit">{t("referralProgramBadge")}</p>
-            <h2 className="text-2xl sm:text-4xl font-black text-gradient-gold mb-4 tracking-tight">{t("referralHeadline")}</h2>
+            <h2 className="text-2xl sm:text-4xl font-bold text-gradient-gold mb-4">{t("referralHeadline")}</h2>
             <p className="text-slate-300/90 max-w-2xl mx-auto mb-4 leading-relaxed">{t("referralLandingDesc")}</p>
-            <p className="text-amber-300 font-black text-xl sm:text-2xl mb-8 tracking-tight">{t("referralCommissionRate")}</p>
+            <p className="text-amber-300 font-bold text-xl sm:text-2xl mb-8 text-gradient-gold">{t("referralCommissionRate")}</p>
             <Link href="/register" className="btn-primary px-10 py-3.5 rounded-xl inline-block">
               {t("getStarted")}
             </Link>
@@ -127,7 +127,7 @@ export default function LandingPage() {
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <div className="section-eyebrow">
-          <span className="text-xs font-bold uppercase tracking-widest2 text-amber-400/80">{t("howItWorks")}</span>
+          <span>{t("howItWorks")}</span>
         </div>
         <h2 className="section-title mb-8 sm:mb-12">{t("howItWorks")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
@@ -136,7 +136,7 @@ export default function LandingPage() {
               <div className="step-icon-wrap">
                 <Icon />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-amber-300 mb-2">{t(titleKey)}</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-amber-300 mb-2 font-display">{t(titleKey)}</h3>
               <p className="text-slate-400 text-sm leading-relaxed">{t(descKey)}</p>
             </div>
           ))}
@@ -145,7 +145,7 @@ export default function LandingPage() {
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <div className="section-eyebrow">
-          <span className="text-xs font-bold uppercase tracking-widest2 text-amber-400/80">{t("miningPlans")}</span>
+          <span>{t("miningPlans")}</span>
         </div>
         <h2 className="section-title mb-3">{t("miningPlans")}</h2>
         <p className="section-subtitle">{t("plansIntro")}</p>

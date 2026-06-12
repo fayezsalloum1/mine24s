@@ -83,7 +83,7 @@ function VerifyEmailForm() {
 
   return (
     <AuthPanel>
-      <h1 className="text-2xl font-bold text-white mb-2">{t("verifyEmailTitle")}</h1>
+      <h1 className="auth-title mb-2">{t("verifyEmailTitle")}</h1>
       <p className="text-gray-400 text-sm mb-6">{t("verifyEmailDesc")}</p>
 
       {info && <p className="text-green-400 mb-4 text-sm">{info}</p>}

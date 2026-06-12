@@ -50,7 +50,8 @@ body::before {
 }
 
 .page-title {
-  @apply text-2xl sm:text-3xl font-black mb-6 sm:mb-8 tracking-tight;
+  @apply text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 tracking-display;
+  font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
   background: linear-gradient(135deg, #ffd166 0%, #f5a623 50%, #e8860b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -59,11 +60,22 @@ body::before {
 }
 
 .section-title {
-  @apply text-xl sm:text-3xl font-black text-center mb-3 tracking-tight;
+  @apply text-xl sm:text-3xl font-bold text-center mb-3 tracking-display;
+  font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
   background: linear-gradient(135deg, #ffd166 0%, #f5a623 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.hero-title {
+  @apply font-bold text-balance leading-[1.08] tracking-display;
+  font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+}
+
+.auth-title {
+  @apply text-2xl sm:text-3xl font-bold text-white mb-6 tracking-display;
+  font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
 }
 
 .section-subtitle {
@@ -408,7 +420,8 @@ body::before {
   }
 
   .iconic-badge {
-    @apply inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest;
+    @apply inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest2;
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
     border: 1px solid rgb(245 166 35 / 0.35);
     background: linear-gradient(135deg, rgb(245 166 35 / 0.12) 0%, rgb(245 166 35 / 0.04) 100%);
     color: #ffd166;
@@ -486,17 +499,24 @@ body::before {
     background: linear-gradient(90deg, rgb(245 166 35 / 0.5), transparent);
   }
 
+  .section-eyebrow span {
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+    @apply text-xs font-bold uppercase tracking-widest2 text-amber-400/80;
+  }
+
   .iconic-stat-label {
-    @apply text-[10px] sm:text-xs text-slate-500 uppercase font-semibold mb-1;
-    letter-spacing: 0.12em;
+    @apply text-[10px] sm:text-xs text-slate-500 uppercase font-semibold mb-1 tracking-widest2;
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
   }
 
   .iconic-stat-value {
-    @apply text-xl sm:text-2xl font-black tabular-nums;
+    @apply text-xl sm:text-2xl font-bold tabular-nums tracking-display;
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
   }
 
   .section-heading-accent {
-    @apply text-lg sm:text-xl font-bold mb-5 sm:mb-6 flex items-center gap-2.5;
+    @apply text-lg sm:text-xl font-bold mb-5 sm:mb-6 flex items-center gap-2.5 tracking-wide;
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
   }
 
   .section-heading-accent::before {
@@ -517,11 +537,216 @@ body::before {
   }
 }
 
-/* Mining background layers */
+/* Hash network background */
+.hash-bg-base {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgb(34 211 238 / 0.06), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 70%, rgb(245 166 35 / 0.05), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 5% 80%, rgb(16 185 129 / 0.04), transparent 45%),
+    #01050d;
+}
+
+.hash-perspective-grid {
+  background-image:
+    linear-gradient(rgb(34 211 238 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 40%, black 10%, transparent 75%);
+  transform: perspective(600px) rotateX(55deg) scale(1.4);
+  transform-origin: center 80%;
+  opacity: 0.5;
+}
+
+.hash-network-svg {
+  opacity: 0.55;
+}
+
+.hash-network-line {
+  stroke-dasharray: 2 3;
+  animation: hash-line-flow 4s linear infinite;
+}
+
+.hash-node-ring {
+  animation: hash-node-ring 3s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.hash-node-core {
+  animation: hash-node-blink 2.5s ease-in-out infinite;
+}
+
+.hash-data-packet {
+  opacity: 0.7;
+  filter: drop-shadow(0 0 2px rgb(245 166 35 / 0.8));
+}
+
+.hash-float-label {
+  position: absolute;
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  color: rgb(34 211 238 / 0.55);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hash-label-float 5s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hash-float-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(16 185 129 / 0.7);
+  box-shadow: 0 0 6px rgb(16 185 129 / 0.5);
+  flex-shrink: 0;
+}
+
+.hash-data-stream {
+  position: absolute;
+  top: -20px;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: rgb(245 166 35 / 0.18);
+  letter-spacing: 0.08em;
+  writing-mode: vertical-rl;
+  pointer-events: none;
+  animation: hash-stream-fall linear infinite;
+}
+
+.hash-rig-row {
+  opacity: 0.35;
+  max-height: 140px;
+}
+
+.hash-rig-fan {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: fan-spin 1.2s linear infinite;
+}
+
+.hash-rig-led {
+  animation: hash-led-blink 1.8s ease-in-out infinite;
+}
+
+.hash-rig-bar {
+  animation: hash-rig-bar 2.4s ease-in-out infinite;
+}
+
+.hash-node-pulse {
+  animation: hash-node-blink 2s ease-in-out infinite;
+}
+
+.hash-backbone-line {
+  stroke-dasharray: 6 8;
+  animation: hash-line-flow 6s linear infinite;
+}
+
+.hash-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(34 211 238 / 0.25), rgb(245 166 35 / 0.35), rgb(34 211 238 / 0.25), transparent);
+  animation: hash-scan-sweep 8s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.hash-bg-scrim {
+  background:
+    linear-gradient(180deg, rgb(1 5 13 / 0.72) 0%, rgb(1 5 13 / 0.35) 30%, rgb(1 5 13 / 0.15) 55%, rgb(1 5 13 / 0.45) 100%);
+  pointer-events: none;
+}
+
+@keyframes hash-line-flow {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -20; }
+}
+
+@keyframes hash-node-ring {
+  0%, 100% { r: 1.2; opacity: 0.4; }
+  50% { r: 1.6; opacity: 0.15; }
+}
+
+@keyframes hash-node-blink {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes hash-label-float {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.75; transform: translateY(-3px); }
+}
+
+@keyframes hash-stream-fall {
+  0% { transform: translateY(-10vh); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(110vh); opacity: 0; }
+}
+
+@keyframes hash-led-blink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes hash-rig-bar {
+  0%, 100% { width: 30px; opacity: 0.3; }
+  50% { width: 65px; opacity: 0.55; }
+}
+
+@keyframes hash-scan-sweep {
+  0%, 100% { top: 15%; opacity: 0; }
+  10% { opacity: 0.6; }
+  50% { top: 75%; opacity: 0.4; }
+  90% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hash-network-line,
+  .hash-data-packet,
+  .hash-float-label,
+  .hash-data-stream,
+  .hash-rig-fan,
+  .hash-rig-led,
+  .hash-rig-bar,
+  .hash-scan-line,
+  .hash-node-ring,
+  .hash-node-core,
+  .hash-backbone-line {
+    animation: none !important;
+  }
+
+  .hash-network-svg {
+    opacity: 0.35;
+  }
+}
+
+@media (max-width: 640px) {
+  .hash-float-label,
+  .hash-data-stream {
+    display: none;
+  }
+
+  .hash-rig-row {
+    opacity: 0.2;
+    max-height: 90px;
+  }
+
+  .hash-network-svg {
+    opacity: 0.35;
+  }
+}
+
+/* Legacy mining-bg alias */
 .mining-bg-base {
-  background: radial-gradient(ellipse 120% 80% at 50% -20%, rgb(245 166 35 / 0.08), transparent 50%),
-    radial-gradient(ellipse 80% 50% at 80% 80%, rgb(34 211 238 / 0.05), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 10% 60%, rgb(16 185 129 / 0.04), transparent 50%),
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgb(34 211 238 / 0.06), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 70%, rgb(245 166 35 / 0.05), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 5% 80%, rgb(16 185 129 / 0.04), transparent 45%),
     #01050d;
 }
 
@@ -685,7 +910,13 @@ body::before {
     text-wrap: balance;
   }
 
+  .font-display {
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+  }
+
   .text-gradient-gold {
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+    @apply tracking-display;
     background: linear-gradient(135deg, #ffe08a 0%, #ffd166 35%, #f5a623 70%, #e8860b 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -693,10 +924,17 @@ body::before {
   }
 
   .text-gradient-cyan {
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+    @apply tracking-display;
     background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .stat-number {
+    font-family: var(--font-display), var(--font-cairo), system-ui, sans-serif;
+    @apply font-bold tabular-nums tracking-display;
   }
 
   .scrollbar-hide {

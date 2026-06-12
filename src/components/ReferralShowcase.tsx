@@ -25,7 +25,7 @@ export default function ReferralShowcase({
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="flex-1">
             <div className="iconic-badge mb-4 w-fit">{t("referralProgramBadge")}</div>
-            <h2 className="text-xl sm:text-3xl font-black text-gradient-gold mb-3 tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-bold text-gradient-gold mb-3">
               {t("referralHeadline")}
             </h2>
             <p className="text-slate-300/90 text-sm sm:text-base mb-5 max-w-xl leading-relaxed">
@@ -35,13 +35,13 @@ export default function ReferralShowcase({
             <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-md">
               <div className="rounded-xl bg-black/30 border border-emerald-500/25 px-4 py-3.5 backdrop-blur-sm">
                 <p className="iconic-stat-label">{t("totalEarned")}</p>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-400 tabular-nums">
+                <p className="text-2xl sm:text-3xl stat-number text-emerald-400">
                   ${totalReferralEarned.toFixed(2)}
                 </p>
               </div>
               <div className="rounded-xl bg-black/30 border border-amber-500/25 px-4 py-3.5 backdrop-blur-sm">
                 <p className="iconic-stat-label">{t("totalReferrals")}</p>
-                <p className="text-2xl sm:text-3xl font-black text-amber-400 tabular-nums">
+                <p className="text-2xl sm:text-3xl stat-number text-amber-400">
                   {totalReferrals}
                 </p>
               </div>
