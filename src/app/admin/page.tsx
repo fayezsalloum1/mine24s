@@ -278,30 +278,36 @@ export default function AdminPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("totalUsers")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-gradient-gold">{stats.totalUsers ?? 0}</p>
+              <p className="admin-stat-label">{t("totalUsers")}</p>
+              <p className="admin-stat-value">{stats.totalUsers ?? 0}</p>
             </div>
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("usersWithActivePlans")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.usersWithActivePlans ?? 0}</p>
+              <p className="admin-stat-label">{t("usersWithActivePlans")}</p>
+              <p className="admin-stat-value-profit">{stats.usersWithActivePlans ?? 0}</p>
             </div>
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("totalActivePlans")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.totalActivePlans ?? 0}</p>
+              <p className="admin-stat-label">{t("totalActivePlans")}</p>
+              <p className="admin-stat-value-profit">{stats.totalActivePlans ?? 0}</p>
             </div>
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("totalDeposits")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-emerald-400">${stats.totalDeposits?.toFixed(2) ?? "0"}</p>
+              <p className="admin-stat-label">{t("totalDeposits")}</p>
+              <p className="admin-stat-value-profit">
+                ${(stats.totalDeposits ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("totalWithdrawals")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-red-400">${stats.totalWithdrawals?.toFixed(2) ?? "0"}</p>
+              <p className="admin-stat-label">{t("totalWithdrawals")}</p>
+              <p className="admin-stat-value-danger">
+                ${(stats.totalWithdrawals ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="admin-stat">
-              <p className="text-slate-400 text-xs sm:text-sm">{t("platformBalance")}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-gradient-gold">${stats.platformBalance?.toFixed(2) ?? "0"}</p>
+              <p className="admin-stat-label">{t("platformBalance")}</p>
+              <p className="admin-stat-value">
+                ${(stats.platformBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
           </div>
           </>

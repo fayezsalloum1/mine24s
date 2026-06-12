@@ -6,7 +6,7 @@ export function create2FASecret() {
 
 export function create2FAUri(email: string, secret: string) {
   return generateURI({
-    issuer: "Cloud Mining",
+    issuer: "Simple Mining",
     label: email,
     secret,
   });

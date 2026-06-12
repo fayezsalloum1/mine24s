@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     data: { phoneNumber },
   });
 
-  await sendSMS(phoneNumber, `Your Cloud Mining verification code is: ${code}`);
+  await sendSMS(phoneNumber, `Your Simple Mining verification code is: ${code}`);
 
   return NextResponse.json({ success: true });
 }

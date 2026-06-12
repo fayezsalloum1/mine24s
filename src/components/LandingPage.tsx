@@ -14,6 +14,8 @@ import TrustBadges from "@/components/TrustBadges";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import HeroStatsStrip from "@/components/HeroStatsStrip";
 import PlatformStatsShowcase from "@/components/PlatformStatsShowcase";
+import MiningHeroVideo from "@/components/MiningHeroVideo";
+import CompanyVideoSection from "@/components/CompanyVideoSection";
 import { PLATFORM_DISPLAY_DEFAULTS } from "@/lib/platform-display-stats";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
@@ -69,21 +71,27 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="hero-section">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 w-full animate-fade-up">
-          <div className="max-w-3xl mx-auto text-center lg:mx-0 lg:text-start">
-            <div className="hero-badge mx-auto lg:mx-0 w-fit">{t("heroBadge")}</div>
-            <h1 className="hero-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-6 text-gold-400 glow-gold">
-              {t("heroTitle")}
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              {t("heroSubtitle")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link href="/register" className="btn-primary px-8 py-3.5 text-base w-full sm:w-auto">
-                {t("startMining")}
-              </Link>
-              <Link href="#plans" className="btn-secondary px-8 py-3.5 text-base w-full sm:w-auto">
-                {t("viewPlans")}
-              </Link>
+          <div className="hero-split">
+            <div className="text-center lg:text-start">
+              <div className="hero-badge mx-auto lg:mx-0 w-fit">{t("heroBadge")}</div>
+              <h1 className="hero-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-6 text-gold-400 glow-gold">
+                {t("heroTitle")}
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                {t("heroSubtitle")}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link href="/register" className="btn-primary px-8 py-3.5 text-base w-full sm:w-auto">
+                  {t("startMining")}
+                </Link>
+                <Link href="#plans" className="btn-secondary px-8 py-3.5 text-base w-full sm:w-auto">
+                  {t("viewPlans")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="hero-video-col">
+              <MiningHeroVideo />
             </div>
           </div>
         </div>
@@ -100,6 +108,8 @@ export default function LandingPage() {
         totalLiquidation={stats.totalLiquidation}
         activePlans={stats.activePlans}
       />
+
+      <CompanyVideoSection />
 
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">

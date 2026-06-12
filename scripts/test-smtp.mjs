@@ -67,9 +67,9 @@ if (!to) {
 
 try {
   await transporter.sendMail({
-    from: `"${process.env.SMTP_FROM_NAME || "Cloud Mining"}" <${from}>`,
+    from: `"${process.env.SMTP_FROM_NAME || "Simple Mining"}" <${from}>`,
     to,
-    subject: "SMTP test — Cloud Mining",
+    subject: "SMTP test — Simple Mining",
     html: "<p>If you received this, SMTP is working.</p>",
   });
   console.log(`\nTest email sent to ${to}`);

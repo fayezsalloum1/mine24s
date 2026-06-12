@@ -1,6 +1,6 @@
-# Cloud Mining Platform
+# Simple Mining Platform
 
-Website for cloud mining: user accounts, deposits, mining plans, earnings, referrals, withdrawals, and admin panel.
+Website for Simple Mining cloud mining: user accounts, deposits, mining plans, earnings, referrals, withdrawals, and admin panel.
 
 ---
 

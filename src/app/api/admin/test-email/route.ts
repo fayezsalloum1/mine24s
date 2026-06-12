@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   const result = await sendEmail(
     target,
-    "SMTP test — Cloud Mining",
+    "SMTP test — Simple Mining",
     "<p>If you received this, SMTP is working correctly.</p>"
   );
 

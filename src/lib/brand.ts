@@ -1,1 +1,1 @@
-export const BRAND_NAME = "Cloud Mining";
+export { BRAND_NAME } from "./constants";

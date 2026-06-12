@@ -19,8 +19,8 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "Cloud Mining",
-  description: "Premium cloud mining investment platform — earn passive income with trusted mining plans.",
+  title: "Simple Mining",
+  description: "Simple Mining — premium cloud mining investment platform. Earn passive income with trusted mining plans.",
 };
 
 export default async function RootLayout({

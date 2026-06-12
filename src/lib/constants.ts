@@ -1,4 +1,4 @@
-export const BRAND_NAME = "Cloud Mining";
+export const BRAND_NAME = "Simple Mining";
 
 export const USDT = {
   ERC20: {
