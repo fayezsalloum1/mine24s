@@ -14,6 +14,8 @@ import { fetchJson } from "@/lib/fetch-json";
 
 interface WithdrawData {
   withdrawAllowed: boolean;
+  requireReferralForWithdrawal?: boolean;
+  hasActiveReferral?: boolean;
   referralLink: string;
   balance: number;
   availableBalance?: number;
@@ -139,7 +141,7 @@ export default function WithdrawPage() {
     return <div className="page-shell flex items-center justify-center">{tc("loading")}</div>;
   }
 
-  if (data && !data.withdrawAllowed) {
+  if (data && !data.withdrawAllowed && data.requireReferralForWithdrawal) {
     return (
       <div className="page-shell text-white">
         <AppHeader />

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import AppHeader from "@/components/AppHeader";
 import AdminPlansSection from "@/components/AdminPlansSection";
+import AdminPlatformSettings from "@/components/AdminPlatformSettings";
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -226,6 +227,8 @@ export default function AdminPage() {
 
         {activeTab === "stats" && (
           <>
+          <AdminPlatformSettings />
+
           <div className="admin-panel mb-6">
             <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-2">{t("treasuryWallet")}</h2>
             <p className="text-sm text-gray-400 mb-4">{t("treasuryHint")}</p>

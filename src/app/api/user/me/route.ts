@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canWithdraw, getReferralStats } from "@/lib/referral";
+import { getWithdrawEligibility, getReferralStats } from "@/lib/referral";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +49,11 @@ export async function GET() {
       availableProfitBalance: 0,
     };
     let referralStats = { totalReferrals: 0, totalEarned: 0 };
-    let withdrawAllowed = false;
+    let withdrawEligibility = {
+      withdrawAllowed: true,
+      requireReferralForWithdrawal: false,
+      hasActiveReferral: false,
+    };
     let pendingPoolJoins: Array<{
       id: string;
       amount: number;
@@ -67,7 +71,7 @@ export async function GET() {
 
     try {
       referralStats = await getReferralStats(user.id);
-      withdrawAllowed = await canWithdraw(user.id);
+      withdrawEligibility = await getWithdrawEligibility(user.id);
       const joins = await prisma.poolContribution.findMany({
         where: { userId: user.id, pool: { status: "FILLING" } },
         include: {
@@ -111,7 +115,8 @@ export async function GET() {
       transactions: user.transactions,
       totalReferrals: referralStats.totalReferrals,
       totalReferralEarned: referralStats.totalEarned,
-      withdrawAllowed,
+      ...withdrawEligibility,
+      withdrawAllowed: withdrawEligibility.withdrawAllowed,
     });
   } catch (error) {
     console.error("[user/me] unexpected error:", error);

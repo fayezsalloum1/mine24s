@@ -98,6 +98,12 @@ model ScannerState {
   bscLastBlock Int    @default(0)
 }
 
+model PlatformSettings {
+  id                           String   @id @default("main")
+  requireReferralForWithdrawal Boolean  @default(true)
+  updatedAt                    DateTime @updatedAt
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String
@@ -124,6 +130,7 @@ model Plan {
   minContribution    Float?
   maxParticipants    Int?
   isActive           Boolean  @default(true)
+  acceptingSubscriptions Boolean @default(true)
   createdAt          DateTime @default(now())
 
   userPlans UserPlan[]

@@ -81,7 +81,7 @@ export default function PlansPage() {
 
     if (data.error) {
       if (data.error === "Insufficient balance") setDepositOpen(true);
-      toast(data.error, "error");
+      toast(data.planFull ? t("planFullHint") : data.error, "error");
     } else {
       toast(data.message || t("purchaseSuccess"), "success");
       loadPlans();

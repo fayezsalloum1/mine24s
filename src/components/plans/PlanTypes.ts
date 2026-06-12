@@ -20,4 +20,5 @@ export interface ClientPlan {
   soloDailyProfit?: number;
   poolDailyProfit?: number | null;
   minContribution?: number;
+  acceptingSubscriptions?: boolean;
 }

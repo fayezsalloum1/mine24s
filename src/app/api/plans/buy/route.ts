@@ -25,6 +25,13 @@ export async function POST(req: Request) {
   const plan = await prisma.plan.findUnique({ where: { id: planId } });
   if (!plan || !plan.isActive) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
 
+  if (!plan.acceptingSubscriptions) {
+    return NextResponse.json(
+      { error: "This plan is full. Please select another plan.", planFull: true },
+      { status: 400 }
+    );
+  }
+
   try {
     if (plan.planType === "POOLED") {
       const contributionAmount = Number(amount);
@@ -48,11 +55,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
     }
 
-    const { isFirstPlan } = await prisma.$transaction(async (tx) => {
-      const existingPlansCount = await tx.userPlan.count({
-        where: { userId: user.id },
-      });
-
+    await prisma.$transaction(async (tx) => {
       const debit = await tx.user.updateMany({
         where: { id: user.id, balance: { gte: plan.price } },
         data: { balance: { decrement: plan.price } },
@@ -81,13 +84,9 @@ export async function POST(req: Request) {
           status: "CONFIRMED",
         },
       });
-
-      return { isFirstPlan: existingPlansCount === 0 };
     });
 
-    if (isFirstPlan) {
-      await processReferralCommission(user.id, plan.price);
-    }
+    await processReferralCommission(user.id, plan.price);
 
     await createNotification(
       user.id,

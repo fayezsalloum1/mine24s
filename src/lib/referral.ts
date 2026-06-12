@@ -2,8 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail, referralCommissionHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
+import { getPlatformSettings } from "@/lib/platform-settings";
 
-/** Pay 10% commission to referrer on the buyer's first plan purchase only. */
+const REFERRAL_COMMISSION_RATE = 0.1;
+
+/** Pay 10% commission to referrer on every plan purchase by a referred user. */
 export async function processReferralCommission(
   buyerId: string,
   planPrice: number
@@ -11,13 +14,7 @@ export async function processReferralCommission(
   const buyer = await prisma.user.findUnique({ where: { id: buyerId } });
   if (!buyer?.referredBy) return;
 
-  const planPurchases = await prisma.transaction.count({
-    where: { userId: buyerId, type: "PLAN_PURCHASE", status: "CONFIRMED" },
-  });
-  // Called after the purchase transaction — exactly one purchase means first buy.
-  if (planPurchases !== 1) return;
-
-  const commission = planPrice * 0.1;
+  const commission = planPrice * REFERRAL_COMMISSION_RATE;
   const referrer = await prisma.user.findUnique({
     where: { id: buyer.referredBy },
   });
@@ -38,7 +35,7 @@ export async function processReferralCommission(
     }),
   ]);
 
-  const message = `You earned $${commission.toFixed(2)} referral commission!`;
+  const message = `You earned $${commission.toFixed(2)} referral commission (10% on a referred user's plan purchase)!`;
   await createNotification(referrer.id, message);
   await sendEmail(
     referrer.email,
@@ -50,12 +47,13 @@ export async function processReferralCommission(
   }
 }
 
-export async function canWithdraw(userId: string): Promise<boolean> {
+/** Referred user with at least one confirmed plan purchase or active plan. */
+export async function hasActiveReferral(userId: string): Promise<boolean> {
   const referredWithPlan = await prisma.user.count({
     where: {
       referredBy: userId,
       OR: [
-        { userPlans: { some: {} } },
+        { userPlans: { some: { isActive: true } } },
         {
           transactions: {
             some: { type: "PLAN_PURCHASE", status: "CONFIRMED" },
@@ -65,6 +63,25 @@ export async function canWithdraw(userId: string): Promise<boolean> {
     },
   });
   return referredWithPlan >= 1;
+}
+
+export async function canWithdraw(userId: string): Promise<boolean> {
+  const settings = await getPlatformSettings();
+  if (!settings.requireReferralForWithdrawal) {
+    return true;
+  }
+  return hasActiveReferral(userId);
+}
+
+export async function getWithdrawEligibility(userId: string) {
+  const settings = await getPlatformSettings();
+  const hasReferral = await hasActiveReferral(userId);
+  const allowed = !settings.requireReferralForWithdrawal || hasReferral;
+  return {
+    withdrawAllowed: allowed,
+    requireReferralForWithdrawal: settings.requireReferralForWithdrawal,
+    hasActiveReferral: hasReferral,
+  };
 }
 
 export async function getReferralStats(userId: string) {

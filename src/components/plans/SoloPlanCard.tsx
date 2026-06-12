@@ -29,6 +29,7 @@ export default function SoloPlanCard({
   const tc = useTranslations("common");
 
   const dailyProfit = plan.soloDailyProfit ?? 0;
+  const isFull = plan.acceptingSubscriptions === false;
   const projection = getPlanReturnProjection(
     plan.price,
     plan.dailyReturnPercent,
@@ -37,8 +38,11 @@ export default function SoloPlanCard({
   );
 
   return (
-    <div className={`plan-card flex flex-col h-full group ${isPopular ? "plan-card-popular" : ""}`}>
-      {isPopular && <span className="badge-popular">{tPlans("mostPopular")}</span>}
+    <div className={`plan-card flex flex-col h-full group ${isPopular ? "plan-card-popular" : ""} ${isFull ? "plan-card-full" : ""}`}>
+      {isFull && (
+        <span className="badge-plan-full">{tPlans("planFull")}</span>
+      )}
+      {isPopular && !isFull && <span className="badge-popular">{tPlans("mostPopular")}</span>}
       <div className="h-44 sm:h-52 relative">
         <MiningMachineVisual
           name={plan.name}
@@ -81,21 +85,30 @@ export default function SoloPlanCard({
         </div>
 
         {mode === "landing" ? (
-          <Link href="/register" className="w-full btn-primary py-3 rounded-lg text-center">
-            {tc("register")}
-          </Link>
+          isFull ? (
+            <Link href="#plans" className="w-full btn-secondary py-3 rounded-lg text-center block">
+              {tPlans("selectAnotherPlan")}
+            </Link>
+          ) : (
+            <Link href="/register" className="w-full btn-primary py-3 rounded-lg text-center">
+              {tc("register")}
+            </Link>
+          )
         ) : (
           <button
             type="button"
             onClick={onBuy}
-            disabled={loading}
+            disabled={loading || isFull}
             className="w-full btn-primary py-3 rounded-lg disabled:opacity-60"
           >
             {loading && (
               <span className="inline-block w-4 h-4 border-2 border-navy-900/30 border-t-navy-900 rounded-full animate-spin" />
             )}
-            {t("buyNow")}
+            {isFull ? tPlans("planFull") : t("buyNow")}
           </button>
+        )}
+        {isFull && (
+          <p className="text-xs text-amber-400/90 text-center mt-2">{tPlans("planFullHint")}</p>
         )}
       </div>
     </div>

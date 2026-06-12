@@ -91,6 +91,10 @@ export async function joinPooledPlan(
     throw new Error(`Minimum contribution is $${minContribution.toFixed(2)}`);
   }
 
+  if (!plan.acceptingSubscriptions) {
+    throw new Error("This plan is full. Please select another plan.");
+  }
+
   let pool = await getOpenPool(plan.id);
 
   if (!pool) {

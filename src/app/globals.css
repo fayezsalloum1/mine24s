@@ -134,6 +134,26 @@ body {
     color: #0a0f1e;
   }
 
+  .plan-card-full {
+    border-color: rgb(245 158 11 / 0.35);
+    opacity: 0.92;
+  }
+
+  .plan-card-full:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .plan-card-full:hover::after {
+    background: linear-gradient(135deg, transparent, transparent);
+  }
+
+  .badge-plan-full {
+    @apply absolute top-3 start-3 z-20 text-xs font-bold px-2.5 py-1 rounded-full;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #0a0f1e;
+  }
+
   /* Stat cards */
   .stat-card {
     @apply glass-card p-5 sm:p-6;

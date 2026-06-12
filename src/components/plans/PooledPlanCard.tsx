@@ -32,6 +32,7 @@ export default function PooledPlanCard({
   const amount = parseFloat(contribution || "0");
   const min = plan.minContribution ?? 1;
   const poolFull = (plan.poolProgress ?? 0) >= 100;
+  const isFull = plan.acceptingSubscriptions === false;
   const projectionPrincipal =
     mode === "buy" && amount >= min ? amount : min;
   const estimatedDaily =
@@ -49,7 +50,8 @@ export default function PooledPlanCard({
       : null;
 
   return (
-    <div className="plan-card plan-card-pooled flex flex-col h-full">
+    <div className={`plan-card plan-card-pooled flex flex-col h-full ${isFull ? "plan-card-full" : ""}`}>
+      {isFull && <span className="badge-plan-full">{tPlans("planFull")}</span>}
       <div className="h-44 sm:h-52 relative">
         <MiningMachineVisual
           name={plan.name}
@@ -113,7 +115,7 @@ export default function PooledPlanCard({
           </div>
         </div>
 
-        {mode === "buy" && onContributionChange && (
+        {mode === "buy" && onContributionChange && !isFull && (
           <>
             <input
               type="number"
@@ -137,21 +139,30 @@ export default function PooledPlanCard({
         )}
 
         {mode === "landing" ? (
-          <Link href="/register" className="w-full btn-primary py-3 rounded-lg text-center">
-            {t("joinPool")}
-          </Link>
+          isFull ? (
+            <Link href="#plans" className="w-full btn-secondary py-3 rounded-lg text-center block">
+              {tPlans("selectAnotherPlan")}
+            </Link>
+          ) : (
+            <Link href="/register" className="w-full btn-primary py-3 rounded-lg text-center">
+              {t("joinPool")}
+            </Link>
+          )
         ) : (
           <button
             type="button"
             onClick={onJoin}
-            disabled={loading}
+            disabled={loading || isFull}
             className="w-full btn-primary py-3 rounded-lg disabled:opacity-60"
           >
             {loading && (
               <span className="inline-block w-4 h-4 border-2 border-navy-900/30 border-t-navy-900 rounded-full animate-spin" />
             )}
-            {t("joinPool")}
+            {isFull ? tPlans("planFull") : t("joinPool")}
           </button>
+        )}
+        {isFull && (
+          <p className="text-xs text-amber-400/90 text-center mt-2">{tPlans("planFullHint")}</p>
         )}
       </div>
     </div>

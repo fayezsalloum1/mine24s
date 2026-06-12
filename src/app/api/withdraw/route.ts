@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canWithdraw } from "@/lib/referral";
+import { getWithdrawEligibility } from "@/lib/referral";
 import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 import { createNotification, notifyAdmins } from "@/lib/notifications";
@@ -59,10 +59,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid withdrawal address" }, { status: 400 });
   }
 
-  const withdrawAllowed = await canWithdraw(user.id);
-  if (!withdrawAllowed) {
+  const withdrawEligibility = await getWithdrawEligibility(user.id);
+  if (!withdrawEligibility.withdrawAllowed) {
     return NextResponse.json(
-      { error: "Withdrawal locked. Refer at least 1 user who purchased a plan.", locked: true },
+      {
+        error: "Withdrawal locked. Refer at least 1 user who purchased a plan.",
+        locked: true,
+        requireReferralForWithdrawal: withdrawEligibility.requireReferralForWithdrawal,
+      },
       { status: 400 }
     );
   }
@@ -156,7 +160,7 @@ export async function GET() {
   });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const withdrawAllowed = await canWithdraw(user.id);
+  const withdrawEligibility = await getWithdrawEligibility(user.id);
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const profitBalance = await getProfitBalanceForUser(user.id, user.balance, user.userPlans);
   const totalDailyProfit = user.userPlans.reduce((sum, plan) => {
@@ -172,7 +176,8 @@ export async function GET() {
   const cooldownDaysLeft = daysUntilNextWithdrawal(lastApproved?.processedAt ?? null);
 
   return NextResponse.json({
-    withdrawAllowed,
+    ...withdrawEligibility,
+    withdrawAllowed: withdrawEligibility.withdrawAllowed,
     cooldownDaysLeft,
     referralLink: `${baseUrl}/register?ref=${user.referralCode}`,
     balance: user.balance,

@@ -44,6 +44,7 @@ function parsePlanBody(body: Record<string, unknown>) {
       minContribution: planType === "POOLED" ? (minContribution ?? 1) : null,
       maxParticipants: planType === "POOLED" && maxParticipants ? Math.floor(maxParticipants) : null,
       isActive: body.isActive !== false,
+      acceptingSubscriptions: body.acceptingSubscriptions !== false,
       ...(typeof body.machineOnline === "boolean" ? { machineOnline: body.machineOnline } : {}),
       ...(body.machineUptimeHours != null && Number.isFinite(Number(body.machineUptimeHours))
         ? { machineUptimeHours: Math.max(0, Number(body.machineUptimeHours)) }

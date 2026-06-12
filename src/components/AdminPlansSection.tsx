@@ -23,6 +23,7 @@ type AdminPlan = {
   minContribution?: number | null;
   maxParticipants?: number | null;
   isActive: boolean;
+  acceptingSubscriptions?: boolean;
   _count?: { userPlans: number };
   pools?: Array<{ id: string; status: string; filledAmount: number; targetAmount: number }>;
 };
@@ -42,6 +43,7 @@ const EMPTY_FORM = {
   minContribution: "100",
   maxParticipants: "",
   isActive: true,
+  acceptingSubscriptions: true,
 };
 
 export default function AdminPlansSection() {
@@ -88,6 +90,7 @@ export default function AdminPlansSection() {
       minContribution: plan.minContribution ? String(plan.minContribution) : "100",
       maxParticipants: plan.maxParticipants ? String(plan.maxParticipants) : "",
       isActive: plan.isActive,
+      acceptingSubscriptions: plan.acceptingSubscriptions !== false,
     });
   };
 
@@ -108,6 +111,7 @@ export default function AdminPlansSection() {
       machineVideo: form.machineVideo.trim() || null,
       machineOnline: form.machineOnline,
       machineUptimeHours: parseFloat(form.machineUptimeHours) || 0,
+      acceptingSubscriptions: form.acceptingSubscriptions,
     };
 
     const res = await fetch("/api/admin/plans", {
@@ -189,6 +193,18 @@ export default function AdminPlansSection() {
       body: JSON.stringify({ id: planId, online }),
     });
     if (res.ok) loadPlans();
+  };
+
+  const togglePlanSubscriptions = async (planId: string, acceptingSubscriptions: boolean) => {
+    const res = await fetch("/api/admin/plans/subscription", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId, acceptingSubscriptions }),
+    });
+    if (res.ok) {
+      setMessage(acceptingSubscriptions ? t("subscriptionsOpened") : t("subscriptionsFrozen"));
+      loadPlans();
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -434,6 +450,26 @@ export default function AdminPlansSection() {
           <span className="text-sm text-gray-300">{tc("active")}</span>
         </label>
 
+        <label className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/50 border border-slate-700/50">
+          <div>
+            <span className="form-label mb-0 block">{t("acceptingSubscriptions")}</span>
+            <p className="text-xs text-slate-500 mt-1">{t("acceptingSubscriptionsHint")}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, acceptingSubscriptions: !form.acceptingSubscriptions })}
+            className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${
+              form.acceptingSubscriptions ? "bg-emerald-600" : "bg-amber-600"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                form.acceptingSubscriptions ? "left-6" : "left-0.5"
+              }`}
+            />
+          </button>
+        </label>
+
         <div className="md:col-span-2 flex gap-3">
           <button
             type="submit"
@@ -496,6 +532,22 @@ export default function AdminPlansSection() {
               >
                 {plan.machineOnline ? t("turnMachineOff") : t("turnMachineOn")}
               </button>
+              <button
+                type="button"
+                onClick={() => togglePlanSubscriptions(plan.id, plan.acceptingSubscriptions === false)}
+                className={`mt-2 w-full py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  plan.acceptingSubscriptions !== false
+                    ? "bg-amber-950/50 text-amber-400 border border-amber-500/30 hover:bg-amber-950"
+                    : "bg-emerald-950/50 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-950"
+                }`}
+              >
+                {plan.acceptingSubscriptions !== false ? t("freezeSubscriptions") : t("openSubscriptions")}
+              </button>
+              {plan.acceptingSubscriptions === false && (
+                <p className="text-xs text-amber-400/90 mt-1.5">
+                  {t("planFrozenHint", { count: plan._count?.userPlans ?? 0 })}
+                </p>
+              )}
               <p className="text-sm text-gray-400 mt-1 line-clamp-2">{plan.description}</p>
               <p className="text-sm mt-2">
                 {plan.planType === "POOLED"
