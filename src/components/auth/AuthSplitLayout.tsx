@@ -27,7 +27,7 @@ export default function AuthSplitLayout({ children }: { children: React.ReactNod
           className="absolute inset-0"
           overlay={false}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/20 to-transparent pointer-events-none" />
         <div className="relative z-10 max-w-md mt-auto">
           <p className="text-gold-400 text-sm font-semibold uppercase tracking-wider mb-4">
             {t("authPanelBadge")}
