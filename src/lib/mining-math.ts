@@ -47,6 +47,21 @@ export function getPeriodPayoutAmount(userPlan: PlanProgressInput) {
   return getDailyProfit(userPlan) * PAYOUT_INTERVAL_DAYS;
 }
 
+/** Solo plan daily profit from price and return %. Safe for client components. */
+export function getSoloDailyProfit(price: number, dailyReturnPercent: number) {
+  return (price * dailyReturnPercent) / 100;
+}
+
+/** User's share of pooled plan daily profit. Safe for client components. */
+export function getPooledUserDailyProfit(
+  targetAmount: number,
+  dailyReturnPercent: number,
+  contribution: number
+) {
+  const poolDailyProfit = (targetAmount * dailyReturnPercent) / 100;
+  return poolDailyProfit * (contribution / targetAmount);
+}
+
 /** Full 24-hour periods elapsed since purchase (not UTC midnight). */
 export function elapsedMiningDays(purchasedAt: Date | string, now = new Date()) {
   const purchased = toDate(purchasedAt);

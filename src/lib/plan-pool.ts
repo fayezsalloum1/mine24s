@@ -1,21 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
+import { getPooledUserDailyProfit, getSoloDailyProfit } from "@/lib/mining-math";
 import type { Plan } from "@prisma/client";
 
 type PlanWithPool = Plan & { targetPoolAmount: number | null; minContribution: number | null };
 
-export function getSoloDailyProfit(price: number, dailyReturnPercent: number) {
-  return (price * dailyReturnPercent) / 100;
-}
-
-export function getPooledUserDailyProfit(
-  targetAmount: number,
-  dailyReturnPercent: number,
-  contribution: number
-) {
-  const poolDailyProfit = (targetAmount * dailyReturnPercent) / 100;
-  return poolDailyProfit * (contribution / targetAmount);
-}
+export { getSoloDailyProfit, getPooledUserDailyProfit } from "@/lib/mining-math";
 
 export async function getOpenPool(planId: string) {
   return prisma.planPool.findFirst({

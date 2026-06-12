@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
-import { getPooledUserDailyProfit } from "@/lib/plan-pool";
-import { PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
+import { getPooledUserDailyProfit, PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
 import type { ClientPlan } from "./PlanTypes";
 
 interface PooledPlanCardProps {
