@@ -125,20 +125,26 @@ export default function AdminPage() {
   }
 
   async function handleDeposit(id: string, action: string) {
-    await fetch("/api/admin/deposits", {
+    const res = await fetch("/api/admin/deposits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, action }),
     });
+    const data = await res.json();
+    if (data.error) setMessage("Error: " + data.error);
+    else setMessage(t("done"));
     loadData();
   }
 
   async function handleWithdrawal(id: string, action: string) {
-    await fetch("/api/admin/withdrawals", {
+    const res = await fetch("/api/admin/withdrawals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, action }),
     });
+    const data = await res.json();
+    if (data.error) setMessage("Error: " + data.error);
+    else setMessage(t("done"));
     loadData();
   }
 
@@ -465,6 +471,27 @@ export default function AdminPage() {
                   <h2 className="text-lg font-bold text-gradient-gold mb-4">{selectedUser.email}</h2>
                   <p className="text-gray-400 mb-2">{tc("balance")}: ${selectedUser.balance.toFixed(2)}</p>
                   <p className="text-gray-400 mb-4">{t("referrals")}: {selectedUser.referralCount ?? 0}</p>
+
+                  {(selectedUser.depositAddress || selectedUser.tronDepositAddress) && (
+                    <div className="mb-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/50 text-sm space-y-2">
+                      <h3 className="font-bold text-amber-400">{t("walletIndex")}</h3>
+                      <p className="text-gray-400">
+                        Index: <span className="text-white font-mono">{selectedUser.walletIndex ?? "—"}</span>
+                      </p>
+                      {selectedUser.depositAddress && (
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">ERC20 / BEP20</p>
+                          <p className="font-mono text-xs break-all text-gray-300">{selectedUser.depositAddress}</p>
+                        </div>
+                      )}
+                      {selectedUser.tronDepositAddress && (
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">TRC20</p>
+                          <p className="font-mono text-xs break-all text-gray-300">{selectedUser.tronDepositAddress}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {selectedUser.activePlans?.length > 0 && (
                     <div className="mb-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/50">

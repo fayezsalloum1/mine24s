@@ -33,10 +33,6 @@ export async function POST(req: Request) {
 
       const result = await joinPooledPlan(user.id, plan, contributionAmount);
 
-      if (result.isFirstPlan) {
-        await processReferralCommission(user.id, contributionAmount);
-      }
-
       return NextResponse.json({
         success: true,
         pooled: true,

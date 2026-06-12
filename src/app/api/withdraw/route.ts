@@ -6,6 +6,15 @@ import { canWithdraw } from "@/lib/referral";
 import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 
+const WITHDRAWAL_COOLDOWN_DAYS = 7;
+
+function daysUntilNextWithdrawal(lastConfirmedAt: Date | null): number {
+  if (!lastConfirmedAt) return 0;
+  const daysSince = (Date.now() - lastConfirmedAt.getTime()) / (1000 * 60 * 60 * 24);
+  if (daysSince >= WITHDRAWAL_COOLDOWN_DAYS) return 0;
+  return Math.ceil(WITHDRAWAL_COOLDOWN_DAYS - daysSince);
+}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
@@ -68,27 +77,48 @@ export async function POST(req: Request) {
     );
   }
 
-  const lastWithdrawal = await prisma.withdrawalRequest.findFirst({
-    where: { userId: user.id },
-    orderBy: { requestedAt: "desc" },
+  const lastApproved = await prisma.withdrawalRequest.findFirst({
+    where: { userId: user.id, status: "CONFIRMED" },
+    orderBy: { processedAt: "desc" },
   });
 
-  if (lastWithdrawal) {
-    const daysSince = (Date.now() - lastWithdrawal.requestedAt.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSince < 7) {
-      const daysLeft = Math.ceil(7 - daysSince);
-      return NextResponse.json({ error: `You can withdraw again in ${daysLeft} day(s)` }, { status: 400 });
-    }
+  const daysLeft = daysUntilNextWithdrawal(lastApproved?.processedAt ?? null);
+  if (daysLeft > 0) {
+    return NextResponse.json(
+      { error: `You can withdraw again in ${daysLeft} day(s)` },
+      { status: 400 }
+    );
   }
 
-  await prisma.withdrawalRequest.create({
-    data: {
-      userId: user.id,
-      amount: withdrawalAmount,
-      network,
-      withdrawalAddress: withdrawalAddress.trim(),
-    },
-  });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const pending = await tx.withdrawalRequest.aggregate({
+        where: { userId: user.id, status: "PENDING" },
+        _sum: { amount: true },
+      });
+      const pendingSum = pending._sum.amount ?? 0;
+      if (pendingSum + withdrawalAmount > profitBalance.availableProfitBalance) {
+        throw new Error("INSUFFICIENT_PROFIT");
+      }
+
+      await tx.withdrawalRequest.create({
+        data: {
+          userId: user.id,
+          amount: withdrawalAmount,
+          network,
+          withdrawalAddress: withdrawalAddress.trim(),
+        },
+      });
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "INSUFFICIENT_PROFIT") {
+      return NextResponse.json(
+        { error: "Insufficient profit balance (including pending withdrawals)" },
+        { status: 400 }
+      );
+    }
+    throw err;
+  }
 
   return NextResponse.json({ success: true });
 }
@@ -126,8 +156,15 @@ export async function GET() {
     return sum + (principal * rate) / 100;
   }, 0);
 
+  const lastApproved = await prisma.withdrawalRequest.findFirst({
+    where: { userId: user.id, status: "CONFIRMED" },
+    orderBy: { processedAt: "desc" },
+  });
+  const cooldownDaysLeft = daysUntilNextWithdrawal(lastApproved?.processedAt ?? null);
+
   return NextResponse.json({
     withdrawAllowed,
+    cooldownDaysLeft,
     referralLink: `${baseUrl}/register?ref=${user.referralCode}`,
     balance: user.balance,
     availableBalance: profitBalance.availableProfitBalance,

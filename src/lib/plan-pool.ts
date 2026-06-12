@@ -30,48 +30,50 @@ export async function getOpenPool(planId: string) {
 }
 
 export async function activatePool(poolId: string) {
-  const pool = await prisma.planPool.findUnique({
-    where: { id: poolId },
-    include: {
-      plan: true,
-      contributions: true,
-    },
-  });
-
-  if (!pool || pool.status !== "FILLING") return null;
-  if (pool.filledAmount < pool.targetAmount) return null;
-
   const startedAt = new Date();
 
-  await prisma.$transaction(async (tx) => {
-    await tx.planPool.update({
+  const pool = await prisma.$transaction(async (tx) => {
+    const current = await tx.planPool.findUnique({
       where: { id: poolId },
-      data: { status: "ACTIVE", startedAt },
+      include: { plan: true, contributions: true },
     });
 
-    for (const contribution of pool.contributions) {
-      const share = contribution.amount / pool.targetAmount;
+    if (!current || current.status !== "FILLING") return null;
+    if (current.filledAmount < current.targetAmount) return null;
+
+    const locked = await tx.planPool.updateMany({
+      where: { id: poolId, status: "FILLING" },
+      data: { status: "ACTIVE", startedAt },
+    });
+    if (locked.count !== 1) return null;
+
+    for (const contribution of current.contributions) {
+      const share = contribution.amount / current.targetAmount;
       const dailyProfit = getPooledUserDailyProfit(
-        pool.targetAmount,
-        pool.dailyReturnPercent,
+        current.targetAmount,
+        current.dailyReturnPercent,
         contribution.amount
       );
 
       await tx.userPlan.create({
         data: {
           userId: contribution.userId,
-          planId: pool.planId,
-          poolId: pool.id,
+          planId: current.planId,
+          poolId: current.id,
           purchasedAt: startedAt,
           purchasePrice: contribution.amount,
-          dailyReturnPercentSnapshot: pool.dailyReturnPercent,
-          durationDaysSnapshot: pool.durationDays,
+          dailyReturnPercentSnapshot: current.dailyReturnPercent,
+          durationDaysSnapshot: current.durationDays,
           dailyProfitSnapshot: dailyProfit,
           contributionShare: share,
         },
       });
     }
+
+    return current;
   });
+
+  if (!pool) return null;
 
   for (const contribution of pool.contributions) {
     await createNotification(
@@ -113,40 +115,47 @@ export async function joinPooledPlan(
     });
   }
 
-  const remaining = pool.targetAmount - pool.filledAmount;
-  if (remaining <= 0) {
-    throw new Error("This pool is already full. A new pool will open soon.");
-  }
-
-  if (contributionAmount > remaining) {
-    throw new Error(`Maximum contribution right now is $${remaining.toFixed(2)}`);
-  }
-
-  if (plan.maxParticipants) {
-    const participantCount = pool.contributions.length;
-    const alreadyJoined = pool.contributions.some((c) => c.userId === userId);
-    if (!alreadyJoined && participantCount >= plan.maxParticipants) {
-      throw new Error("This pool has reached the maximum number of participants");
-    }
-  }
-
   const result = await prisma.$transaction(async (tx) => {
+    const livePool = await tx.planPool.findUnique({
+      where: { id: pool!.id },
+      include: { contributions: true },
+    });
+
+    if (!livePool || livePool.status !== "FILLING") {
+      throw new Error("This pool is no longer available. Please try again.");
+    }
+
+    const remaining = livePool.targetAmount - livePool.filledAmount;
+    if (remaining <= 0) {
+      throw new Error("This pool is already full. A new pool will open soon.");
+    }
+
+    if (contributionAmount > remaining) {
+      throw new Error(`Maximum contribution right now is $${remaining.toFixed(2)}`);
+    }
+
+    if (plan.maxParticipants) {
+      const participantCount = livePool.contributions.length;
+      const alreadyJoined = livePool.contributions.some((c) => c.userId === userId);
+      if (!alreadyJoined && participantCount >= plan.maxParticipants) {
+        throw new Error("This pool has reached the maximum number of participants");
+      }
+    }
+
     const debit = await tx.user.updateMany({
       where: { id: userId, balance: { gte: contributionAmount } },
       data: { balance: { decrement: contributionAmount } },
     });
     if (debit.count !== 1) throw new Error("Insufficient balance");
 
-    const existingPlansCount = await tx.userPlan.count({ where: { userId } });
-
     await tx.poolContribution.upsert({
-      where: { poolId_userId: { poolId: pool!.id, userId } },
-      create: { poolId: pool!.id, userId, amount: contributionAmount },
+      where: { poolId_userId: { poolId: livePool.id, userId } },
+      create: { poolId: livePool.id, userId, amount: contributionAmount },
       update: { amount: { increment: contributionAmount } },
     });
 
     const updatedPool = await tx.planPool.update({
-      where: { id: pool!.id },
+      where: { id: livePool.id },
       data: { filledAmount: { increment: contributionAmount } },
     });
 
@@ -159,12 +168,14 @@ export async function joinPooledPlan(
       },
     });
 
-    return { updatedPool, isFirstPlan: existingPlansCount === 0 };
+    return { updatedPool, poolId: livePool.id };
   });
 
+  await processReferralCommissionSafe(userId, contributionAmount);
+
   if (result.updatedPool.filledAmount >= result.updatedPool.targetAmount) {
-    await activatePool(pool.id);
-    return { activated: true, poolId: pool.id, filled: true, isFirstPlan: result.isFirstPlan };
+    const activated = await activatePool(result.poolId);
+    return { activated: activated !== null, poolId: result.poolId, filled: true };
   }
 
   await createNotification(
@@ -172,7 +183,12 @@ export async function joinPooledPlan(
     `You joined shared plan "${plan.name}" with $${contributionAmount.toFixed(2)}. Pool is ${((result.updatedPool.filledAmount / result.updatedPool.targetAmount) * 100).toFixed(0)}% filled.`
   );
 
-  return { activated: false, poolId: pool.id, filled: false, isFirstPlan: result.isFirstPlan };
+  return { activated: false, poolId: result.poolId, filled: false };
+}
+
+async function processReferralCommissionSafe(userId: string, amount: number) {
+  const { processReferralCommission } = await import("@/lib/referral");
+  await processReferralCommission(userId, amount);
 }
 
 export function formatPlanForClient(

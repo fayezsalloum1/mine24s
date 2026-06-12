@@ -51,9 +51,10 @@ export async function getProfitBalanceForUser(
   const accruingProfit = getLiveAccruingProfit(activePlans, now);
   const pendingWithdrawalAmount = pending._sum.amount ?? 0;
   const totalProfit = creditedProfit + accruingProfit;
+  // Only credited profit is withdrawable — not uncredited accruing amounts
   const availableProfitBalance = Math.max(
     0,
-    Math.min(balance - pendingWithdrawalAmount, totalProfit - pendingWithdrawalAmount)
+    Math.min(balance - pendingWithdrawalAmount, creditedProfit - pendingWithdrawalAmount)
   );
 
   return {

@@ -27,30 +27,42 @@ async function creditDeposit(
   phoneNumber: string | null,
   phoneVerified: boolean
 ) {
-  const existing = await prisma.processedDeposit.findUnique({
-    where: { network_txHash: { network, txHash } },
-  });
-  if (existing) return false;
+  try {
+    const credited = await prisma.$transaction(async (tx) => {
+      const existing = await tx.processedDeposit.findUnique({
+        where: { network_txHash: { network, txHash } },
+      });
+      if (existing) return false;
 
-  await prisma.$transaction([
-    prisma.processedDeposit.create({
-      data: { userId, network, txHash, amount },
-    }),
-    prisma.transaction.create({
-      data: {
-        userId,
-        type: "DEPOSIT",
-        amount,
-        status: "CONFIRMED",
-        network,
-        txHash,
-      },
-    }),
-    prisma.user.update({
-      where: { id: userId },
-      data: { balance: { increment: amount } },
-    }),
-  ]);
+      const duplicateTx = await tx.transaction.findFirst({
+        where: { type: "DEPOSIT", status: "CONFIRMED", txHash, network },
+      });
+      if (duplicateTx) return false;
+
+      await tx.processedDeposit.create({
+        data: { userId, network, txHash, amount },
+      });
+      await tx.transaction.create({
+        data: {
+          userId,
+          type: "DEPOSIT",
+          amount,
+          status: "CONFIRMED",
+          network,
+          txHash,
+        },
+      });
+      await tx.user.update({
+        where: { id: userId },
+        data: { balance: { increment: amount } },
+      });
+      return true;
+    });
+
+    if (!credited) return false;
+  } catch {
+    return false;
+  }
 
   const message = `Deposit of $${amount.toFixed(2)} (${network}) confirmed automatically!`;
   await createNotification(userId, message);
@@ -215,24 +227,36 @@ async function confirmPendingDepositByTx(
 
   if (!pending || Math.abs(pending.amount - amount) > 0.01) return false;
 
-  const existing = await prisma.processedDeposit.findUnique({
-    where: { network_txHash: { network, txHash } },
-  });
-  if (existing) return false;
+  try {
+    const confirmed = await prisma.$transaction(async (tx) => {
+      const existing = await tx.processedDeposit.findUnique({
+        where: { network_txHash: { network, txHash } },
+      });
+      if (existing) return false;
 
-  await prisma.$transaction([
-    prisma.processedDeposit.create({
-      data: { userId: pending.userId, network, txHash, amount },
-    }),
-    prisma.transaction.update({
-      where: { id: pending.id },
-      data: { status: "CONFIRMED", amount },
-    }),
-    prisma.user.update({
-      where: { id: pending.userId },
-      data: { balance: { increment: amount } },
-    }),
-  ]);
+      const stillPending = await tx.transaction.findFirst({
+        where: { id: pending.id, type: "DEPOSIT", status: "PENDING" },
+      });
+      if (!stillPending) return false;
+
+      await tx.processedDeposit.create({
+        data: { userId: pending.userId, network, txHash, amount },
+      });
+      await tx.transaction.update({
+        where: { id: pending.id },
+        data: { status: "CONFIRMED", amount },
+      });
+      await tx.user.update({
+        where: { id: pending.userId },
+        data: { balance: { increment: amount } },
+      });
+      return true;
+    });
+
+    if (!confirmed) return false;
+  } catch {
+    return false;
+  }
 
   const message = `Deposit of $${amount.toFixed(2)} (${network}) confirmed!`;
   await createNotification(pending.userId, message);

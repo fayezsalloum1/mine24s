@@ -54,7 +54,14 @@ export async function canWithdraw(userId: string): Promise<boolean> {
   const referredWithPlan = await prisma.user.count({
     where: {
       referredBy: userId,
-      userPlans: { some: {} },
+      OR: [
+        { userPlans: { some: {} } },
+        {
+          transactions: {
+            some: { type: "PLAN_PURCHASE", status: "CONFIRMED" },
+          },
+        },
+      ],
     },
   });
   return referredWithPlan >= 1;

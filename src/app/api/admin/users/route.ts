@@ -134,10 +134,29 @@ export async function POST(req: Request) {
       });
       break;
     case "subtractBalance":
-      await prisma.user.update({
-        where: { id },
-        data: { balance: { decrement: numericValue! } },
-      });
+      try {
+        await prisma.$transaction(async (tx) => {
+          const debit = await tx.user.updateMany({
+            where: { id, balance: { gte: numericValue! } },
+            data: { balance: { decrement: numericValue! } },
+          });
+          if (debit.count !== 1) throw new Error("INSUFFICIENT_BALANCE");
+
+          await tx.transaction.create({
+            data: {
+              userId: id,
+              type: "WITHDRAWAL",
+              amount: numericValue!,
+              status: "CONFIRMED",
+            },
+          });
+        });
+      } catch (err) {
+        if (err instanceof Error && err.message === "INSUFFICIENT_BALANCE") {
+          return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
+        }
+        throw err;
+      }
       break;
     case "changeEmail":
       await prisma.user.update({ where: { id }, data: { email: value } });
