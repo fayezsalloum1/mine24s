@@ -110,6 +110,20 @@ export default function LandingPage() {
         activePlans={stats.activePlans}
       />
 
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-950/50 via-slate-900/80 to-emerald-950/40 p-6 sm:p-8 text-center">
+          <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-semibold mb-4">
+            {t("referralProgramBadge")}
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gradient-gold mb-3">{t("referralHeadline")}</h2>
+          <p className="text-slate-300 max-w-2xl mx-auto mb-4">{t("referralLandingDesc")}</p>
+          <p className="text-amber-400 font-bold text-lg mb-6">{t("referralCommissionRate")}</p>
+          <Link href="/register" className="btn-primary px-8 py-3.5 rounded-xl inline-block">
+            {t("getStarted")}
+          </Link>
+        </div>
+      </section>
+
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <h2 className="section-title">{t("howItWorks")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">

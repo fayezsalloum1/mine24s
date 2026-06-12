@@ -92,6 +92,10 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
                   <span className="text-emerald-400">${stats.dailyProfit.toFixed(2)}</span>
                 </div>
                 <div>
+                  <span className="text-slate-500">{t("payoutEvery")}: </span>
+                  <span className="text-amber-400 font-semibold">${stats.periodPayout.toFixed(2)}</span>
+                </div>
+                <div>
                   <span className="text-slate-500">{t("daysActive")}: </span>
                   <span>{Math.min(stats.elapsedDays, durationDays)}</span>
                 </div>

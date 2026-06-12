@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
 import type { ClientPlan } from "./PlanTypes";
+import { PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
 
 interface SoloPlanCardProps {
   plan: ClientPlan;
@@ -46,6 +47,12 @@ export default function SoloPlanCard({ plan, mode = "buy", onBuy }: SoloPlanCard
           <div className="flex justify-between items-center py-1.5 border-b border-slate-800/60">
             <span className="text-slate-400">{t("dailyProfit")}</span>
             <span className="text-emerald-400 font-bold">${plan.soloDailyProfit?.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center py-1.5 border-b border-slate-800/60">
+            <span className="text-slate-400">{t("payoutEvery")}</span>
+            <span className="text-amber-400 font-bold">
+              ${((plan.soloDailyProfit ?? 0) * PAYOUT_INTERVAL_DAYS).toFixed(2)}
+            </span>
           </div>
           <div className="flex justify-between items-center py-1.5">
             <span className="text-slate-400">{t("duration")}</span>

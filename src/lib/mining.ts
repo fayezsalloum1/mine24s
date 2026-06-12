@@ -82,7 +82,7 @@ export async function processDueMiningForUser(userId: string) {
       plansUpdated += 1;
       message = shouldReturnPrincipal
         ? `Mining plan credited $${progress.earningsDue.toFixed(2)} earnings and returned $${progress.principal.toFixed(2)} principal.`
-        : `Mining earnings of $${progress.earningsDue.toFixed(2)} credited.`;
+        : `Mining earnings of $${progress.earningsDue.toFixed(2)} credited (${progress.daysToCredit}-day payout).`;
     });
 
     if (message) {

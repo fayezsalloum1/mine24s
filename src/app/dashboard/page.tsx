@@ -11,7 +11,7 @@ import ExternalLinksBar from "@/components/ExternalLinksBar";
 import DepositModal from "@/components/DepositModal";
 import ActivePlansSection from "@/components/ActivePlansSection";
 import LiveProfitCard from "@/components/LiveProfitCard";
-import ReferralLinkActions from "@/components/ReferralLinkActions";
+import ReferralShowcase from "@/components/ReferralShowcase";
 
 interface UserData {
   balance: number;
@@ -132,30 +132,28 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {userData?.referralLink && (
+          <ReferralShowcase
+            referralLink={userData.referralLink}
+            totalReferrals={userData.totalReferrals ?? 0}
+            totalReferralEarned={userData.totalReferralEarned ?? 0}
+          />
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="stat-card">
             <p className="text-gray-400">{t("availableBalance")}</p>
             <p className="text-2xl font-bold text-yellow-500">
               ${userData?.balance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
-          <div className="stat-card">
-            <p className="text-gray-400">{t("totalReferrals")}</p>
-            <p className="text-2xl font-bold">{userData?.totalReferrals ?? 0}</p>
-          </div>
-          <div className="stat-card">
-            <p className="text-gray-400">{t("totalEarned")}</p>
-            <p className="text-2xl font-bold text-green-400">
-              ${userData?.totalReferralEarned?.toFixed(2) ?? "0.00"}
+          <div className="stat-card border border-emerald-500/20">
+            <p className="text-gray-400">{t("withdrawableProfit")}</p>
+            <p className="text-2xl font-bold text-emerald-400">
+              ${userData?.availableProfitBalance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
         </div>
-
-        {userData?.referralLink && (
-          <div className="stat-card mb-8">
-            <ReferralLinkActions link={userData.referralLink} />
-          </div>
-        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
           <button type="button" onClick={() => setDepositOpen(true)} className="action-tile-deposit">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
 import { getPooledUserDailyProfit } from "@/lib/plan-pool";
+import { PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
 import type { ClientPlan } from "./PlanTypes";
 
 interface PooledPlanCardProps {
@@ -98,9 +99,14 @@ export default function PooledPlanCard({
               max={plan.poolRemaining}
             />
             {estimatedDaily != null && (
-              <p className="text-sm text-blue-300 mb-3">
-                {t("estimatedDaily", { amount: amount.toFixed(2), profit: estimatedDaily.toFixed(2) })}
-              </p>
+              <div className="mb-3">
+                <p className="text-sm text-blue-300">
+                  {t("estimatedDaily", { amount: amount.toFixed(2), profit: estimatedDaily.toFixed(2) })}
+                </p>
+                <p className="text-sm text-amber-300 mt-1">
+                  {t("payoutEvery")}: ${(estimatedDaily * PAYOUT_INTERVAL_DAYS).toFixed(2)}
+                </p>
+              </div>
             )}
           </>
         )}

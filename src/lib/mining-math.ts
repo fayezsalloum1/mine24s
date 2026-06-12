@@ -1,4 +1,7 @@
 export const DEFAULT_PLAN_DURATION_DAYS = 100;
+/** Mining profits are credited every N days (not daily). */
+export const PAYOUT_INTERVAL_DAYS = 10;
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type PlanProgressInput = {
@@ -40,10 +43,33 @@ export function getDailyProfit(userPlan: PlanProgressInput) {
   return (principal * dailyReturnPercent) / 100;
 }
 
+export function getPeriodPayoutAmount(userPlan: PlanProgressInput) {
+  return getDailyProfit(userPlan) * PAYOUT_INTERVAL_DAYS;
+}
+
 /** Full 24-hour periods elapsed since purchase (not UTC midnight). */
 export function elapsedMiningDays(purchasedAt: Date | string, now = new Date()) {
   const purchased = toDate(purchasedAt);
   return Math.max(0, Math.floor((now.getTime() - purchased.getTime()) / MS_PER_DAY));
+}
+
+function getCurrentPayoutPeriodStartDay(daysCredited: number) {
+  return Math.floor(daysCredited / PAYOUT_INTERVAL_DAYS) * PAYOUT_INTERVAL_DAYS;
+}
+
+function computeDaysToCredit(payableDays: number, daysCredited: number, durationDays: number) {
+  const uncreditedDays = payableDays - daysCredited;
+  if (uncreditedDays <= 0) return 0;
+
+  if (uncreditedDays >= PAYOUT_INTERVAL_DAYS) {
+    return Math.floor(uncreditedDays / PAYOUT_INTERVAL_DAYS) * PAYOUT_INTERVAL_DAYS;
+  }
+
+  if (payableDays >= durationDays) {
+    return uncreditedDays;
+  }
+
+  return 0;
 }
 
 export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
@@ -52,10 +78,11 @@ export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
   const dailyReturnPercent =
     userPlan.dailyReturnPercentSnapshot ?? userPlan.plan.dailyReturnPercent;
   const dailyProfit = getDailyProfit(userPlan);
+  const periodPayout = dailyProfit * PAYOUT_INTERVAL_DAYS;
   const elapsedDays = elapsedMiningDays(userPlan.purchasedAt, now);
   const payableDays = Math.min(durationDays, elapsedDays);
   const daysCredited = Math.min(userPlan.daysCredited ?? 0, durationDays);
-  const daysToCredit = Math.max(0, payableDays - daysCredited);
+  const daysToCredit = computeDaysToCredit(payableDays, daysCredited, durationDays);
   const earningsDue = daysToCredit * dailyProfit;
   const totalEarned = daysCredited * dailyProfit;
   const principalDue = payableDays >= durationDays && !userPlan.principalReturned;
@@ -64,6 +91,8 @@ export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
     principal,
     dailyReturnPercent,
     dailyProfit,
+    periodPayout,
+    payoutIntervalDays: PAYOUT_INTERVAL_DAYS,
     durationDays,
     elapsedDays,
     payableDays,
@@ -77,18 +106,18 @@ export function getPlanProgress(userPlan: PlanProgressInput, now = new Date()) {
   };
 }
 
-/** Start of the current in-progress 24h accrual window (from purchase time). */
+/** Start of the current accrual window (toward next interval payout). */
 export function getAccrualPeriodStartMs(
   purchasedAt: Date | string,
   daysCredited: number,
-  payableDays: number
+  _payableDays: number
 ) {
   const purchased = toDate(purchasedAt);
-  const periodIndex = Math.max(daysCredited, payableDays);
-  return purchased.getTime() + periodIndex * MS_PER_DAY;
+  const periodStartDay = getCurrentPayoutPeriodStartDay(daysCredited);
+  return purchased.getTime() + periodStartDay * MS_PER_DAY;
 }
 
-/** Fraction of the current 24h period elapsed (0–1). */
+/** Fraction of the current payout interval elapsed (0–1). */
 export function getCurrentPeriodAccrualFraction(
   purchasedAt: Date | string,
   daysCredited: number,
@@ -97,13 +126,18 @@ export function getCurrentPeriodAccrualFraction(
   now = new Date()
 ) {
   if (daysCredited >= durationDays) return 0;
+
+  const periodStartDay = getCurrentPayoutPeriodStartDay(daysCredited);
+  if (periodStartDay >= durationDays) return 0;
+
   const periodStart = getAccrualPeriodStartMs(purchasedAt, daysCredited, payableDays);
   if (now.getTime() < periodStart) return 0;
+
   const elapsed = now.getTime() - periodStart;
-  return Math.min(1, elapsed / MS_PER_DAY);
+  return Math.min(1, elapsed / (PAYOUT_INTERVAL_DAYS * MS_PER_DAY));
 }
 
-/** Ms until the next payout for this plan (0 if overdue or complete). */
+/** Ms until the next interval payout for this plan (0 if overdue or complete). */
 export function getMsUntilNextPlanPayout(
   purchasedAt: Date | string,
   daysCredited: number,
@@ -112,13 +146,24 @@ export function getMsUntilNextPlanPayout(
   now = new Date()
 ) {
   if (daysCredited >= durationDays) return 0;
-  if (daysCredited < payableDays) return 0;
+
   const purchased = toDate(purchasedAt);
-  const nextPayoutAt = purchased.getTime() + (daysCredited + 1) * MS_PER_DAY;
+  const nextPayoutDay = getCurrentPayoutPeriodStartDay(daysCredited) + PAYOUT_INTERVAL_DAYS;
+
+  if (nextPayoutDay > durationDays) {
+    if (payableDays >= durationDays) {
+      return Math.max(0, purchased.getTime() + durationDays * MS_PER_DAY - now.getTime());
+    }
+    return 0;
+  }
+
+  if (payableDays >= nextPayoutDay) return 0;
+
+  const nextPayoutAt = purchased.getTime() + nextPayoutDay * MS_PER_DAY;
   return Math.max(0, nextPayoutAt - now.getTime());
 }
 
-/** Progress through the current 24h payout cycle (0–100). */
+/** Progress through the current payout interval (0–100). */
 export function getPlanPayoutCycleProgress(
   purchasedAt: Date | string,
   daysCredited: number,
@@ -166,8 +211,10 @@ export function getLivePlanStats(userPlan: PlanProgressInput, now = new Date()) 
   );
   const isAccruing =
     progress.daysCredited < progress.durationDays && userPlan.isActive !== false;
-  const accruingToday = isAccruing ? progress.dailyProfit * accrualFraction : 0;
-  const liveTotalEarned = progress.totalEarned + progress.earningsDue + accruingToday;
+  const accruingInPeriod = isAccruing
+    ? progress.periodPayout * accrualFraction
+    : 0;
+  const liveTotalEarned = progress.totalEarned + progress.earningsDue + accruingInPeriod;
   const msUntilPayout = getMsUntilNextPlanPayout(
     userPlan.purchasedAt,
     progress.daysCredited,
@@ -185,7 +232,7 @@ export function getLivePlanStats(userPlan: PlanProgressInput, now = new Date()) 
 
   return {
     ...progress,
-    accruingToday,
+    accruingToday: accruingInPeriod,
     liveTotalEarned,
     msUntilPayout,
     payoutCycleProgress,
@@ -199,9 +246,13 @@ export function getLiveAccruingProfit(userPlans: PlanProgressInput[], now = new 
 }
 
 export function formatCountdown(ms: number) {
-  const h = Math.floor(ms / 3600000);
+  const d = Math.floor(ms / (24 * 60 * 60 * 1000));
+  const h = Math.floor((ms % (24 * 60 * 60 * 1000)) / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   const s = Math.floor((ms % 60000) / 1000);
+  if (d > 0) {
+    return `${d}d ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
