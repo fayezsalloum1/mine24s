@@ -224,7 +224,7 @@ export async function getAdminWalletStatus() {
   try {
     const tronWeb = usesCustomPlatformWallet()
       ? createTronWebReadOnly()
-      : createTronWeb(getEvmWallet(ADMIN_WALLET_INDEX).privateKey.slice(2));
+      : createTronWeb(getTronWallet(ADMIN_WALLET_INDEX).privateKey.slice(2));
     const tronContract = await tronWeb.contract().at(USDT.TRC20.contract);
     const trcBal = await tronContract.balanceOf(addresses.TRC20).call();
     const trxNative = await tronWeb.trx.getBalance(addresses.TRC20);
