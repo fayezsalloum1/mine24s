@@ -191,26 +191,15 @@ export default function AdminPage() {
   if (session?.user?.role !== "ADMIN") return null;
 
   return (
-    <div className="page-shell text-white">
+    <div className="page-shell">
       <AppHeader />
-      <div className="page-content-wide">
-        <h1 className="page-title">{t("title")}</h1>
-        {adminError && (
-          <div className="bg-red-950/50 border border-red-500/40 text-red-300 p-4 rounded-xl mb-4">{adminError}</div>
-        )}
-        {message && (
-          <div className="bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 p-4 rounded-xl mb-4 flex justify-between items-center">
-            <span>{message}</span>
-            <button onClick={() => setMessage("")} className="text-emerald-400 hover:text-white px-2">✕</button>
-          </div>
-        )}
-
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+      <div className="page-content-wide flex flex-col lg:flex-row gap-6 min-h-[calc(100dvh-4rem)]">
+        <aside className="admin-sidebar lg:sticky lg:top-20 lg:self-start lg:h-fit w-full lg:w-52 flex lg:flex-col gap-1 overflow-x-auto pb-2 lg:pb-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={activeTab === tab.id ? "admin-tab-active" : "admin-tab"}
+              className={`${activeTab === tab.id ? "admin-tab-active" : "admin-tab"} shrink-0`}
             >
               {tab.label}
               {tab.id === "users" && ` (${users.length})`}
@@ -219,7 +208,21 @@ export default function AdminPage() {
               {tab.id === "withdrawals" && ` (${withdrawals.filter((w) => w.status === "PENDING").length})`}
             </button>
           ))}
-        </div>
+        </aside>
+
+        <div className="flex-1 min-w-0">
+        <h1 className="page-title">{t("title")}</h1>
+        {adminError && (
+          <div className="bg-red-950/50 border border-red-500/40 text-red-300 p-4 rounded-xl mb-4">{adminError}</div>
+        )}
+        {message && (
+          <div className="bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 p-4 rounded-lg mb-4 flex justify-between items-center">
+            <span>{message}</span>
+            <button onClick={() => setMessage("")} className="text-emerald-400 hover:text-white px-2">✕</button>
+          </div>
+        )}
+
+        {/* tab content below — sidebar replaces horizontal tabs */}
 
         {activeTab === "stats" && (
           <>
@@ -695,6 +698,7 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

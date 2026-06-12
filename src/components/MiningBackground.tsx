@@ -1,1 +1,1 @@
-export { default } from "./HashNetworkBackground";
+export { default } from "./PremiumBackground";

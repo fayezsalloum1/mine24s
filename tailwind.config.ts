@@ -11,57 +11,52 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        mining: {
-          void: "#01050d",
-          navy: "#020b1a",
-          deep: "#0a1628",
-          panel: "#0d1424",
-          gold: "#f5a623",
-          "gold-light": "#ffd166",
-          cyan: "#22d3ee",
-          emerald: "#10b981",
+        navy: {
+          900: "#0a0f1e",
+          800: "#0d1428",
+          700: "#111827",
         },
+        gold: {
+          300: "#fcd34d",
+          400: "#fbbf24",
+          500: "#f59e0b",
+        },
+        profit: "#10b981",
+        danger: "#ef4444",
       },
       fontFamily: {
-        sans: ["var(--font-cairo)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "var(--font-cairo)", "system-ui", "sans-serif"],
-        mono: ["var(--font-display)", "ui-monospace", "monospace"],
-      },
-      letterSpacing: {
-        widest2: "0.2em",
-        display: "0.06em",
+        sans: ["var(--font-inter)", "var(--font-cairo)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        gold: "0 0 48px -8px rgb(245 166 35 / 0.45)",
-        "gold-sm": "0 4px 28px -4px rgb(245 166 35 / 0.35)",
-        panel: "0 12px 40px -12px rgb(0 0 0 / 0.75)",
-        glow: "0 0 80px -16px rgb(34 211 238 / 0.25)",
-        iconic: "0 0 0 1px rgb(255 255 255 / 0.04), 0 24px 48px -24px rgb(0 0 0 / 0.8)",
+        gold: "0 0 40px -8px rgb(245 158 11 / 0.35)",
+        "gold-sm": "0 4px 20px -4px rgb(245 158 11 / 0.3)",
+        profit: "0 0 40px -8px rgb(16 185 129 / 0.3)",
+        glass: "0 8px 32px -8px rgb(0 0 0 / 0.5)",
       },
       backgroundImage: {
-        "gradient-mining": "linear-gradient(135deg, #01050d 0%, #0a1628 50%, #01050d 100%)",
-        "gradient-gold": "linear-gradient(135deg, #ffd166 0%, #f5a623 45%, #e8860b 100%)",
-        "gradient-card": "linear-gradient(160deg, rgb(13 20 36 / 0.98) 0%, rgb(8 12 24 / 0.92) 100%)",
-        "gradient-mesh": "radial-gradient(ellipse 80% 50% at 50% -20%, rgb(245 166 35 / 0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 100% 50%, rgb(34 211 238 / 0.06), transparent 50%)",
+        "hero-gradient":
+          "radial-gradient(ellipse 80% 60% at 50% -10%, rgb(245 158 11 / 0.12), transparent 55%), radial-gradient(ellipse 60% 50% at 80% 80%, rgb(16 185 129 / 0.08), transparent 50%), linear-gradient(180deg, #0a0f1e 0%, #0d1428 100%)",
+        "grid-pattern":
+          "linear-gradient(rgb(255 255 255 / 0.03) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.03) 1px, transparent 1px)",
+        "dot-pattern":
+          "radial-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px)",
+      },
+      backgroundSize: {
+        grid: "48px 48px",
+        dot: "24px 24px",
       },
       animation: {
-        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "float-slow": "float 6s ease-in-out infinite",
-        shimmer: "shimmer 2.5s linear infinite",
-        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        "gradient-shift": "gradient-shift 8s ease infinite",
+        "fade-up": "fade-up 0.5s ease-out",
       },
       keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-8px)" },
+        "gradient-shift": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.85" },
         },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
-        "glow-pulse": {
-          "0%, 100%": { opacity: "0.6" },
-          "50%": { opacity: "1" },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
       },
     },

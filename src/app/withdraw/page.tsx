@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import DashboardShell from "@/components/DashboardShell";
 import ReferralLinkActions from "@/components/ReferralLinkActions";
 import { formatCountdown, getSoonestPlanPayoutMs } from "@/lib/mining-math";
 import { useNow } from "@/hooks/useNow";
@@ -158,8 +159,9 @@ export default function WithdrawPage() {
   }
 
   return (
-    <div className="page-shell text-white">
+    <div className="page-shell">
       <AppHeader />
+      <DashboardShell>
       <div className="page-content max-w-md">
         <h1 className="page-title">{t("title")}</h1>
 
@@ -219,10 +221,11 @@ export default function WithdrawPage() {
             {t("submit")}
           </button>
         </form>
-        <Link href="/dashboard" className="mt-6 inline-block text-slate-400 hover:text-white text-sm">
+        <Link href="/dashboard" className="mt-6 inline-block text-gray-400 hover:text-gold-400 text-sm">
           ← {tc("back")}
         </Link>
       </div>
+      </DashboardShell>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import AuthSplitLayout from "@/components/auth/AuthSplitLayout";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
 
 function LoginForm() {
@@ -177,11 +178,11 @@ export default function LoginPage() {
   return (
     <div className="page-shell">
       <AppHeader showNotifications={false} />
-      <div className="auth-shell">
-        <Suspense fallback={<div className="text-white">Loading...</div>}>
+      <AuthSplitLayout>
+        <Suspense fallback={<div className="text-gray-400">Loading...</div>}>
           <LoginForm />
         </Suspense>
-      </div>
+      </AuthSplitLayout>
     </div>
   );
 }

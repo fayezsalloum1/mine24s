@@ -10,9 +10,9 @@ type AuthFieldProps = {
 export function AuthField({ label, error, hint, children }: AuthFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-300 mb-1.5">{label}</label>
+      <label className="form-label">{label}</label>
       {children}
-      {hint && !error && <p className="text-slate-500 text-xs mt-1">{hint}</p>}
+      {hint && !error && <p className="text-gray-500 text-xs mt-1">{hint}</p>}
       {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
     </div>
   );
@@ -22,8 +22,8 @@ export function AuthInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full px-4 py-3 rounded-xl bg-slate-950/70 border text-white placeholder-slate-500 transition-all focus:outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/15 ${
-        props["aria-invalid"] ? "border-red-500/60" : "border-slate-700/80 hover:border-slate-600"
+      className={`form-input auth-input ${
+        props["aria-invalid"] ? "border-red-500/60 ring-red-500/20" : ""
       } ${props.className ?? ""}`}
     />
   );
@@ -38,10 +38,10 @@ export function AuthButton({
     <button
       {...props}
       disabled={loading || props.disabled}
-      className={`w-full py-3.5 btn-primary rounded-xl disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none ${props.className ?? ""}`}
+      className={`w-full py-3.5 btn-primary rounded-lg disabled:opacity-60 disabled:cursor-not-allowed ${props.className ?? ""}`}
     >
       {loading && (
-        <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+        <span className="inline-block w-4 h-4 border-2 border-navy-900/30 border-t-navy-900 rounded-full animate-spin" />
       )}
       {children}
     </button>
@@ -50,11 +50,7 @@ export function AuthButton({
 
 export function AuthPanel({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
-    <div
-      className={`relative iconic-panel p-6 sm:p-10 w-full shadow-iconic ${
-        wide ? "max-w-lg" : "max-w-md"
-      }`}
-    >
+    <div className={`auth-panel ${wide ? "max-w-lg" : "max-w-md"} mx-auto`}>
       {children}
     </div>
   );
@@ -70,9 +66,9 @@ export function AuthAlert({
   const styles = {
     error: "bg-red-950/40 border-red-500/30 text-red-300",
     success: "bg-emerald-950/40 border-emerald-500/30 text-emerald-300",
-    info: "bg-cyan-950/40 border-cyan-500/30 text-cyan-300",
+    info: "bg-blue-950/40 border-blue-500/30 text-blue-300",
   };
   return (
-    <div className={`border rounded-xl px-4 py-3 text-sm mb-4 ${styles[type]}`}>{children}</div>
+    <div className={`border rounded-lg px-4 py-3 text-sm mb-4 ${styles[type]}`}>{children}</div>
   );
 }

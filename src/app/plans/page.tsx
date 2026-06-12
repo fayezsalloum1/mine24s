@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import DashboardShell from "@/components/DashboardShell";
 import DepositModal from "@/components/DepositModal";
 import SoloPlanCard from "@/components/plans/SoloPlanCard";
 import PooledPlanCard from "@/components/plans/PooledPlanCard";
@@ -105,11 +106,12 @@ export default function PlansPage() {
   const pooledPlans = plans.filter((p) => p.isPooled);
 
   return (
-    <div className="page-shell text-white">
+    <div className="page-shell">
       <AppHeader />
-      <div className="page-content">
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="text-slate-400 mb-6 sm:mb-8 text-sm sm:text-base">{t("subtitle")}</p>
+      <DashboardShell>
+        <div className="page-content">
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="text-gray-400 mb-6 sm:mb-8">{t("subtitle")}</p>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -137,8 +139,14 @@ export default function PlansPage() {
                   {t("soloPlans")}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {soloPlans.map((plan) => (
-                    <SoloPlanCard key={plan.id} plan={plan} onBuy={() => requestBuy(plan)} />
+                  {soloPlans.map((plan, index) => (
+                    <SoloPlanCard
+                      key={plan.id}
+                      plan={plan}
+                      onBuy={() => requestBuy(plan)}
+                      isPopular={plan.name.toLowerCase().includes("pro") || index === 1}
+                      loading={buying}
+                    />
                   ))}
                 </div>
               </section>
@@ -159,6 +167,7 @@ export default function PlansPage() {
                       contribution={contributions[plan.id] ?? ""}
                       onContributionChange={(v) => setContributions({ ...contributions, [plan.id]: v })}
                       onJoin={() => requestJoin(plan)}
+                      loading={buying}
                     />
                   ))}
                 </div>
@@ -167,10 +176,11 @@ export default function PlansPage() {
           </>
         )}
 
-        <Link href="/dashboard" className="mt-8 inline-block text-gray-400 hover:text-white">
-          ← {t("backToDashboard")}
-        </Link>
-      </div>
+          <Link href="/dashboard" className="mt-8 inline-block text-gray-400 hover:text-gold-400 transition-colors">
+            ← {t("backToDashboard")}
+          </Link>
+        </div>
+      </DashboardShell>
 
       <ConfirmModal
         open={Boolean(pendingAction)}

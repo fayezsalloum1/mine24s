@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import AuthSplitLayout from "@/components/auth/AuthSplitLayout";
 import {
   AuthAlert,
   AuthButton,
@@ -351,11 +352,11 @@ export default function RegisterPage() {
   return (
     <div className="page-shell">
       <AppHeader showNotifications={false} />
-      <div className="auth-shell">
-        <Suspense fallback={<div className="text-white">{tc("loading")}</div>}>
+      <AuthSplitLayout>
+        <Suspense fallback={<div className="text-gray-400">{tc("loading")}</div>}>
           <RegisterForm />
         </Suspense>
-      </div>
+      </AuthSplitLayout>
     </div>
   );
 }

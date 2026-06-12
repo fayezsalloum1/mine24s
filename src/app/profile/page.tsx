@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import AppHeader from "@/components/AppHeader";
+import DashboardShell from "@/components/DashboardShell";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -102,8 +103,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="page-shell text-white">
+    <div className="page-shell">
       <AppHeader />
+      <DashboardShell>
       <div className="page-content max-w-2xl">
         <h1 className="page-title">{t("title")}</h1>
         <p className="text-gray-400 mb-6">{userData?.email}</p>
@@ -185,6 +187,7 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+      </DashboardShell>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { fetchJsonWithRetry } from "@/lib/fetch-json";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
+import DashboardShell from "@/components/DashboardShell";
 import ExternalLinksBar from "@/components/ExternalLinksBar";
 import DepositModal from "@/components/DepositModal";
 import ActivePlansSection from "@/components/ActivePlansSection";
@@ -113,10 +114,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="page-shell text-white">
+    <div className="page-shell">
       <AppHeader />
-      <div className="page-content">
-        <h1 className="page-title">{t("title")}</h1>
+      <DashboardShell>
+        <div className="page-content">
+          <h1 className="page-title">{t("title")}</h1>
 
         {loadError && (
           <div className="bg-red-900/40 border border-red-500 text-red-300 p-4 rounded-lg mb-6">
@@ -143,13 +145,13 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="stat-card">
             <p className="iconic-stat-label">{t("availableBalance")}</p>
-            <p className="text-2xl sm:text-3xl stat-number text-gradient-gold">
+            <p className="text-2xl sm:text-3xl font-bold text-gold-400 glow-gold tabular-nums">
               ${userData?.balance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
           <div className="stat-card">
             <p className="iconic-stat-label">{t("withdrawableProfit")}</p>
-            <p className="text-2xl sm:text-3xl stat-number text-emerald-400">
+            <p className="text-2xl sm:text-3xl font-bold text-profit glow-profit tabular-nums">
               ${userData?.availableProfitBalance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
@@ -210,30 +212,39 @@ export default function DashboardPage() {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
-            <span className="w-1 h-5 bg-amber-400 rounded-full" />
-            {t("transactionHistory")}
-          </h2>
-          <div className="plan-card overflow-x-auto">
+          <h2 className="section-heading-accent mb-4">{t("transactionHistory")}</h2>
+          <div className="glass-card overflow-x-auto">
             {userData?.transactions?.length ? (
-              <table className="w-full">
+              <table className="data-table">
                 <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="p-3 text-left">{t("type")}</th>
-                    <th className="p-3 text-left">{tc("amount")}</th>
-                    <th className="p-3 text-left">{tc("status")}</th>
-                    <th className="p-3 text-left">{tc("date")}</th>
+                  <tr>
+                    <th>{t("type")}</th>
+                    <th>{tc("amount")}</th>
+                    <th>{tc("status")}</th>
+                    <th>{tc("date")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {userData.transactions.map((tx) => (
-                    <tr key={tx.id} className="border-b border-gray-700">
-                      <td className="p-3">{tt(tx.type as "DEPOSIT")}</td>
-                      <td className={`p-3 ${tx.amount >= 0 ? "text-green-400" : "text-red-400"}`}>
+                    <tr key={tx.id}>
+                      <td>{tt(tx.type as "DEPOSIT")}</td>
+                      <td className={tx.amount >= 0 ? "text-profit font-medium" : "text-red-400 font-medium"}>
                         ${Math.abs(tx.amount).toFixed(2)}
                       </td>
-                      <td className="p-3">{tx.status}</td>
-                      <td className="p-3 text-sm">{new Date(tx.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <span
+                          className={
+                            tx.status === "CONFIRMED"
+                              ? "status-confirmed"
+                              : tx.status === "REJECTED"
+                                ? "status-rejected"
+                                : "status-pending"
+                          }
+                        >
+                          {tx.status}
+                        </span>
+                      </td>
+                      <td className="text-gray-400 text-sm">{new Date(tx.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -247,14 +258,12 @@ export default function DashboardPage() {
         <ExternalLinksBar />
 
         {session?.user?.role === "ADMIN" && (
-          <Link
-            href="/admin"
-            className="mt-6 block text-center font-bold py-3.5 rounded-xl bg-gradient-to-r from-violet-700 to-purple-600 hover:from-violet-600 hover:to-purple-500 transition-all shadow-lg shadow-purple-500/20"
-          >
+          <Link href="/admin" className="mt-6 block text-center btn-secondary py-3.5">
             {tc("admin")}
           </Link>
         )}
-      </div>
+        </div>
+      </DashboardShell>
 
       <DepositModal
         open={depositOpen}
