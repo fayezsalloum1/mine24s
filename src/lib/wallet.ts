@@ -115,8 +115,9 @@ export function getPlatformDepositAddresses() {
   };
 }
 
+/** Next index for registration. Index 0 is reserved for admin / sweep collection wallet only. */
 export function getNextWalletIndex(currentMax: number | null): number {
-  return (currentMax ?? -1) + 1;
+  return Math.max(1, (currentMax ?? 0) + 1);
 }
 
 export class WalletConfigError extends Error {
