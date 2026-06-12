@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { getLivePlanStats, formatCountdown } from "@/lib/mining-math";
+import { getTotalReturn } from "@/lib/plan-returns";
 import { useNow } from "@/hooks/useNow";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
 import EmptyState from "@/components/ui/EmptyState";
@@ -61,6 +62,8 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
         const durationDays = stats.durationDays;
         const planProgress = Math.min(100, (stats.payableDays / durationDays) * 100);
         const isShared = up.plan.planType === "POOLED" || Boolean(up.poolId);
+        const daysUntilPrincipal = Math.max(0, durationDays - stats.payableDays);
+        const projectedTotal = getTotalReturn(stats.principal, stats.dailyProfit, durationDays);
 
         return (
           <div key={up.id} className="plan-card">
@@ -119,7 +122,19 @@ export default function ActivePlansSection({ userPlans }: { userPlans: UserPlan[
                 </div>
                 <div>
                   <span className="text-slate-500">{t("principalReturn")}: </span>
-                  <span>{up.principalReturned ? t("completed") : `$${stats.principal.toFixed(2)}`}</span>
+                  <span className="text-gold-400 font-semibold">
+                    {up.principalReturned
+                      ? t("completed")
+                      : t("principalReturnPending", {
+                          amount: stats.principal.toFixed(2),
+                          days: daysUntilPrincipal,
+                        })}
+                  </span>
+                </div>
+                <div className="col-span-2 pt-1 border-t border-slate-800/40">
+                  <span className="text-slate-500">{t("projectedTotalReturn")}: </span>
+                  <span className="text-gold-400 font-bold">${projectedTotal.toFixed(2)}</span>
+                  <span className="text-slate-600 text-xs ms-1">({t("includesPrincipal")})</span>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-800/60">

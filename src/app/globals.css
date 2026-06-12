@@ -327,6 +327,52 @@ body {
     @apply relative aspect-[9/16] w-full;
   }
 
+  /* Plan return breakdown */
+  .plan-returns-box {
+    @apply rounded-xl border border-gray-800/80 bg-navy-900/50 p-4 space-y-3;
+  }
+
+  .plan-returns-title {
+    @apply text-xs font-bold uppercase tracking-wider text-gold-400/90;
+  }
+
+  .plan-returns-pool-note {
+    @apply text-xs text-blue-400/90 leading-relaxed rounded-lg bg-blue-950/30 border border-blue-800/30 px-3 py-2;
+  }
+
+  .plan-returns-rows {
+    @apply space-y-2 text-sm;
+  }
+
+  .plan-returns-row {
+    @apply flex justify-between items-center gap-2;
+  }
+
+  .plan-returns-principal {
+    @apply rounded-lg border border-gold-500/25 bg-gold-500/5 px-3 py-2.5;
+  }
+
+  .plan-returns-total {
+    @apply pt-2 border-t border-gray-800/80;
+  }
+
+  .principal-guarantee-banner {
+    @apply rounded-2xl border border-gold-500/15 p-6 sm:p-10;
+    background: linear-gradient(135deg, rgb(245 158 11 / 0.04) 0%, rgb(17 24 39 / 0.6) 50%, rgb(16 185 129 / 0.04) 100%);
+  }
+
+  .science-step-card {
+    @apply glass-card p-6 relative;
+  }
+
+  .science-step-num {
+    @apply text-3xl font-black text-gold-500/20 block mb-3;
+  }
+
+  .science-formula {
+    @apply block text-xs font-mono text-emerald-400/90 bg-navy-950/80 border border-gray-800 rounded-lg px-3 py-2;
+  }
+
   .hero-badge {
     @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-6;
     background: rgb(16 185 129 / 0.1);

@@ -17,6 +17,7 @@ import PlatformStatsShowcase from "@/components/PlatformStatsShowcase";
 import MiningHeroVideo from "@/components/MiningHeroVideo";
 import CompanyVideoSection from "@/components/CompanyVideoSection";
 import MarketingClipsSection from "@/components/MarketingClipsSection";
+import PrincipalGuaranteeSection from "@/components/PrincipalGuaranteeSection";
 import { PLATFORM_DISPLAY_DEFAULTS } from "@/lib/platform-display-stats";
 import type { ClientPlan } from "@/components/plans/PlanTypes";
 
@@ -143,6 +144,8 @@ export default function LandingPage() {
       </section>
 
       {/* Plans */}
+      <PrincipalGuaranteeSection />
+
       <section id="plans" className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <h2 className="section-title mb-3">{t("miningPlans")}</h2>
         <p className="section-subtitle">{t("plansIntro")}</p>

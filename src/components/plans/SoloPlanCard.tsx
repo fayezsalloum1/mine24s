@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
+import PlanReturnsBreakdown from "@/components/plans/PlanReturnsBreakdown";
+import { getPlanReturnProjection } from "@/lib/plan-returns";
 import type { ClientPlan } from "./PlanTypes";
 import { PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
 
@@ -27,6 +29,12 @@ export default function SoloPlanCard({
   const tc = useTranslations("common");
 
   const dailyProfit = plan.soloDailyProfit ?? 0;
+  const projection = getPlanReturnProjection(
+    plan.price,
+    plan.dailyReturnPercent,
+    plan.durationDays,
+    dailyProfit
+  );
 
   return (
     <div className={`plan-card flex flex-col h-full group ${isPopular ? "plan-card-popular" : ""}`}>
@@ -55,7 +63,9 @@ export default function SoloPlanCard({
           </p>
         </div>
 
-        <div className="space-y-2 text-sm mb-5 flex-1">
+        <PlanReturnsBreakdown projection={projection} />
+
+        <div className="space-y-2 text-sm mb-5 flex-1 mt-4">
           <div className="flex justify-between py-1.5 border-b border-gray-800">
             <span className="text-gray-400">{t("price")}</span>
             <span className="text-gray-100 font-semibold">${plan.price.toLocaleString()}</span>

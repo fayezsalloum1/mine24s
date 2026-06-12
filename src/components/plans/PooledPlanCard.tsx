@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import MiningMachineVisual from "@/components/MiningMachineVisual";
+import PlanReturnsBreakdown from "@/components/plans/PlanReturnsBreakdown";
 import { getPooledUserDailyProfit, PAYOUT_INTERVAL_DAYS } from "@/lib/mining-math";
+import { getPlanReturnProjection } from "@/lib/plan-returns";
 import type { ClientPlan } from "./PlanTypes";
 
 interface PooledPlanCardProps {
@@ -29,9 +31,21 @@ export default function PooledPlanCard({
 
   const amount = parseFloat(contribution || "0");
   const min = plan.minContribution ?? 1;
+  const poolFull = (plan.poolProgress ?? 0) >= 100;
+  const projectionPrincipal =
+    mode === "buy" && amount >= min ? amount : min;
   const estimatedDaily =
-    amount >= min && plan.targetPoolAmount
-      ? getPooledUserDailyProfit(plan.targetPoolAmount, plan.dailyReturnPercent, amount)
+    projectionPrincipal >= min && plan.targetPoolAmount
+      ? getPooledUserDailyProfit(plan.targetPoolAmount, plan.dailyReturnPercent, projectionPrincipal)
+      : null;
+  const projection =
+    estimatedDaily != null
+      ? getPlanReturnProjection(
+          projectionPrincipal,
+          plan.dailyReturnPercent,
+          plan.durationDays,
+          estimatedDaily
+        )
       : null;
 
   return (
@@ -71,6 +85,22 @@ export default function PooledPlanCard({
             {" · "}{plan.poolParticipants} {t("participants")}
           </p>
         </div>
+
+        {projection && (
+          <div className="mb-4">
+            {mode === "landing" && (
+              <p className="text-xs text-blue-400/90 mb-2">
+                {t("returnsBasedOnMin", { amount: projectionPrincipal.toFixed(0) })}
+              </p>
+            )}
+            <PlanReturnsBreakdown
+              projection={projection}
+              isPooled
+              poolProgress={plan.poolProgress}
+              poolActive={poolFull}
+            />
+          </div>
+        )}
 
         <div className="space-y-2 text-sm mb-4 flex-1">
           <div className="flex justify-between py-1 border-b border-gray-800">
