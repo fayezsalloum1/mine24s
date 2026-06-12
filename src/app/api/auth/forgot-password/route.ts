@@ -66,11 +66,13 @@ export async function POST(req: Request) {
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetLink = `${baseUrl}/reset-password?token=${token}`;
+    console.log("[forgot-password] attempting to send email to:", user.email);
     const result = await sendEmail(
       user.email,
       `Reset your ${BRAND_NAME} password`,
       passwordResetHtml(resetLink)
     );
+    console.log("[forgot-password] sendEmail result:", JSON.stringify(result));
 
     if (!result.sent) {
       console.error("[forgot-password] send failed:", normalizedEmail, result.error);

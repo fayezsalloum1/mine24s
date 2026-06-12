@@ -185,6 +185,10 @@ async function sendViaBrevoApi(to: string, subject: string, html: string) {
     throw new Error("Brevo API not configured (need BREVO_API_KEY + SMTP_FROM)");
   }
 
+  console.log("[brevo-api] sending to:", to, "subject:", subject);
+  console.log("[brevo-api] api key prefix:", apiKey?.slice(0, 20));
+  console.log("[brevo-api] sender:", senderEmail);
+
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
