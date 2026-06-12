@@ -61,7 +61,7 @@ export default function MiningBackground() {
       />
 
       {/* Light scrim — keeps text readable without hiding coin rain */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 from-0% via-slate-950/25 via-[40%] to-transparent to-100%" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#01050d]/60 from-0% via-[#01050d]/20 via-[35%] to-transparent to-100%" />
     </div>
   );
 }

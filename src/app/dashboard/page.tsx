@@ -142,14 +142,14 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="stat-card">
-            <p className="text-gray-400">{t("availableBalance")}</p>
-            <p className="text-2xl font-bold text-yellow-500">
+            <p className="iconic-stat-label">{t("availableBalance")}</p>
+            <p className="text-2xl sm:text-3xl font-black text-gradient-gold tabular-nums">
               ${userData?.balance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
-          <div className="stat-card border border-emerald-500/20">
-            <p className="text-gray-400">{t("withdrawableProfit")}</p>
-            <p className="text-2xl font-bold text-emerald-400">
+          <div className="stat-card">
+            <p className="iconic-stat-label">{t("withdrawableProfit")}</p>
+            <p className="text-2xl sm:text-3xl font-black text-emerald-400 tabular-nums">
               ${userData?.availableProfitBalance?.toFixed(2) ?? "0.00"}
             </p>
           </div>
@@ -203,8 +203,7 @@ export default function DashboardPage() {
         )}
 
         <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
-            <span className="w-1 h-5 bg-amber-400 rounded-full" />
+          <h2 className="section-heading-accent text-amber-300 before:bg-amber-400 mb-4">
             {t("activePlans")}
           </h2>
           <ActivePlansSection userPlans={userData?.userPlans ?? []} />

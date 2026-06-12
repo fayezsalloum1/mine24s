@@ -48,10 +48,10 @@ export default function LiveProfitCard({ creditedProfit, balance, userPlans }: L
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-slate-400 text-sm uppercase tracking-wide">{t("liveProfitBalance")}</p>
+            <span className="inline-flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgb(16_185_129/0.6)]" />
+            <p className="iconic-stat-label mb-0">{t("liveProfitBalance")}</p>
           </div>
-          <p className="text-3xl sm:text-4xl font-bold text-emerald-400 tabular-nums">
+          <p className="text-3xl sm:text-5xl font-black text-emerald-400 tabular-nums tracking-tight">
             ${totalLiveProfit.toFixed(4)}
           </p>
           <p className="text-xs sm:text-sm text-slate-500 mt-2">
@@ -62,9 +62,9 @@ export default function LiveProfitCard({ creditedProfit, balance, userPlans }: L
             </span>
           </p>
         </div>
-        <div className="sm:text-right bg-slate-900/40 rounded-xl px-4 py-3 sm:bg-transparent sm:p-0 border border-slate-700/40 sm:border-0">
-          <p className="text-slate-400 text-xs uppercase tracking-wide">{t("nextPayout")}</p>
-          <p className="text-2xl sm:text-3xl font-mono text-amber-400 tabular-nums">{formatCountdown(nextPayoutMs)}</p>
+        <div className="sm:text-right bg-black/25 rounded-xl px-4 py-3 sm:bg-transparent sm:p-0 border border-white/5 sm:border-0 backdrop-blur-sm">
+          <p className="iconic-stat-label mb-0">{t("nextPayout")}</p>
+          <p className="text-2xl sm:text-3xl font-black font-mono text-amber-400 tabular-nums">{formatCountdown(nextPayoutMs)}</p>
           <p className="text-xs text-slate-500 mt-1">{t("profitUpdatesLive")}</p>
         </div>
       </div>

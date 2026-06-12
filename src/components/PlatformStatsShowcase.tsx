@@ -65,49 +65,49 @@ export default function PlatformStatsShowcase({
   const animatedLiquidation = useCountUp(liveLiquidation, 2800);
 
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      <div className="section-eyebrow">
+        <span className="text-xs font-bold uppercase tracking-widest2 text-amber-400/80">{t("platformStats")}</span>
+      </div>
       <h2 className="section-title">{t("platformStats")}</h2>
-      <p className="text-center text-slate-500 text-sm mb-6 sm:mb-8 max-w-lg mx-auto">
-        {t("platformStatsHint")}
-      </p>
+      <p className="section-subtitle">{t("platformStatsHint")}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-5xl mx-auto">
         {/* Users */}
-        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible">
-          <div className="w-11 h-11 mx-auto rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xl mb-3">
+        <div className="stat-card text-center py-7 sm:py-9 relative overflow-visible">
+          <div className="step-icon-wrap w-12 h-12 mb-4 mx-auto text-lg">
             👥
           </div>
-          <p className="text-3xl sm:text-4xl font-bold text-gradient-gold tabular-nums leading-none">
+          <p className="text-3xl sm:text-4xl font-black text-gradient-gold tabular-nums leading-none">
             {formatStatNumber(animatedUsers)}
           </p>
           <p className="text-slate-300 font-semibold mt-3 text-sm">{t("totalUsers")}</p>
-          <span className="inline-flex items-center gap-1 mt-2 text-[10px] text-emerald-400 uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 mt-2.5 iconic-badge iconic-badge-live text-[9px] py-1 px-2.5">
             {t("liveCounter")}
           </span>
         </div>
 
         {/* Active plans */}
-        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible border-cyan-500/20">
-          <div className="w-11 h-11 mx-auto rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-xl mb-3">
+        <div className="stat-card text-center py-7 sm:py-9 relative overflow-visible">
+          <div className="step-icon-wrap w-12 h-12 mb-4 mx-auto text-lg border-cyan-500/25 bg-cyan-500/10">
             ⛏️
           </div>
-          <p className="text-3xl sm:text-4xl font-bold text-cyan-400 tabular-nums leading-none">
+          <p className="text-3xl sm:text-4xl font-black text-gradient-cyan tabular-nums leading-none">
             {formatStatNumber(animatedPlans)}
           </p>
           <p className="text-slate-300 font-semibold mt-3 text-sm">{t("activePlans")}</p>
-          <span className="inline-flex items-center gap-1 mt-2 text-[10px] text-cyan-400/80 uppercase tracking-wider">
+          <span className="inline-block mt-2.5 text-[10px] text-cyan-400/80 uppercase font-bold tracking-widest">
             {t("miningNow")}
           </span>
         </div>
 
-        {/* Total liquidation — full width on mobile for readability */}
-        <div className="stat-card text-center py-6 sm:py-8 relative overflow-visible border-emerald-500/25 sm:col-span-1 col-span-1 bg-gradient-to-b from-emerald-950/30 to-slate-900/80">
-          <div className="w-11 h-11 mx-auto rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl mb-3">
+        {/* Total liquidation */}
+        <div className="stat-card-featured text-center py-7 sm:py-9 relative overflow-visible sm:col-span-1 col-span-1">
+          <div className="step-icon-wrap w-12 h-12 mb-4 mx-auto text-lg border-emerald-500/25 bg-emerald-500/10">
             💰
           </div>
           <p
-            className="font-bold text-emerald-400 tabular-nums leading-tight break-words px-1"
+            className="font-black text-emerald-400 tabular-nums leading-tight break-words px-1"
             style={{ fontSize: "clamp(1.35rem, 4.5vw, 2.25rem)" }}
           >
             {formatLiquidationUsd(animatedLiquidation)}

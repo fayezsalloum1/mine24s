@@ -7,7 +7,7 @@ import CryptoTicker from "./CryptoTicker";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NotificationBell from "./NotificationBell";
 import MobileNav from "./MobileNav";
-import { BRAND_NAME } from "@/lib/brand";
+import BrandLogo from "./BrandLogo";
 
 export default function AppHeader({ showNotifications = true }: { showNotifications?: boolean }) {
   const { data: session } = useSession();
@@ -21,34 +21,29 @@ export default function AppHeader({ showNotifications = true }: { showNotificati
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
           <Link
             href={session ? "/dashboard" : "/"}
-            className="flex items-center gap-2 shrink-0 group"
+            className="shrink-0 group transition-opacity hover:opacity-90"
           >
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-black text-sm font-black shadow-gold-sm">
-              ⛏
-            </span>
-            <span className="text-lg sm:text-xl font-bold text-gradient-gold group-hover:opacity-90 transition-opacity">
-              {BRAND_NAME}
-            </span>
+            <BrandLogo size="md" />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1 text-sm">
+          <nav className="hidden md:flex items-center gap-0.5 text-sm">
             {session && (
               <>
-                <Link href="/dashboard" className="px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors">
+                <Link href="/dashboard" className="nav-link">
                   {t("dashboard")}
                 </Link>
-                <Link href="/plans" className="px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors">
+                <Link href="/plans" className="nav-link">
                   {tn("plans")}
                 </Link>
               </>
             )}
-            <Link href="/about" className="px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors">
+            <Link href="/about" className="nav-link">
               {tn("about")}
             </Link>
-            <Link href="/faq" className="px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors">
+            <Link href="/faq" className="nav-link">
               {tn("faq")}
             </Link>
-            <Link href="/contact" className="px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors">
+            <Link href="/contact" className="nav-link">
               {tn("contact")}
             </Link>
           </nav>
@@ -58,15 +53,12 @@ export default function AppHeader({ showNotifications = true }: { showNotificati
             {session && showNotifications && <NotificationBell />}
             {session && (
               <>
-                <Link
-                  href="/profile"
-                  className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
-                >
+                <Link href="/profile" className="nav-link hidden sm:inline-flex">
                   {t("profile")}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="hidden sm:inline text-sm text-red-400 hover:text-red-300 px-2 py-1 transition-colors"
+                  className="hidden sm:inline text-sm text-red-400/90 hover:text-red-300 px-2 py-1 transition-colors font-medium"
                 >
                   {t("logout")}
                 </button>
@@ -74,7 +66,7 @@ export default function AppHeader({ showNotifications = true }: { showNotificati
             )}
             {!session && (
               <div className="hidden sm:flex items-center gap-2">
-                <Link href="/login" className="text-sm text-amber-400 hover:text-amber-300 px-3 py-1.5 transition-colors">
+                <Link href="/login" className="nav-link text-amber-300/90 hover:text-amber-200">
                   {t("login")}
                 </Link>
                 <Link href="/register" className="text-sm btn-primary px-4 py-2 rounded-lg">

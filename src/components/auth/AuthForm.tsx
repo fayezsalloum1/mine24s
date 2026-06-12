@@ -51,12 +51,10 @@ export function AuthButton({
 export function AuthPanel({ children, wide }: { children: React.ReactNode; wide?: boolean }) {
   return (
     <div
-      className={`relative glass-panel p-6 sm:p-10 rounded-2xl w-full shadow-panel ${
+      className={`relative iconic-panel p-6 sm:p-10 w-full shadow-iconic ${
         wide ? "max-w-lg" : "max-w-md"
       }`}
     >
-      <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
-      <div className="absolute -top-px left-1/2 -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-amber-300/60 to-transparent" />
       {children}
     </div>
   );
