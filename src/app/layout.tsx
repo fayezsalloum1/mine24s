@@ -5,8 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import SessionProvider from "@/components/SessionProvider";
 import LocaleProvider from "@/components/LocaleProvider";
-import MiningBackground from "@/components/MiningBackground";
-import RainingCoins from "@/components/RainingCoins";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import AppProviders from "@/components/AppProviders";
 
 const inter = Inter({
@@ -33,10 +32,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${cairo.variable} font-sans text-gray-50 relative bg-navy-900 antialiased`}>
-        <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden>
-          <MiningBackground />
-          <RainingCoins />
-        </div>
+        <AnimatedBackground />
         <div className="relative z-10">
           <SessionProvider session={session}>
             <LocaleProvider>
