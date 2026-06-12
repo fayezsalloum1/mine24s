@@ -43,13 +43,11 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     if (!user) {
-      console.log("[forgot-password] no account for:", normalizedEmail);
       return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
     }
 
     const allowed = await canRequestPasswordReset(user.id);
     if (!allowed) {
-      console.warn("[forgot-password] rate limited:", normalizedEmail);
       return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
     }
 
@@ -66,13 +64,11 @@ export async function POST(req: Request) {
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetLink = `${baseUrl}/reset-password?token=${token}`;
-    console.log("[forgot-password] attempting to send email to:", user.email);
     const result = await sendEmail(
       user.email,
       `Reset your ${BRAND_NAME} password`,
       passwordResetHtml(resetLink)
     );
-    console.log("[forgot-password] sendEmail result:", JSON.stringify(result));
 
     if (!result.sent) {
       console.error("[forgot-password] send failed:", normalizedEmail, result.error);
@@ -85,7 +81,6 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("[forgot-password] reset email sent to:", normalizedEmail);
     return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
   } catch (err) {
     console.error("[forgot-password]", err);

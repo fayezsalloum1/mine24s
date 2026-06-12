@@ -33,6 +33,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-qr-code": "^2.2.0",
+    "resend": "^6.12.4",
     "tronweb": "^6.3.0",
     "twilio": "^6.0.2",
     "zod": "^4.4.3"

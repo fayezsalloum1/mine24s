@@ -22,15 +22,24 @@ function getBrevoApiKey() {
   return process.env.BREVO_API_KEY?.trim();
 }
 
+function getResendApiKey() {
+  return process.env.RESEND_API_KEY?.trim();
+}
+
 function getSenderEmail() {
   return (process.env.SMTP_FROM || process.env.BREVO_SENDER_EMAIL)?.trim() || null;
+}
+
+function getResendSenderEmail() {
+  return getSenderEmail() || "onboarding@resend.dev";
 }
 
 function getSenderName() {
   return (process.env.SMTP_FROM_NAME || process.env.BREVO_SENDER_NAME || BRAND_NAME).trim();
 }
 
-export function getEmailMode(): "brevo-api" | "brevo-smtp" | "smtp" | "none" {
+export function getEmailMode(): "resend" | "brevo-api" | "brevo-smtp" | "smtp" | "none" {
+  if (getResendApiKey()) return "resend";
   if (getBrevoApiKey() && getSenderEmail()) return "brevo-api";
   const config = getSmtpConfig();
   if (!config) return "none";
@@ -69,6 +78,11 @@ export function isEmailConfigured() {
 
 export function getEmailConfigIssues(): string[] {
   const issues: string[] = [];
+
+  if (getResendApiKey()) {
+    return issues;
+  }
+
   const apiKey = getBrevoApiKey();
   const sender = getSenderEmail();
   const host = process.env.SMTP_HOST?.trim();
@@ -107,26 +121,30 @@ export function getEmailConfigIssues(): string[] {
 
 export function getEmailConfigStatus() {
   const mode = getEmailMode();
-  const sender = getSenderEmail();
+  const sender = mode === "resend" ? getResendSenderEmail() : getSenderEmail();
   const issues = getEmailConfigIssues();
   return {
     configured: mode !== "none" && issues.length === 0,
     mode,
+    resendApiKey: Boolean(getResendApiKey()),
     brevoApiKey: Boolean(getBrevoApiKey()),
     host: Boolean(process.env.SMTP_HOST?.trim()),
     user: Boolean(process.env.SMTP_USER?.trim()),
     pass: Boolean(process.env.SMTP_PASS?.trim()),
     sender: Boolean(sender),
     from: Boolean(sender),
+    fromAddress: sender || undefined,
     port: process.env.SMTP_PORT || "587",
     issues,
     hint:
       issues[0] ||
-      (mode === "brevo-api"
-        ? "Using Brevo API (recommended on Vercel)."
-        : mode === "brevo-smtp"
-          ? "Using Brevo SMTP relay."
-          : undefined),
+      (mode === "resend"
+        ? "Using Resend API."
+        : mode === "brevo-api"
+          ? "Using Brevo API (recommended on Vercel)."
+          : mode === "brevo-smtp"
+            ? "Using Brevo SMTP relay."
+            : undefined),
   };
 }
 
@@ -149,10 +167,20 @@ function formatBrevoApiError(status: number, body: string): string {
   return `Brevo API error (${status})`;
 }
 
+function formatResendError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.startsWith("Resend:")) return msg;
+  if (/invalid api key|unauthorized|401|403/i.test(msg)) {
+    return "Resend API key invalid. Set RESEND_API_KEY in your environment.";
+  }
+  return `Resend: ${msg.length > 120 ? `${msg.slice(0, 120)}…` : msg}`;
+}
+
 export function formatSmtpError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
 
+  if (msg.startsWith("Resend:")) return msg;
   if (msg.startsWith("Brevo:") || msg.startsWith("Brevo API")) return msg;
 
   if (
@@ -185,10 +213,6 @@ async function sendViaBrevoApi(to: string, subject: string, html: string) {
     throw new Error("Brevo API not configured (need BREVO_API_KEY + SMTP_FROM)");
   }
 
-  console.log("[brevo-api] sending to:", to, "subject:", subject);
-  console.log("[brevo-api] api key prefix:", apiKey?.slice(0, 20));
-  console.log("[brevo-api] sender:", senderEmail);
-
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -207,6 +231,29 @@ async function sendViaBrevoApi(to: string, subject: string, html: string) {
   if (!res.ok) {
     const body = await res.text();
     throw new Error(formatBrevoApiError(res.status, body));
+  }
+}
+
+async function sendViaResend(to: string, subject: string, html: string) {
+  const apiKey = getResendApiKey();
+  if (!apiKey) {
+    throw new Error("Resend API not configured (need RESEND_API_KEY)");
+  }
+
+  const { Resend } = await import("resend");
+  const resend = new Resend(apiKey);
+  const fromEmail = getResendSenderEmail();
+  const from = `${getSenderName()} <${fromEmail}>`;
+
+  const { error } = await resend.emails.send({
+    from,
+    to,
+    subject,
+    html,
+  });
+
+  if (error) {
+    throw new Error(`Resend: ${error.message}`);
   }
 }
 
@@ -262,6 +309,17 @@ async function sendViaSmtp(to: string, subject: string, html: string) {
 /** Verify email credentials (admin test). */
 export async function verifyEmailConnection() {
   const mode = getEmailMode();
+  if (mode === "resend") {
+    const apiKey = getResendApiKey()!;
+    const res = await fetch("https://api.resend.com/domains", {
+      headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(formatResendError(`Resend: ${body || res.statusText}`));
+    }
+    return true;
+  }
   if (mode === "brevo-api") {
     const apiKey = getBrevoApiKey()!;
     const res = await fetch("https://api.brevo.com/v3/account", {
@@ -303,14 +361,16 @@ export async function sendEmail(to: string, subject: string, html: string) {
   }
 
   try {
-    if (mode === "brevo-api") {
+    if (mode === "resend") {
+      await sendViaResend(to, subject, html);
+    } else if (mode === "brevo-api") {
       await sendViaBrevoApi(to, subject, html);
     } else {
       await sendViaSmtp(to, subject, html);
     }
     return { sent: true as const };
   } catch (err) {
-    const error = formatSmtpError(err);
+    const error = mode === "resend" ? formatResendError(err) : formatSmtpError(err);
     console.error(`[Email] Failed (${mode}) to ${to}:`, err);
     return { sent: false as const, error };
   }
