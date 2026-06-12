@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { prisma } from "@/lib/prisma";
 import { USDT, SCAN_BLOCKS } from "@/lib/constants";
 import { getEvmProvider } from "@/lib/evm-rpc";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 import { sendEmail, depositConfirmedHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
 import { sweepUsdtToAdmin } from "@/lib/sweep";
@@ -66,6 +66,7 @@ async function creditDeposit(
 
   const message = `Deposit of $${amount.toFixed(2)} (${network}) confirmed automatically!`;
   await createNotification(userId, message);
+  await notifyAdmins(`[Deposit] ${userEmail} — $${amount.toFixed(2)} ${network} credited automatically.`);
   await sendEmail(userEmail, "Deposit Confirmed", depositConfirmedHtml(amount));
   if (phoneNumber && phoneVerified) {
     await sendSMS(phoneNumber, message);
@@ -260,6 +261,7 @@ async function confirmPendingDepositByTx(
 
   const message = `Deposit of $${amount.toFixed(2)} (${network}) confirmed!`;
   await createNotification(pending.userId, message);
+  await notifyAdmins(`[Deposit] ${pending.user.email} — $${amount.toFixed(2)} ${network} confirmed.`);
   await sendEmail(pending.user.email, "Deposit Confirmed", depositConfirmedHtml(amount));
   if (pending.user.phoneNumber && pending.user.phoneVerified) {
     await sendSMS(pending.user.phoneNumber, message);

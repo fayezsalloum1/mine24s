@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { broadcastToUsers, notifyAdmins } from "@/lib/notifications";
 
 function parsePlanBody(body: Record<string, unknown>) {
   const planType = body.planType === "POOLED" ? "POOLED" : "SOLO";
@@ -85,6 +86,13 @@ export async function POST(req: Request) {
       machineOnlineSince: parsed.data.machineOnline !== false ? new Date() : null,
     },
   });
+
+  if (plan.isActive) {
+    const msg = `New mining plan: "${plan.name}" — $${plan.price.toLocaleString()}, ${plan.dailyReturnPercent}% daily for ${plan.durationDays} days. 100% principal returned at completion.`;
+    await broadcastToUsers(msg);
+    await notifyAdmins(`[New plan] Published "${plan.name}" to all users.`);
+  }
+
   return NextResponse.json(plan);
 }
 
@@ -101,10 +109,21 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
+  const existing = await prisma.plan.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+
   const plan = await prisma.plan.update({
     where: { id },
     data: parsed.data,
   });
+
+  const newlyActivated = !existing.isActive && plan.isActive;
+  if (newlyActivated) {
+    const msg = `Mining plan now available: "${plan.name}" — $${plan.price.toLocaleString()}, ${plan.dailyReturnPercent}% daily, 100% principal back at end.`;
+    await broadcastToUsers(msg);
+    await notifyAdmins(`[Plan activated] "${plan.name}" is now live for users.`);
+  }
+
   return NextResponse.json(plan);
 }
 

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { canWithdraw } from "@/lib/referral";
 import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 
 const WITHDRAWAL_COOLDOWN_DAYS = 7;
 
@@ -119,6 +120,14 @@ export async function POST(req: Request) {
     }
     throw err;
   }
+
+  await createNotification(
+    user.id,
+    `Withdrawal request submitted: $${withdrawalAmount.toFixed(2)} USDT on ${network}. Pending admin approval.`
+  );
+  await notifyAdmins(
+    `[Withdrawal] ${user.email} requested $${withdrawalAmount.toFixed(2)} on ${network}.`
+  );
 
   return NextResponse.json({ success: true });
 }

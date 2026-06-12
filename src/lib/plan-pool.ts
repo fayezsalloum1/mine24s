@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 import { getPooledUserDailyProfit, getSoloDailyProfit } from "@/lib/mining-math";
 import type { Plan } from "@prisma/client";
 
@@ -68,9 +68,13 @@ export async function activatePool(poolId: string) {
   for (const contribution of pool.contributions) {
     await createNotification(
       contribution.userId,
-      `Shared plan "${pool.plan.name}" is now active! Mining started with your $${contribution.amount.toFixed(2)} share.`
+      `Shared plan "${pool.plan.name}" is now active! Mining started with your $${contribution.amount.toFixed(2)} share. Duration clock has started.`
     );
   }
+
+  await notifyAdmins(
+    `[Pool active] "${pool.plan.name}" reached 100% — mining started for ${pool.contributions.length} participant(s).`
+  );
 
   return pool;
 }
@@ -170,7 +174,11 @@ export async function joinPooledPlan(
 
   await createNotification(
     userId,
-    `You joined shared plan "${plan.name}" with $${contributionAmount.toFixed(2)}. Pool is ${((result.updatedPool.filledAmount / result.updatedPool.targetAmount) * 100).toFixed(0)}% filled.`
+    `You joined shared plan "${plan.name}" with $${contributionAmount.toFixed(2)}. Pool is ${((result.updatedPool.filledAmount / result.updatedPool.targetAmount) * 100).toFixed(0)}% filled — mining starts at 100%.`
+  );
+
+  await notifyAdmins(
+    `[Pool join] User joined "${plan.name}" with $${contributionAmount.toFixed(2)} (${((result.updatedPool.filledAmount / result.updatedPool.targetAmount) * 100).toFixed(0)}% filled).`
   );
 
   return { activated: false, poolId: result.poolId, filled: false };

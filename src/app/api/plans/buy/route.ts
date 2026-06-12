@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { processReferralCommission } from "@/lib/referral";
 import { joinPooledPlan, getSoloDailyProfit } from "@/lib/plan-pool";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -87,6 +88,14 @@ export async function POST(req: Request) {
     if (isFirstPlan) {
       await processReferralCommission(user.id, plan.price);
     }
+
+    await createNotification(
+      user.id,
+      `Plan "${plan.name}" purchased for $${plan.price.toFixed(2)}! Mining started — 10-day payouts begin now. 100% principal returned when the plan completes.`
+    );
+    await notifyAdmins(
+      `[Plan purchase] ${user.email} bought "${plan.name}" for $${plan.price.toFixed(2)}.`
+    );
 
     return NextResponse.json({ success: true, pooled: false });
   } catch (err) {

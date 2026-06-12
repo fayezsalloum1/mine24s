@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { usesCustomPlatformWallet } from "@/lib/wallet";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   const auth = await requireAuth();
@@ -44,6 +45,14 @@ export async function POST(req: Request) {
       txHash: txHash?.trim() || null,
     },
   });
+
+  await createNotification(
+    auth.user!.id,
+    `Deposit of $${depositAmount.toFixed(2)} (${network}) submitted — pending admin confirmation.`
+  );
+  await notifyAdmins(
+    `[Deposit pending] ${auth.user!.email} submitted $${depositAmount.toFixed(2)} on ${network}.`
+  );
 
   return NextResponse.json({
     success: true,

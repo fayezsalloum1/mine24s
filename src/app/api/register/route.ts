@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { assignWalletForNewUser, WalletConfigError } from "@/lib/wallet";
 import { normalizeReferralCode } from "@/lib/referral";
 import { sendVerificationEmail } from "@/lib/email-verification";
+import { notifyAdmins, createNotification } from "@/lib/notifications";
 import { isValidEmail } from "@/lib/password-strength";
 import { isEmailConfigured } from "@/lib/email";
 
@@ -126,6 +127,12 @@ export async function POST(req: Request) {
       emailError = emailErr instanceof Error ? emailErr.message : "Could not send verification email";
       requiresVerification = true;
     }
+
+    await createNotification(
+      user.id,
+      "Welcome to Simple Mining! Verify your email to start investing — browse plans and earn with 100% principal return at completion."
+    );
+    await notifyAdmins(`[New user] ${normalizedEmail} registered.`);
 
     return NextResponse.json({
       success: true,

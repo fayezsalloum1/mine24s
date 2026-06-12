@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 
 export { getPlanProgress, PLAN_DURATION_DAYS } from "@/lib/mining-math";
@@ -80,15 +80,22 @@ export async function processDueMiningForUser(userId: string) {
       earned += progress.earningsDue;
       principalReturned += shouldReturnPrincipal ? progress.principal : 0;
       plansUpdated += 1;
-      message = shouldReturnPrincipal
-        ? `Mining plan credited $${progress.earningsDue.toFixed(2)} earnings and returned $${progress.principal.toFixed(2)} principal.`
-        : `Mining earnings of $${progress.earningsDue.toFixed(2)} credited (${progress.daysToCredit}-day payout).`;
+
+      const planName = latestPlan.plan.name;
+      if (shouldReturnPrincipal) {
+        message = `Plan "${planName}" complete! 10-day payout $${progress.earningsDue.toFixed(2)} + 100% principal $${progress.principal.toFixed(2)} returned to your balance.`;
+      } else if (shouldCreditEarnings) {
+        message = `10-day mining payout: $${progress.earningsDue.toFixed(2)} credited for "${planName}" (${progress.daysToCredit} days).`;
+      }
     });
 
     if (message) {
       try {
         await createNotification(userId, message);
-        await sendEmail(user.email, "Mining Earnings Credited", `<p>${message}</p>`);
+        await notifyAdmins(
+          `[Payout] ${user.email} — ${message}`
+        );
+        await sendEmail(user.email, "Simple Mining — Payout Credited", `<p>${message}</p>`);
       } catch (notifyError) {
         console.error("[mining] notification failed:", notifyError);
       }

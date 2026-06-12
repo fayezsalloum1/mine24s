@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, notifyAdmins } from "@/lib/notifications";
 import { sendEmail, depositConfirmedHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
 
@@ -90,6 +90,9 @@ export async function POST(req: Request) {
 
     const message = `Deposit of $${transaction.amount.toFixed(2)} confirmed!`;
     await createNotification(transaction.userId, message);
+    await notifyAdmins(
+      `[Deposit approved] ${transaction.user.email} — $${transaction.amount.toFixed(2)} credited.`
+    );
     await sendEmail(
       transaction.user.email,
       "Deposit Confirmed",
