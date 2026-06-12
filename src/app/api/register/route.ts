@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { assignWalletForNewUser, WalletConfigError } from "@/lib/wallet";
 import { normalizeReferralCode } from "@/lib/referral";
-import { autoVerifyUser, sendVerificationEmail } from "@/lib/email-verification";
+import { sendVerificationEmail } from "@/lib/email-verification";
 import { isValidEmail } from "@/lib/password-strength";
 import { isEmailConfigured } from "@/lib/email";
 
@@ -49,13 +49,14 @@ export async function POST(req: Request) {
         });
 
         let autoVerified = false;
+        let emailError: string | undefined;
         try {
           const result = await sendVerificationEmail(existing.id, existing.email);
           autoVerified = result.autoVerified;
+          emailError = result.error;
         } catch (emailErr) {
           console.error("[register] resend verification failed:", emailErr);
-          await autoVerifyUser(existing.id, existing.email);
-          autoVerified = true;
+          emailError = emailErr instanceof Error ? emailErr.message : "Could not send verification email";
         }
 
         if (autoVerified) {
@@ -72,7 +73,11 @@ export async function POST(req: Request) {
           success: true,
           requiresVerification: true,
           existingAccount: true,
-          message: "Account found — we sent a new verification code to your email.",
+          emailSent: !emailError,
+          emailError,
+          message: emailError
+            ? "Account found but verification email could not be sent. Contact support or try again later."
+            : "Account found — we sent a new verification code to your email.",
         });
       }
       return NextResponse.json(
@@ -110,15 +115,16 @@ export async function POST(req: Request) {
 
     let requiresVerification = true;
     let autoVerified = false;
+    let emailError: string | undefined;
     try {
       const result = await sendVerificationEmail(user.id, user.email);
       requiresVerification = !result.autoVerified;
       autoVerified = result.autoVerified;
+      emailError = result.error;
     } catch (emailErr) {
       console.error("[register] verification email failed:", emailErr);
-      await autoVerifyUser(user.id, user.email);
-      requiresVerification = false;
-      autoVerified = true;
+      emailError = emailErr instanceof Error ? emailErr.message : "Could not send verification email";
+      requiresVerification = true;
     }
 
     return NextResponse.json({
@@ -126,7 +132,8 @@ export async function POST(req: Request) {
       user: { id: user.id, email: user.email },
       requiresVerification,
       autoVerified,
-      emailSent: isEmailConfigured(),
+      emailSent: isEmailConfigured() && !emailError,
+      emailError,
     });
   } catch (err) {
     console.error("[register]", err);

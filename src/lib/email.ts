@@ -64,14 +64,53 @@ export function getSmtpConfig(): SmtpConfig | null {
 }
 
 export function isEmailConfigured() {
-  return getEmailMode() !== "none";
+  return getEmailConfigStatus().configured;
+}
+
+export function getEmailConfigIssues(): string[] {
+  const issues: string[] = [];
+  const apiKey = getBrevoApiKey();
+  const sender = getSenderEmail();
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
+
+  if (apiKey && !sender) {
+    issues.push("BREVO_API_KEY is set but SMTP_FROM is missing. Add a verified sender email.");
+  }
+
+  if (!apiKey && host && user && pass && isBrevoHost(host) && !sender) {
+    issues.push(
+      "SMTP_FROM is required for Brevo. Verify a sender in Brevo → Senders, Domains & Dedicated IPs → Senders, then set SMTP_FROM to that email."
+    );
+  }
+
+  if (sender) {
+    const senderError = validateSenderEmail(sender);
+    if (senderError) issues.push(senderError);
+  }
+
+  if (!apiKey && (!host || !user || !pass)) {
+    if (!host) issues.push("SMTP_HOST is not set.");
+    if (!user) issues.push("SMTP_USER is not set.");
+    if (!pass) issues.push("SMTP_PASS is not set.");
+  }
+
+  if (host && user && pass && isBrevoHost(host)) {
+    if (!user.includes("@")) {
+      issues.push("SMTP_USER looks invalid. For Brevo use your SMTP login from Brevo → SMTP & API → SMTP.");
+    }
+  }
+
+  return issues;
 }
 
 export function getEmailConfigStatus() {
   const mode = getEmailMode();
   const sender = getSenderEmail();
+  const issues = getEmailConfigIssues();
   return {
-    configured: mode !== "none",
+    configured: mode !== "none" && issues.length === 0,
     mode,
     brevoApiKey: Boolean(getBrevoApiKey()),
     host: Boolean(process.env.SMTP_HOST?.trim()),
@@ -80,6 +119,14 @@ export function getEmailConfigStatus() {
     sender: Boolean(sender),
     from: Boolean(sender),
     port: process.env.SMTP_PORT || "587",
+    issues,
+    hint:
+      issues[0] ||
+      (mode === "brevo-api"
+        ? "Using Brevo API (recommended on Vercel)."
+        : mode === "brevo-smtp"
+          ? "Using Brevo SMTP relay."
+          : undefined),
   };
 }
 
@@ -232,6 +279,13 @@ export async function verifyEmailConnection() {
 export const verifySmtpConnection = verifyEmailConnection;
 
 export async function sendEmail(to: string, subject: string, html: string) {
+  const issues = getEmailConfigIssues();
+  if (issues.length > 0) {
+    const error = issues[0];
+    console.error(`[Email] Not configured: ${error}`);
+    return { sent: false as const, error };
+  }
+
   const mode = getEmailMode();
   if (mode === "none") {
     console.log(`[Email skipped] To: ${to}, Subject: ${subject}`);

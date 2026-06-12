@@ -14,7 +14,8 @@
     "admin:addresses": "node scripts/show-admin-wallet.mjs",
     "wallets:fix-tron": "npx tsx src/backfill-wallets.ts",
     "plans:add": "npx tsx src/addPlans.ts",
-    "admin:create": "npx tsx src/createAdmin.ts"
+    "admin:create": "npx tsx src/createAdmin.ts",
+    "test:smtp": "node scripts/test-smtp.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

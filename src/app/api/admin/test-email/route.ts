@@ -10,7 +10,11 @@ export async function GET() {
 
   const status = getEmailConfigStatus();
   if (!status.configured) {
-    return NextResponse.json({ ok: false, ...status, error: "SMTP env vars not set" });
+    return NextResponse.json({
+      ok: false,
+      ...status,
+      error: status.hint || status.issues[0] || "SMTP env vars not set",
+    });
   }
 
   try {

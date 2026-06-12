@@ -4,6 +4,15 @@ import { generateSixDigitCode, EMAIL_VERIFICATION_TTL_MS } from "@/lib/auth-code
 import { resetVerificationAttempts } from "@/lib/auth-rate-limit";
 import { BRAND_NAME } from "@/lib/constants";
 
+function shouldAutoVerifyOnEmailFail(error?: string): boolean {
+  if (process.env.AUTO_VERIFY_ON_EMAIL_FAIL !== "true") return false;
+  if (!error) return true;
+  if (error.includes("SMTP_FROM") || error.includes("not configured") || error.includes("Email not configured")) {
+    return false;
+  }
+  return true;
+}
+
 export async function autoVerifyUser(userId: string, email: string) {
   await prisma.user.update({
     where: { id: userId },
@@ -39,9 +48,12 @@ export async function sendVerificationEmail(userId: string, email: string) {
   );
 
   if (!result.sent) {
-    console.error("[email-verification] send failed, auto-verifying:", result.error);
-    await autoVerifyUser(userId, email);
-    return { sent: false, autoVerified: true, emailFailed: true };
+    console.error("[email-verification] send failed:", result.error);
+    if (shouldAutoVerifyOnEmailFail(result.error)) {
+      await autoVerifyUser(userId, email);
+      return { sent: false, autoVerified: true, emailFailed: true, error: result.error };
+    }
+    return { sent: false, autoVerified: false, emailFailed: true, error: result.error };
   }
 
   return { sent: true, autoVerified: false };

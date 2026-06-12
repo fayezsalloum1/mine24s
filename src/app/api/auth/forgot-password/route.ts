@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, passwordResetHtml, isEmailConfigured } from "@/lib/email";
+import {
+  sendEmail,
+  passwordResetHtml,
+  getEmailConfigStatus,
+} from "@/lib/email";
 import { generateResetToken, PASSWORD_RESET_TTL_MS } from "@/lib/auth-codes";
 import {
   canRequestPasswordReset,
@@ -21,11 +25,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    if (!isEmailConfigured()) {
+    const emailStatus = getEmailConfigStatus();
+    if (!emailStatus.configured) {
+      console.error("[forgot-password] email not configured:", emailStatus.issues);
       return NextResponse.json(
         {
           success: false,
-          error: "Password reset emails are not configured yet. Please contact support.",
+          error:
+            emailStatus.hint ||
+            "Password reset emails are not configured yet. Set SMTP_FROM in Brevo and redeploy.",
         },
         { status: 503 }
       );
@@ -34,40 +42,48 @@ export async function POST(req: Request) {
     const normalizedEmail = String(email).trim().toLowerCase();
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-    if (user) {
-      const allowed = await canRequestPasswordReset(user.id);
-      if (allowed) {
-        const token = generateResetToken();
-        const expiry = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            passwordResetToken: token,
-            passwordResetExpiry: expiry,
-          },
-        });
-        await recordPasswordResetRequest(user.id);
-
-        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-        const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        const result = await sendEmail(
-          user.email,
-          `Reset your ${BRAND_NAME} password`,
-          passwordResetHtml(resetLink)
-        );
-
-        if (!result.sent) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: result.error || "Could not send reset email.",
-            },
-            { status: 502 }
-          );
-        }
-      }
+    if (!user) {
+      console.log("[forgot-password] no account for:", normalizedEmail);
+      return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
     }
 
+    const allowed = await canRequestPasswordReset(user.id);
+    if (!allowed) {
+      console.warn("[forgot-password] rate limited:", normalizedEmail);
+      return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
+    }
+
+    const token = generateResetToken();
+    const expiry = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: token,
+        passwordResetExpiry: expiry,
+      },
+    });
+    await recordPasswordResetRequest(user.id);
+
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const resetLink = `${baseUrl}/reset-password?token=${token}`;
+    const result = await sendEmail(
+      user.email,
+      `Reset your ${BRAND_NAME} password`,
+      passwordResetHtml(resetLink)
+    );
+
+    if (!result.sent) {
+      console.error("[forgot-password] send failed:", normalizedEmail, result.error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error || "Could not send reset email. Check Brevo sender (SMTP_FROM).",
+        },
+        { status: 502 }
+      );
+    }
+
+    console.log("[forgot-password] reset email sent to:", normalizedEmail);
     return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
   } catch (err) {
     console.error("[forgot-password]", err);
