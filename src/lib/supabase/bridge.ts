@@ -12,17 +12,28 @@ export async function bridgeSupabaseUser(params: {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    if (existing.supabaseUserId !== params.supabaseUserId) {
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const shouldBeAdmin = Boolean(adminEmail && email === adminEmail);
+
+    if (
+      existing.supabaseUserId !== params.supabaseUserId ||
+      (shouldBeAdmin && existing.role !== "ADMIN")
+    ) {
       await prisma.user.update({
         where: { id: existing.id },
         data: {
           supabaseUserId: params.supabaseUserId,
           emailVerified: true,
+          ...(shouldBeAdmin ? { role: "ADMIN" } : {}),
         },
       });
+      return prisma.user.findUniqueOrThrow({ where: { id: existing.id } });
     }
     return existing;
   }
+
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const isAdmin = Boolean(adminEmail && email === adminEmail);
 
   const { walletIndex, depositAddress, tronDepositAddress } =
     await assignWalletForNewUser(prisma);
@@ -43,6 +54,7 @@ export async function bridgeSupabaseUser(params: {
       referralCode,
       emailVerified: true,
       supabaseUserId: params.supabaseUserId,
+      role: isAdmin ? "ADMIN" : "USER",
     },
   });
 }
