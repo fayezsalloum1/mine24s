@@ -20,48 +20,22 @@ function CloudBitcoinFallback() {
   );
 }
 
-function HeroVideoPanel({
-  src,
-  title,
-  fallback,
-  badge,
-}: {
-  src: string;
-  title: string;
-  fallback?: React.ReactNode;
-  badge?: boolean;
-}) {
+export default function MiningHeroVideo() {
   return (
-    <div className="hero-video-frame">
+    <div className="hero-video-frame h-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem]">
       <BrandVideo
-        src={src}
-        title={title}
+        src={SITE_VIDEOS.hero}
+        title="Simple Mining — hero"
         className="absolute inset-0 rounded-2xl bg-[#020b1a]"
         objectFit="contain"
-        fallback={fallback}
+        fallback={<CloudBitcoinFallback />}
         overlay={false}
       />
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-gold-500/20" />
-      {badge && (
-        <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-emerald-500/30 bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-emerald-400 backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-          LIVE · 24/7 MINING
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function MiningHeroVideo() {
-  return (
-    <div className="hero-video-stack">
-      <HeroVideoPanel
-        src={SITE_VIDEOS.hero}
-        title="Simple Mining — hero"
-        fallback={<CloudBitcoinFallback />}
-        badge
-      />
-      <HeroVideoPanel src={SITE_VIDEOS.hero2} title="Simple Mining — operations" />
+      <div className="pointer-events-none absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-emerald-500/30 bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-emerald-400 backdrop-blur-sm">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+        LIVE · 24/7 MINING
+      </div>
     </div>
   );
 }

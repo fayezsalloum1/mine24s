@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import QRCode from "react-qr-code";
+import { fetchJson, fetchJsonWithRetry } from "@/lib/fetch-json";
 
 type Network = "ERC20" | "BEP20" | "TRC20";
 
@@ -31,45 +32,48 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
     setLoading(true);
     setError("");
     setAddress("");
-    try {
-      const res = await fetch(`/api/deposit/address?network=${net}`);
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        setError(data.error || "Failed to load address");
-        return;
-      }
-      if (data.address) {
-        setAddress(data.address);
-        setMode(data.mode === "custom" ? "custom" : "hd");
-      } else {
-        setError("No address returned");
-      }
-    } catch {
-      setError("Failed to load address");
-    } finally {
+    const { data, ok } = await fetchJson<{
+      address?: string;
+      mode?: string;
+      error?: string;
+    }>(`/api/deposit/address?network=${net}`);
+
+    if (!ok || !data || data.error) {
+      setError(data?.error || "Failed to load address");
       setLoading(false);
+      return;
     }
+    if (data.address) {
+      setAddress(data.address);
+      setMode(data.mode === "custom" ? "custom" : "hd");
+    } else {
+      setError("No address returned");
+    }
+    setLoading(false);
   }, []);
 
   const checkBalance = useCallback(async () => {
-    const res = await fetch("/api/user/me");
-    const data = await res.json();
+    const { data } = await fetchJson<{ balance?: number }>("/api/user/me");
+    if (!data || typeof data.balance !== "number") return null;
     if (initialBalance !== null && data.balance > initialBalance) {
       onDepositDetected?.();
     }
-    return data.balance as number;
+    return data.balance;
   }, [initialBalance, onDepositDetected]);
 
   useEffect(() => {
-    if (open) {
-      setSuccess("");
-      setAmount("");
-      setTxHash("");
-      fetchAddress(network);
-      fetch("/api/user/me")
-        .then((r) => r.json())
-        .then((d) => setInitialBalance(d.balance ?? 0));
-    }
+    if (!open) return;
+
+    setSuccess("");
+    setAmount("");
+    setTxHash("");
+    fetchAddress(network);
+
+    fetchJsonWithRetry<{ balance?: number }>("/api/user/me").then(({ data }) => {
+      if (data && typeof data.balance === "number") {
+        setInitialBalance(data.balance);
+      }
+    });
   }, [open, network, fetchAddress]);
 
   useEffect(() => {
@@ -91,8 +95,9 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
     setSubmitting(true);
     setError("");
     setSuccess("");
-    try {
-      const res = await fetch("/api/deposit/notify", {
+    const { data, ok } = await fetchJson<{ error?: string; message?: string }>(
+      "/api/deposit/notify",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,20 +105,23 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
           network,
           txHash: txHash.trim() || undefined,
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Failed to submit deposit");
-        return;
       }
-      setSuccess(data.message || t("depositPending"));
-      setAmount("");
-      setTxHash("");
-    } catch {
-      setError("Failed to submit deposit");
-    } finally {
+    );
+
+    if (!ok || !data) {
+      setError(data?.error || "Failed to submit deposit");
       setSubmitting(false);
+      return;
     }
+    if (data.error) {
+      setError(data.error);
+      setSubmitting(false);
+      return;
+    }
+    setSuccess(data.message || t("depositPending"));
+    setAmount("");
+    setTxHash("");
+    setSubmitting(false);
   };
 
   if (!open) return null;

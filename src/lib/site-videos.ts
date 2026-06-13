@@ -9,8 +9,8 @@
  *   public/videos/operations.mp4 — optional “See our operations” section
  */
 export const SITE_VIDEOS = {
-  hero: process.env.NEXT_PUBLIC_HERO_VIDEO_URL || "/videos/hero.mp4",
-  hero2: process.env.NEXT_PUBLIC_HERO_VIDEO_2_URL || "/videos/hero-2.mp4",
+  hero: process.env.NEXT_PUBLIC_HERO_VIDEO_URL || "/videos/2.mp4",
+  hero2: process.env.NEXT_PUBLIC_HERO_VIDEO_2_URL || "/videos/2.mp4",
   auth: process.env.NEXT_PUBLIC_AUTH_VIDEO_URL || "/videos/auth.mp4",
   about: process.env.NEXT_PUBLIC_ABOUT_VIDEO_URL || "/videos/about.mp4",
   operations:
