@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useMemo, useState } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type Props = {
   redirectNext?: string;
@@ -10,18 +10,20 @@ type Props = {
 export default function SupabaseAuthButtons({ redirectNext = "/dashboard" }: Props) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const supabase = useMemo(() => createClient(), []);
 
-  const supabase = createClient();
   const redirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectNext)}`
       : undefined;
 
+  if (!isSupabaseConfigured() || !supabase) return null;
+
   async function signInWithGoogle() {
     setErr("");
     setBusy(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase!.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
