@@ -1,4 +1,10 @@
 export function getSupabaseConfig() {
+  const combined = process.env.SUPABASE_PUBLIC?.trim();
+  if (combined) {
+    const [url = "", anonKey = ""] = combined.split("|").map((part) => part.trim());
+    if (url && anonKey) return { url, anonKey };
+  }
+
   const url =
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
     process.env.SUPABASE_URL?.trim() ||

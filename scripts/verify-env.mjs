@@ -9,16 +9,12 @@ const required = [
   "NEXTAUTH_URL",
 ];
 
-const supabaseKeys = [
-  ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL"],
-  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY"],
-];
-
 const missing = required.filter((key) => !process.env[key]?.trim());
 
-const missingSupabase = supabaseKeys
-  .filter((aliases) => !aliases.some((key) => process.env[key]?.trim()))
-  .map((aliases) => aliases.join(" or "));
+const supabaseConfigured =
+  Boolean(process.env.SUPABASE_PUBLIC?.trim()) ||
+  (Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim()) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || process.env.SUPABASE_ANON_KEY?.trim()));
 
 if (missing.length > 0) {
   console.error("\n❌ Missing required environment variables:\n");
@@ -29,11 +25,10 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-if (missingSupabase.length > 0) {
-  console.error("\n❌ Missing Supabase environment variables:\n");
-  for (const key of missingSupabase) {
-    console.error(`   • ${key}`);
-  }
+if (!supabaseConfigured) {
+  console.error("\n❌ Missing Supabase environment variable:\n");
+  console.error("   • SUPABASE_PUBLIC (format: https://project.supabase.co|anon-key)");
+  console.error("   • or NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY");
   console.error("\nAdd them in Vercel/host env for Google sign-in.\n");
   process.exit(1);
 }
