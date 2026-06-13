@@ -19,12 +19,17 @@ export async function GET(req: NextRequest) {
     });
 
     if (error || !data.url) {
+      console.error("[api/auth/google] oauth error:", error?.message);
       return NextResponse.redirect(`${origin}/login?error=auth_failed`);
     }
 
     return NextResponse.redirect(data.url);
   } catch (err) {
     console.error("[api/auth/google]", err);
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+    const code =
+      err instanceof Error && err.message.includes("not configured")
+        ? "supabase_not_configured"
+        : "auth_failed";
+    return NextResponse.redirect(`${origin}/login?error=${code}`);
   }
 }

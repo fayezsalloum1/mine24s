@@ -31,6 +31,9 @@ function LoginForm() {
 
     const authError = searchParams.get("error");
     if (authError === "auth_failed") setError("Google sign-in failed. Please try again.");
+    else if (authError === "supabase_not_configured") {
+      setError("Google sign-in is not configured on the server. Add Supabase env vars in Vercel and redeploy.");
+    }
     else if (authError === "account_setup_failed") {
       setError("Account setup failed. Please contact support.");
     } else if (authError === "missing_code") {
