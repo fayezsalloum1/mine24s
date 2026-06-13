@@ -3,7 +3,13 @@
  * Does NOT run during `npm run build` — set env on the server, not in the build step.
  */
 
-const required = ["DATABASE_URL", "NEXTAUTH_SECRET", "NEXTAUTH_URL"];
+const required = [
+  "DATABASE_URL",
+  "NEXTAUTH_SECRET",
+  "NEXTAUTH_URL",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+];
 
 const missing = required.filter((key) => !process.env[key]?.trim());
 

@@ -8,6 +8,7 @@ import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import AuthSplitLayout from "@/components/auth/AuthSplitLayout";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
+import SupabaseAuthButtons from "@/components/SupabaseAuthButtons";
 
 function LoginForm() {
   const router = useRouter();
@@ -27,6 +28,14 @@ function LoginForm() {
   useEffect(() => {
     if (searchParams.get("verified") === "1") setInfo(t("emailVerifiedSuccess"));
     if (searchParams.get("reset") === "1") setInfo(t("passwordResetSuccess"));
+
+    const authError = searchParams.get("error");
+    if (authError === "auth_failed") setError("Google sign-in failed. Please try again.");
+    else if (authError === "account_setup_failed") {
+      setError("Account setup failed. Please contact support.");
+    } else if (authError === "missing_code") {
+      setError("Sign-in link was invalid or expired.");
+    }
   }, [searchParams, t]);
 
   async function handleResendVerification() {
@@ -163,6 +172,7 @@ function LoginForm() {
           {tc("login")}
         </AuthButton>
       </form>
+      <SupabaseAuthButtons />
 
       <p className="text-gray-400 mt-6 text-center text-sm">
         {t("noAccount")}{" "}

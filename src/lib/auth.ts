@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { check2FAVerified, clear2FAVerified } from "@/lib/otp-store";
+import { verifySupabaseLoginToken } from "@/lib/supabase/login-token";
 
 const SESSION_MAX_AGE_REMEMBER = 30 * 24 * 60 * 60;
 const SESSION_MAX_AGE_DEFAULT = 24 * 60 * 60;
@@ -14,10 +15,26 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        supabaseToken: { label: "Supabase Token", type: "text" },
         twoFactorVerified: { label: "2FA Verified", type: "text" },
         rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
+        if (credentials?.supabaseToken) {
+          const email = verifySupabaseLoginToken(credentials.supabaseToken);
+          if (!email) return null;
+
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user || user.isFrozen) return null;
+
+          return {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            rememberMe: true,
+          };
+        }
+
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({

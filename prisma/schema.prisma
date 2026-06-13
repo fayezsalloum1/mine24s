@@ -69,6 +69,7 @@ model User {
   passwordResetRequestCount   Int       @default(0)
   passwordResetRequestWindow  DateTime?
   createdAt                   DateTime  @default(now())
+  supabaseUserId              String?   @unique
 
   userPlans          UserPlan[]
   transactions       Transaction[]

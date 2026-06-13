@@ -14,6 +14,7 @@ import {
   AuthPanel,
 } from "@/components/auth/AuthForm";
 import { getPasswordStrength, isValidEmail } from "@/lib/password-strength";
+import SupabaseAuthButtons from "@/components/SupabaseAuthButtons";
 
 const REF_STORAGE_KEY = "mining-farm-ref";
 
@@ -336,6 +337,8 @@ function RegisterForm() {
           {tc("register")}
         </AuthButton>
       </form>
+
+      <SupabaseAuthButtons redirectNext="/dashboard" />
 
       <p className="text-gray-400 mt-8 text-center text-sm">
         {t("haveAccount")}{" "}
