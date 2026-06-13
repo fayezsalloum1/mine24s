@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendEmail, emailVerificationHtml, welcomeEmailHtml } from "@/lib/email";
+import { sendEmail, emailVerificationHtml, welcomeEmailHtml, isEmailConfigured } from "@/lib/email";
 import { generateSixDigitCode, EMAIL_VERIFICATION_TTL_MS } from "@/lib/auth-codes";
 import { resetVerificationAttempts } from "@/lib/auth-rate-limit";
 import { BRAND_NAME } from "@/lib/constants";
@@ -7,9 +7,8 @@ import { BRAND_NAME } from "@/lib/constants";
 function shouldAutoVerifyOnEmailFail(error?: string): boolean {
   if (process.env.AUTO_VERIFY_ON_EMAIL_FAIL !== "true") return false;
   if (!error) return true;
-  if (error.includes("SMTP_FROM") || error.includes("not configured") || error.includes("Email not configured")) {
-    return false;
-  }
+  // Misconfigured sender — don't auto-verify; fix SMTP_FROM in env instead.
+  if (error.includes("SMTP_FROM")) return false;
   return true;
 }
 
@@ -29,6 +28,12 @@ export async function autoVerifyUser(userId: string, email: string) {
 }
 
 export async function sendVerificationEmail(userId: string, email: string) {
+  if (!isEmailConfigured()) {
+    console.warn("[email-verification] Email not configured — auto-verifying user");
+    await autoVerifyUser(userId, email);
+    return { sent: false, autoVerified: true, emailFailed: false };
+  }
+
   const code = generateSixDigitCode();
   const expiry = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
 

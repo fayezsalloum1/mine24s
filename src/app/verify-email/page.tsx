@@ -72,6 +72,9 @@ function VerifyEmailForm() {
       if (data.error) {
         setLocked(Boolean(data.locked));
         setError(data.error);
+      } else if (data.autoVerified) {
+        sessionStorage.removeItem("verify_email");
+        router.push("/login?verified=1");
       } else {
         setExpired(false);
         setResent(true);
