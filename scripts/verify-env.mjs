@@ -7,11 +7,18 @@ const required = [
   "DATABASE_URL",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+];
+
+const supabaseKeys = [
+  ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL"],
+  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY"],
 ];
 
 const missing = required.filter((key) => !process.env[key]?.trim());
+
+const missingSupabase = supabaseKeys
+  .filter((aliases) => !aliases.some((key) => process.env[key]?.trim()))
+  .map((aliases) => aliases.join(" or "));
 
 if (missing.length > 0) {
   console.error("\n❌ Missing required environment variables:\n");
@@ -19,6 +26,15 @@ if (missing.length > 0) {
     console.error(`   • ${key}`);
   }
   console.error("\nCopy .env.example → .env and fill in all required values.\n");
+  process.exit(1);
+}
+
+if (missingSupabase.length > 0) {
+  console.error("\n❌ Missing Supabase environment variables:\n");
+  for (const key of missingSupabase) {
+    console.error(`   • ${key}`);
+  }
+  console.error("\nAdd them in Vercel/host env for Google sign-in.\n");
   process.exit(1);
 }
 
