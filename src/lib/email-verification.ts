@@ -28,6 +28,12 @@ export async function autoVerifyUser(userId: string, email: string) {
 }
 
 export async function sendVerificationEmail(userId: string, email: string) {
+  if (process.env.SKIP_EMAIL_VERIFICATION === "true") {
+    console.warn("[email-verification] SKIP_EMAIL_VERIFICATION=true — auto-verifying user");
+    await autoVerifyUser(userId, email);
+    return { sent: false, autoVerified: true, emailFailed: false, skipped: true };
+  }
+
   if (!isEmailConfigured()) {
     console.warn("[email-verification] Email not configured — auto-verifying user");
     await autoVerifyUser(userId, email);
@@ -54,7 +60,10 @@ export async function sendVerificationEmail(userId: string, email: string) {
 
   if (!result.sent) {
     console.error("[email-verification] send failed:", result.error);
-    if (shouldAutoVerifyOnEmailFail(result.error)) {
+    const autoVerify =
+      shouldAutoVerifyOnEmailFail(result.error) ||
+      process.env.SKIP_EMAIL_VERIFICATION === "true";
+    if (autoVerify) {
       await autoVerifyUser(userId, email);
       return { sent: false, autoVerified: true, emailFailed: true, error: result.error };
     }

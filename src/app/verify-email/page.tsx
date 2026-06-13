@@ -22,16 +22,49 @@ function VerifyEmailForm() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [autoActivating, setAutoActivating] = useState(false);
+
+  async function tryAutoActivate(targetEmail: string): Promise<"verified" | "sent" | "error"> {
+    if (!targetEmail) return "error";
+    setAutoActivating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: targetEmail }),
+      });
+      const data = await res.json();
+      if (data.autoVerified) {
+        sessionStorage.removeItem("verify_email");
+        router.push("/login?verified=1");
+        return "verified";
+      }
+      if (data.error) {
+        setLocked(Boolean(data.locked));
+        setError(data.error);
+        return "error";
+      }
+      return "sent";
+    } finally {
+      setAutoActivating(false);
+    }
+  }
 
   useEffect(() => {
     const fromUrl = searchParams.get("email");
     const stored = sessionStorage.getItem("verify_email");
     const notice = sessionStorage.getItem("verify_notice");
-    setEmail((fromUrl || stored || "").trim().toLowerCase());
+    const resolved = (fromUrl || stored || "").trim().toLowerCase();
+    setEmail(resolved);
     if (notice) {
       setInfo(notice);
       sessionStorage.removeItem("verify_notice");
     }
+    if (resolved) {
+      void tryAutoActivate(resolved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   async function handleVerify(e: React.FormEvent) {
@@ -63,19 +96,8 @@ function VerifyEmailForm() {
     setError("");
     setResent(false);
     try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setLocked(Boolean(data.locked));
-        setError(data.error);
-      } else if (data.autoVerified) {
-        sessionStorage.removeItem("verify_email");
-        router.push("/login?verified=1");
-      } else {
+      const result = await tryAutoActivate(email);
+      if (result === "sent") {
         setExpired(false);
         setResent(true);
       }
@@ -88,6 +110,10 @@ function VerifyEmailForm() {
     <AuthPanel>
       <h1 className="auth-title mb-2">{t("verifyEmailTitle")}</h1>
       <p className="text-gray-400 text-sm mb-6">{t("verifyEmailDesc")}</p>
+
+      {autoActivating && (
+        <p className="text-amber-400 mb-4 text-sm">{tc("loading")}</p>
+      )}
 
       {info && <p className="text-green-400 mb-4 text-sm">{info}</p>}
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
