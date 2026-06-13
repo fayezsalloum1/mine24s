@@ -1,9 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import { getServerSupabaseConfig } from "@/lib/supabase/config";
 
 export async function createClient() {
-  const { url, anonKey } = getSupabaseConfig();
+  const { url, anonKey } = getServerSupabaseConfig();
   if (!url || !anonKey) {
     throw new Error("Supabase env vars are not configured");
   }
