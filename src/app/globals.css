@@ -314,8 +314,12 @@ body {
     @apply relative w-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem];
   }
 
+  .hero-video-stack {
+    @apply flex flex-col gap-4 h-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem];
+  }
+
   .hero-video-frame {
-    @apply relative h-full min-h-[28rem] sm:min-h-[32rem] lg:min-h-[40rem] w-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50;
+    @apply relative flex-1 min-h-[13rem] sm:min-h-[15rem] lg:min-h-[18rem] w-full rounded-2xl overflow-hidden shadow-2xl shadow-black/50;
     border: 1px solid rgb(245 158 11 / 0.15);
   }
 
