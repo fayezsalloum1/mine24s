@@ -32,17 +32,57 @@ function ResetPasswordForm() {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSessionReady(Boolean(session));
-      setValidating(false);
-    });
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    const err = searchParams.get("error");
-    if (err === "reset_expired") {
-      setErrors({ form: t("resetTokenInvalid") });
+    async function establishRecoverySession() {
+      const code = searchParams.get("code");
+      const tokenHash = searchParams.get("token_hash");
+      const type = searchParams.get("type");
+
+      if (tokenHash && type === "recovery") {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: "recovery",
+        });
+        if (error && !cancelled) {
+          setErrors({ form: error.message || t("resetTokenInvalid") });
+          setValidating(false);
+          return;
+        }
+      } else if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error && !cancelled) {
+          setErrors({ form: error.message || t("resetTokenInvalid") });
+          setValidating(false);
+          return;
+        }
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!cancelled) {
+        setSessionReady(Boolean(session));
+        setValidating(false);
+      }
     }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || session) {
+        setSessionReady(true);
+        setValidating(false);
+      }
+    });
+
+    void establishRecoverySession();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [searchParams, t]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -86,7 +126,7 @@ function ResetPasswordForm() {
     return (
       <AuthPanel>
         <h1 className="auth-title mb-4">{t("resetPasswordTitle")}</h1>
-        <p className="text-red-400 mb-4">{t("resetTokenInvalid")}</p>
+        <p className="text-red-400 mb-4">{errors.form || t("resetTokenInvalid")}</p>
         <p className="text-gray-400 text-sm mb-4">{t("resetSupabaseHint")}</p>
         <Link href="/forgot-password" className="text-yellow-500 hover:underline text-sm">
           {t("requestNewReset")}
