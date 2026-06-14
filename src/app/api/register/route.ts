@@ -136,6 +136,13 @@ export async function POST(req: Request) {
     );
     await notifyAdmins(`[New user] ${normalizedEmail} registered.`);
 
+    try {
+      const { ensureSupabaseAuthUser } = await import("@/lib/supabase/provision-auth-user");
+      await ensureSupabaseAuthUser(normalizedEmail, String(password));
+    } catch (linkErr) {
+      console.warn("[register] Supabase link skipped:", linkErr);
+    }
+
     return NextResponse.json({
       success: true,
       user: { id: user.id, email: user.email },

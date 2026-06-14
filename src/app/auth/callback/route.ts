@@ -8,12 +8,14 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const type = searchParams.get("type");
+  const next = searchParams.get("next") ?? (type === "recovery" ? "/reset-password" : "/dashboard");
   const authError = searchParams.get("error_description") || searchParams.get("error");
 
   if (authError && !code) {
     console.error("[auth/callback] provider error:", authError);
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+    const dest = type === "recovery" ? "/forgot-password?error=reset_failed" : "/login?error=auth_failed";
+    return NextResponse.redirect(`${origin}${dest}`);
   }
 
   if (!code) {
@@ -21,21 +23,31 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const completeUrl = `${origin}/auth/complete?next=${encodeURIComponent(next)}`;
-    let callbackResponse = NextResponse.redirect(completeUrl);
+    const isRecovery = type === "recovery";
+    let callbackResponse = NextResponse.redirect(
+      `${origin}${isRecovery ? "/reset-password" : `/auth/complete?next=${encodeURIComponent(next)}`}`
+    );
     const supabase = createRouteHandlerClient(request, callbackResponse);
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error || !data.user?.email) {
       console.error("[auth/callback] exchange failed:", error?.message);
-      return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+      const dest = isRecovery ? "/forgot-password?error=reset_expired" : "/login?error=auth_failed";
+      return NextResponse.redirect(`${origin}${dest}`);
+    }
+
+    if (isRecovery) {
+      const recoveryRedirect = NextResponse.redirect(`${origin}/reset-password`);
+      callbackResponse.cookies.getAll().forEach(({ name, value }) => {
+        recoveryRedirect.cookies.set(name, value);
+      });
+      return recoveryRedirect;
     }
 
     await bridgeSupabaseUser({
       supabaseUserId: data.user.id,
       email: data.user.email,
-      fullName:
-        (data.user.user_metadata?.full_name as string | undefined) ?? null,
+      fullName: (data.user.user_metadata?.full_name as string | undefined) ?? null,
     });
 
     const loginToken = createSupabaseLoginToken(data.user.email);
@@ -47,7 +59,7 @@ export async function GET(request: NextRequest) {
     });
     return finalRedirect;
   } catch (err) {
-    console.error("[auth/callback] bridge failed:", err);
+    console.error("[auth/callback] failed:", err);
     return NextResponse.redirect(`${origin}/login?error=account_setup_failed`);
   }
 }

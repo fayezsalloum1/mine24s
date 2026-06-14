@@ -1,20 +1,11 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/prisma";
-import {
-  sendEmail,
-  passwordResetHtml,
-  getEmailConfigStatus,
-  publicEmailError,
-} from "@/lib/email";
-import { generateResetToken, PASSWORD_RESET_TTL_MS } from "@/lib/auth-codes";
-import {
-  canRequestPasswordReset,
-  recordPasswordResetRequest,
-} from "@/lib/auth-rate-limit";
-import { BRAND_NAME } from "@/lib/constants";
+import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase/config";
+import { ensureSupabaseAuthUser } from "@/lib/supabase/provision-auth-user";
 
 const GENERIC_SUCCESS =
-  "If an account exists with that email, you will receive a password reset link shortly.";
+  "If an account exists with that email, you will receive a password reset link from Supabase shortly. Check your inbox and spam folder.";
 
 export const dynamic = "force-dynamic";
 
@@ -26,60 +17,57 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const emailStatus = getEmailConfigStatus();
-    if (!emailStatus.configured) {
-      console.error("[forgot-password] email not configured:", emailStatus.issues);
+    if (!isSupabaseConfigured()) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            emailStatus.hint ||
-            "Password reset emails are not configured yet. Set SMTP_FROM in Brevo and redeploy.",
+          error: "Password reset is not configured. Set SUPABASE_PUBLIC in your environment.",
         },
         { status: 503 }
       );
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-
-    if (!user) {
-      return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
-    }
-
-    const allowed = await canRequestPasswordReset(user.id);
-    if (!allowed) {
-      return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
-    }
-
-    const token = generateResetToken();
-    const expiry = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordResetToken: token,
-        passwordResetExpiry: expiry,
-      },
+    const prismaUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
     });
-    await recordPasswordResetRequest(user.id);
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    const resetLink = `${baseUrl}/reset-password?token=${token}`;
-    const result = await sendEmail(
-      user.email,
-      `Reset your ${BRAND_NAME} password`,
-      passwordResetHtml(resetLink)
-    );
+    if (!prismaUser) {
+      return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
+    }
 
-    if (!result.sent) {
-      console.error("[forgot-password] send failed:", normalizedEmail, result.error);
+    const provision = await ensureSupabaseAuthUser(normalizedEmail);
+    if (!provision.linked) {
+      console.error("[forgot-password] could not link Supabase user:", provision.reason);
       return NextResponse.json(
         {
           success: false,
-          error: publicEmailError(
-            result.error,
-            "Could not send reset email right now. Please contact support."
-          ),
+          error:
+            provision.reason === "no_service_role"
+              ? "Password reset requires SUPABASE_SERVICE_ROLE_KEY on the server. Add it in Vercel and redeploy."
+              : "Could not prepare your account for password reset. Please contact support.",
+        },
+        { status: 503 }
+      );
+    }
+
+    const { url, anonKey } = getSupabaseConfig();
+    const baseUrl = (process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/$/, "");
+    const redirectTo = `${baseUrl}/auth/callback?type=recovery&next=/reset-password`;
+
+    const supabase = createClient(url, anonKey);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo,
+    });
+
+    if (error) {
+      console.error("[forgot-password] supabase reset:", error.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Could not send reset email. Confirm Supabase Auth email is enabled (Authentication → Email) and redirect URLs include /auth/callback.",
         },
         { status: 502 }
       );

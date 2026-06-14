@@ -7,6 +7,7 @@ import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
 import { getPasswordStrength } from "@/lib/password-strength";
+import { createClient } from "@/lib/supabase/client";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -14,9 +15,8 @@ function ResetPasswordForm() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
 
-  const token = searchParams.get("token") || "";
   const [validating, setValidating] = useState(true);
-  const [tokenValid, setTokenValid] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,15 +26,24 @@ function ResetPasswordForm() {
   const strength = useMemo(() => getPasswordStrength(password), [password]);
 
   useEffect(() => {
-    if (!token) {
+    const supabase = createClient();
+    if (!supabase) {
       setValidating(false);
       return;
     }
-    fetch(`/api/auth/reset-password?token=${encodeURIComponent(token)}`)
-      .then((r) => r.json())
-      .then((data) => setTokenValid(Boolean(data.valid)))
-      .finally(() => setValidating(false));
-  }, [token]);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionReady(Boolean(session));
+      setValidating(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err === "reset_expired") {
+      setErrors({ form: t("resetTokenInvalid") });
+    }
+  }, [searchParams, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,33 +53,51 @@ function ResetPasswordForm() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    const supabase = createClient();
+    if (!supabase) {
+      setErrors({ form: t("serverError") });
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push("/login?reset=1");
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        setErrors({ form: updateError.message });
         return;
       }
-      setErrors({ form: data.error || t("resetFailed") });
+
+      const res = await fetch("/api/auth/sync-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrors({ form: data.error || t("resetFailed") });
+        return;
+      }
+
+      router.push("/login?reset=1");
     } finally {
       setLoading(false);
     }
   }
 
   if (validating) {
-    return <AuthPanel><p className="text-gray-400">{tc("loading")}</p></AuthPanel>;
+    return (
+      <AuthPanel>
+        <p className="text-gray-400">{tc("loading")}</p>
+      </AuthPanel>
+    );
   }
 
-  if (!tokenValid) {
+  if (!sessionReady) {
     return (
       <AuthPanel>
         <h1 className="auth-title mb-4">{t("resetPasswordTitle")}</h1>
         <p className="text-red-400 mb-4">{t("resetTokenInvalid")}</p>
+        <p className="text-gray-400 text-sm mb-4">{t("resetSupabaseHint")}</p>
         <Link href="/forgot-password" className="text-yellow-500 hover:underline text-sm">
           {t("requestNewReset")}
         </Link>
@@ -122,7 +149,15 @@ function ResetPasswordForm() {
                   />
                 ))}
               </div>
-              <p className={`text-xs ${strength === "weak" ? "text-red-400" : strength === "medium" ? "text-yellow-400" : "text-green-400"}`}>
+              <p
+                className={`text-xs ${
+                  strength === "weak"
+                    ? "text-red-400"
+                    : strength === "medium"
+                      ? "text-yellow-400"
+                      : "text-green-400"
+                }`}
+              >
                 {t(`strength_${strength}`)}
               </p>
             </div>

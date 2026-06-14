@@ -50,20 +50,20 @@ export function getSupportFallback(
 
 1. افتح: ${ctx.forgotPasswordUrl}
 2. أدخل البريد الإلكتروني الذي سجّلت به.
-3. تحقق من صندوق الوارد (والبريد المزعج) — ستصلك رسالة "Password Reset".
-4. اضغط الرابط في الرسالة واختر كلمة مرور جديدة (8 أحرف على الأقل).
+3. تحقق من صندوق الوارد والبريد المزعج — ستصلك رسالة من Supabase.
+4. اضغط الرابط واختر كلمة مرور جديدة (8 أحرف على الأقل).
 5. سجّل الدخول من: ${ctx.loginUrl}
 
-إذا سجّلت عبر Google، استخدم "Continue with Google" في صفحة الدخول — لا تحتاج إعادة تعيين كلمة المرور.`
+إذا سجّلت عبر Google، استخدم "Continue with Google" — لا تحتاج إعادة تعيين كلمة المرور.`
       : `To reset your password:
 
 1. Open: ${ctx.forgotPasswordUrl}
 2. Enter the email you used to register.
-3. Check your inbox and spam for a "Password Reset" email (link expires in 1 hour).
-4. Click the link in the email and set a new password (at least 8 characters).
+3. Check inbox and spam for an email from Supabase (not Brevo/Resend).
+4. Click the link and set a new password (at least 8 characters).
 5. Sign in at: ${ctx.loginUrl}
 
-If you signed up with Google, use "Continue with Google" on the login page — you don't need a password reset.`;
+If you signed up with Google, use "Continue with Google" on the login page.`;
   }
 
   if (matches(n, [/register/, /sign up/, /create account/, /تسجيل/, /حساب جديد/])) {
