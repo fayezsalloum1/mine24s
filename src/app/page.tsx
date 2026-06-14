@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAppUser } from "@/lib/session";
 import { redirect } from "next/navigation";
 import LandingPage from "@/components/LandingPage";
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
-  if (session) redirect("/dashboard");
+  const { appUser, requires2FA } = await getAppUser();
+  if (appUser && !requires2FA) redirect("/dashboard");
   return <LandingPage />;
 }

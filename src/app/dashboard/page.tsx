@@ -1,6 +1,5 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { fetchJsonWithRetry } from "@/lib/fetch-json";
@@ -13,6 +12,7 @@ import DepositModal from "@/components/DepositModal";
 import ActivePlansSection from "@/components/ActivePlansSection";
 import LiveProfitCard from "@/components/LiveProfitCard";
 import ReferralShowcase from "@/components/ReferralShowcase";
+import { useAuth } from "@/components/AuthProvider";
 
 interface UserData {
   balance: number;
@@ -56,7 +56,7 @@ interface UserData {
 }
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { user, loading, requires2FA, signOut } = useAuth();
   const router = useRouter();
   const t = useTranslations("dashboard");
   const tt = useTranslations("transactionTypes");
@@ -75,8 +75,7 @@ export default function DashboardPage() {
 
     if (!ok) {
       if (data.staleSession) {
-        await signOut({ redirect: false });
-        router.push("/login");
+        await signOut();
         return;
       }
       setLoadError(
@@ -89,23 +88,27 @@ export default function DashboardPage() {
 
     setLoadError("");
     setUserData(data);
-  }, [router]);
+  }, [signOut]);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (!loading && !user) router.push("/login");
+  }, [loading, user, router]);
 
   useEffect(() => {
-    if (session) loadUser();
-  }, [session, loadUser]);
+    if (requires2FA) router.push("/verify-2fa");
+  }, [requires2FA, router]);
 
   useEffect(() => {
-    if (!session) return;
+    if (user && !requires2FA) loadUser();
+  }, [user, requires2FA, loadUser]);
+
+  useEffect(() => {
+    if (!user || requires2FA) return;
     const interval = setInterval(loadUser, 60000);
     return () => clearInterval(interval);
-  }, [session, loadUser]);
+  }, [user, requires2FA, loadUser]);
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="page-shell flex items-center justify-center text-white">
         {tc("loading")}
@@ -257,7 +260,7 @@ export default function DashboardPage() {
 
         <ExternalLinksBar />
 
-        {session?.user?.role === "ADMIN" && (
+        {user?.role === "ADMIN" && (
           <Link href="/admin" className="mt-6 block text-center btn-secondary py-3.5">
             {tc("admin")}
           </Link>

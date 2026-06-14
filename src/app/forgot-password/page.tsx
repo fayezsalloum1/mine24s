@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
@@ -18,17 +19,30 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.success === false) {
-        setError(data.error || t("serverError"));
+      if (!isSupabaseConfigured()) {
+        setError("Password reset is not configured. Add SUPABASE_PUBLIC in your environment.");
         return;
       }
+
+      const supabase = createClient();
+      if (!supabase) {
+        setError("Password reset is not configured.");
+        return;
+      }
+
+      const redirectTo = `${window.location.origin}/auth/callback?type=recovery&next=/reset-password`;
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+        { redirectTo }
+      );
+
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+
       setSent(true);
     } finally {
       setLoading(false);

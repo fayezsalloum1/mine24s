@@ -1,25 +1,19 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getWithdrawEligibility, getReferralStats } from "@/lib/referral";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
+import { getAppUrl } from "@/lib/app-url";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth();
+    if ("error" in auth) return auth.error;
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const currentUser = await prisma.user.findUnique({ where: { email: session.user.email } });
-    if (!currentUser) {
-      return NextResponse.json({ error: "User not found", staleSession: true }, { status: 404 });
-    }
+    const { user: currentUser } = auth;
 
     const user = await prisma.user.findUnique({
       where: { id: currentUser.id },
@@ -38,7 +32,7 @@ export async function GET() {
       return NextResponse.json({ error: "User not found", staleSession: true }, { status: 404 });
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
     const activePlans = user.userPlans.filter((plan) => plan.isActive);
 
     let profitBalance = {

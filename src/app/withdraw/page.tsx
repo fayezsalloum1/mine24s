@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -37,7 +37,7 @@ interface WithdrawData {
 }
 
 export default function WithdrawPage() {
-  const { status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const t = useTranslations("withdraw");
   const tc = useTranslations("common");
@@ -56,8 +56,8 @@ export default function WithdrawPage() {
   }, []);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (!loading && !user) router.push("/login");
+  }, [loading, user, router]);
 
   useEffect(() => {
     loadData();
@@ -133,7 +133,7 @@ export default function WithdrawPage() {
     }
   };
 
-  if (status === "loading") {
+  if (loading) {
     return <div className="page-shell flex items-center justify-center">{tc("loading")}</div>;
   }
 

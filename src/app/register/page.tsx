@@ -15,8 +15,10 @@ import {
 } from "@/components/auth/AuthForm";
 import { getPasswordStrength, isValidEmail } from "@/lib/password-strength";
 import SupabaseAuthButtons from "@/components/SupabaseAuthButtons";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const REF_STORAGE_KEY = "mining-farm-ref";
+const PROFILE_STORAGE_KEY = "mining-farm-register-profile";
 
 function RegisterForm() {
   const router = useRouter();
@@ -34,7 +36,6 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
-  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -90,55 +91,52 @@ function RegisterForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
-    setAlreadyRegistered(false);
     if (!validateAll()) return;
+
+    if (!isSupabaseConfigured()) {
+      setFormError("Auth is not configured on the server.");
+      return;
+    }
+
+    const supabase = createClient();
+    if (!supabase) {
+      setFormError("Auth is not configured on the server.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const normalizedEmail = email.trim().toLowerCase();
+      sessionStorage.setItem(
+        PROFILE_STORAGE_KEY,
+        JSON.stringify({
           fullName: fullName.trim(),
-          email: email.trim().toLowerCase(),
           phoneNumber: phoneNumber.trim() || undefined,
-          password,
           referralCode: referralCode.trim().toUpperCase() || undefined,
-          acceptTerms: true,
-        }),
+        })
+      );
+      sessionStorage.setItem("verify_email", normalizedEmail);
+
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          data: { full_name: fullName.trim() },
+        },
       });
 
-      let data: Record<string, unknown> = {};
-      try {
-        data = await res.json();
-      } catch {
-        setFormError(t("serverError"));
-        return;
-      }
-
-      if (data.error) {
-        setFormError(String(data.error));
-        setAlreadyRegistered(Boolean(data.alreadyRegistered));
-        return;
-      }
-
-      if (!data.success) {
-        setFormError(t("serverError"));
+      if (signUpError) {
+        const msg = signUpError.message.toLowerCase();
+        if (msg.includes("already registered") || msg.includes("already exists")) {
+          setFormError("This email is already registered. Please log in or reset your password.");
+          return;
+        }
+        setFormError(signUpError.message);
         return;
       }
 
       localStorage.removeItem(REF_STORAGE_KEY);
-      sessionStorage.setItem("verify_email", email.trim().toLowerCase());
-
-      if (data.autoVerified || !data.requiresVerification) {
-        router.push("/login?verified=1");
-        return;
-      }
-
-      if (data.existingAccount && data.message) {
-        sessionStorage.setItem("verify_notice", String(data.message));
-      }
-      router.push(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+      router.push(`/verify-email?email=${encodeURIComponent(normalizedEmail)}`);
     } catch {
       setFormError(t("networkError"));
     } finally {
@@ -159,16 +157,14 @@ function RegisterForm() {
       {formError && (
         <AuthAlert type="error">
           {formError}
-          {alreadyRegistered && (
-            <div className="mt-3 flex flex-wrap gap-3">
-              <Link href="/login" className="text-yellow-400 hover:underline font-medium">
-                {t("backToLogin")} →
-              </Link>
-              <Link href="/forgot-password" className="text-yellow-400 hover:underline font-medium">
-                {t("forgotPassword")} →
-              </Link>
-            </div>
-          )}
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link href="/login" className="text-yellow-400 hover:underline font-medium">
+              {t("backToLogin")} →
+            </Link>
+            <Link href="/forgot-password" className="text-yellow-400 hover:underline font-medium">
+              {t("forgotPassword")} →
+            </Link>
+          </div>
         </AuthAlert>
       )}
 

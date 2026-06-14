@@ -3,13 +3,14 @@
  * Does NOT run during `npm run build` — set env on the server, not in the build step.
  */
 
-const required = [
-  "DATABASE_URL",
-  "NEXTAUTH_SECRET",
-  "NEXTAUTH_URL",
-];
+const required = ["DATABASE_URL", "APP_URL"];
 
-const missing = required.filter((key) => !process.env[key]?.trim());
+const missing = required.filter((key) => {
+  if (key === "APP_URL") {
+    return !process.env.APP_URL?.trim() && !process.env.NEXTAUTH_URL?.trim();
+  }
+  return !process.env[key]?.trim();
+});
 
 const supabaseConfigured =
   Boolean(process.env.SUPABASE_PUBLIC?.trim()) ||
@@ -19,7 +20,7 @@ const supabaseConfigured =
 if (missing.length > 0) {
   console.error("\n❌ Missing required environment variables:\n");
   for (const key of missing) {
-    console.error(`   • ${key}`);
+    console.error(`   • ${key}${key === "APP_URL" ? " (or legacy NEXTAUTH_URL)" : ""}`);
   }
   console.error("\nCopy .env.example → .env and fill in all required values.\n");
   process.exit(1);
@@ -29,7 +30,7 @@ if (!supabaseConfigured) {
   console.error("\n❌ Missing Supabase environment variable:\n");
   console.error("   • SUPABASE_PUBLIC (format: https://project.supabase.co|anon-key)");
   console.error("   • or NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  console.error("\nAdd them in Vercel/host env for Google sign-in.\n");
+  console.error("\nAdd them in Vercel/host env for auth (Google, email, reset password).\n");
   process.exit(1);
 }
 

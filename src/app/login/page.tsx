@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,6 +8,7 @@ import AppHeader from "@/components/AppHeader";
 import AuthSplitLayout from "@/components/auth/AuthSplitLayout";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
 import SupabaseAuthButtons from "@/components/SupabaseAuthButtons";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 function LoginForm() {
   const router = useRouter();
@@ -33,24 +33,21 @@ function LoginForm() {
     if (authError === "auth_failed") setError("Google sign-in failed. Please try again.");
     else if (authError === "google_access_denied") {
       setError(
-        "Google blocked this sign-in. Your Google OAuth app is likely in Testing mode — publish it in Google Cloud Console, or add the user's Gmail under OAuth consent screen → Test users."
+        "Google blocked this sign-in. In Google Cloud Console → OAuth consent screen, publish the app or add your Gmail under Test users."
       );
     } else if (authError === "signup_disabled") {
       setError(
-        "New Google sign-ups are blocked. In Supabase go to Authentication → Sign In / Providers → enable \"Allow new users to sign up\"."
+        'In Supabase: Authentication → Sign In / Providers → enable "Allow new users to sign up".'
       );
-    }     else if (authError === "wallet_not_configured") {
+    } else if (authError === "wallet_not_configured") {
       setError(
-        "Could not create your account — deposit wallet is not configured on the server. Set USE_CUSTOM_PLATFORM_WALLET + treasury addresses (or MASTER_WALLET_MNEMONIC) in Vercel."
+        "Could not create your account — deposit wallet is not configured on the server."
       );
     } else if (authError === "db_migration_required") {
-      setError(
-        "Database schema is out of date on the server. Run: npx prisma migrate deploy against your production database."
-      );
+      setError("Database schema is out of date. Run: npx prisma migrate deploy");
     } else if (authError === "supabase_not_configured") {
-      setError("Google sign-in is not configured on the server. Add Supabase env vars in Vercel and redeploy.");
-    }
-    else if (authError === "account_setup_failed") {
+      setError("Auth is not configured. Add SUPABASE_PUBLIC in Vercel and redeploy.");
+    } else if (authError === "account_setup_failed") {
       setError("Account setup failed. Please contact support.");
     } else if (authError === "missing_code") {
       setError("Sign-in link was invalid or expired.");
@@ -59,10 +56,12 @@ function LoginForm() {
 
   async function handleResendVerification() {
     if (!unverifiedEmail) return;
-    await fetch("/api/auth/resend-verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: unverifiedEmail }),
+    const supabase = createClient();
+    if (!supabase) return;
+
+    await supabase.auth.resend({
+      type: "signup",
+      email: unverifiedEmail,
     });
     router.push(`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`);
   }
@@ -75,48 +74,57 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const preRes = await fetch("/api/auth/pre-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-      });
-      const preData = await preRes.json();
+      if (!isSupabaseConfigured()) {
+        setError("Auth is not configured on the server.");
+        return;
+      }
 
-      if (preData.frozen) {
+      const supabase = createClient();
+      if (!supabase) {
+        setError("Auth is not configured on the server.");
+        return;
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      if (signInError) {
+        const msg = signInError.message.toLowerCase();
+        if (msg.includes("email not confirmed") || msg.includes("not verified")) {
+          setUnverifiedEmail(normalizedEmail);
+          setError(t("emailNotVerified"));
+          return;
+        }
+        setError(t("invalidCredentials"));
+        return;
+      }
+
+      const postRes = await fetch("/api/auth/post-login", { method: "POST" });
+      const postData = await postRes.json();
+
+      if (postData.frozen) {
+        await supabase.auth.signOut();
         setError(t("accountFrozen"));
         return;
       }
 
-      if (preData.emailUnverified) {
-        setUnverifiedEmail(preData.email || email.trim().toLowerCase());
-        setError(t("emailNotVerified"));
-        return;
-      }
-
-      if (preData.error) {
-        setError(t("invalidCredentials"));
-        return;
-      }
-
-      if (preData.requires2FA) {
-        sessionStorage.setItem("2fa_email", email.trim().toLowerCase());
-        sessionStorage.setItem("2fa_password", password);
+      if (postData.requires2FA) {
+        sessionStorage.setItem("2fa_email", normalizedEmail);
         router.push("/verify-2fa");
         return;
       }
 
-      const res = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        rememberMe: rememberMe ? "true" : "false",
-        redirect: false,
-      });
-
-      if (res?.error) {
-        setError(t("invalidCredentials"));
-      } else {
-        router.push("/dashboard");
+      if (!postRes.ok || postData.error) {
+        await supabase.auth.signOut();
+        setError(postData.error || t("invalidCredentials"));
+        return;
       }
+
+      router.push("/dashboard");
+      router.refresh();
     } finally {
       setLoading(false);
     }
@@ -138,7 +146,10 @@ function LoginForm() {
           >
             {t("resendVerificationLink")}
           </button>
-          <Link href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`} className="text-amber-400 hover:underline block">
+          <Link
+            href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
+            className="text-amber-400 hover:underline block"
+          >
             {t("verifyEmailTitle")} →
           </Link>
         </div>

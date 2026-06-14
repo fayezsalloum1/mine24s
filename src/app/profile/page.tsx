@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -8,7 +8,7 @@ import AppHeader from "@/components/AppHeader";
 import DashboardShell from "@/components/DashboardShell";
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const t = useTranslations("profile");
   const tc = useTranslations("common");
@@ -23,17 +23,17 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (!loading && !user) router.push("/login");
+  }, [loading, user, router]);
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       fetch("/api/user/me").then((r) => r.json()).then((data) => {
         setUserData(data);
         setPhoneNumber(data.phoneNumber || "");
       });
     }
-  }, [session]);
+  }, [user]);
 
   const enable2FA = async () => {
     const res = await fetch("/api/auth/2fa/enable", { method: "POST" });
@@ -98,7 +98,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (status === "loading") {
+  if (loading) {
     return <div className="page-shell flex items-center justify-center">{tc("loading")}</div>;
   }
 

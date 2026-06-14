@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { processReferralCommission } from "@/lib/referral";
 import { joinPooledPlan, getSoloDailyProfit } from "@/lib/plan-pool";
 import { createNotification, notifyAdmins } from "@/lib/notifications";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
+  const auth = await requireAuth();
+  if ("error" in auth) return auth.error;
 
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { user } = auth;
   const { planId, amount } = await req.json();
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
   if (user.isFrozen) return NextResponse.json({ error: "Account frozen" }, { status: 403 });
 
   const plan = await prisma.plan.findUnique({ where: { id: planId } });

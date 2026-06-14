@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import SessionProvider from "@/components/SessionProvider";
+import AuthProvider from "@/components/AuthProvider";
+import { getAppUser } from "@/lib/session";
 import LocaleProvider from "@/components/LocaleProvider";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import AppProviders from "@/components/AppProviders";
@@ -24,23 +23,34 @@ export const metadata: Metadata = {
   description: "Simple Mining — premium cloud mining investment platform. Earn passive income with trusted mining plans.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  let appUser = null;
+  let requires2FA = false;
+  try {
+    const session = await getAppUser();
+    appUser = session.appUser;
+    requires2FA = session.requires2FA;
+  } catch (err) {
+    console.error("[layout] getAppUser failed:", err);
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${cairo.variable} font-sans text-gray-50 relative bg-navy-900 antialiased`}>
         <AnimatedBackground />
         <div className="relative z-10">
-          <SessionProvider session={session}>
+          <AuthProvider initialUser={appUser} initialRequires2FA={requires2FA}>
             <LocaleProvider>
               <AppProviders>{children}</AppProviders>
               <SupportChat />
             </LocaleProvider>
-          </SessionProvider>
+          </AuthProvider>
         </div>
       </body>
     </html>

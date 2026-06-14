@@ -67,17 +67,7 @@ function ResetPasswordForm() {
         return;
       }
 
-      const res = await fetch("/api/auth/sync-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setErrors({ form: data.error || t("resetFailed") });
-        return;
-      }
-
+      await supabase.auth.signOut();
       router.push("/login?reset=1");
     } finally {
       setLoading(false);

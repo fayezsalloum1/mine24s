@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@/lib/supabase/server";
 import { bridgeSupabaseUser } from "@/lib/supabase/bridge";
-import { applyNextAuthSessionCookie } from "@/lib/auth-session";
 import { WalletConfigError } from "@/lib/wallet";
 import { Prisma } from "@prisma/client";
 
@@ -20,8 +19,8 @@ function mapAuthErrorCode(message: string) {
 
 function mapSetupError(err: unknown) {
   if (err instanceof WalletConfigError) return "wallet_not_configured";
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === "P2022") return "db_migration_required";
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2022") {
+    return "db_migration_required";
   }
   const message = err instanceof Error ? err.message.toLowerCase() : "";
   if (message.includes("migrate") || message.includes("does not exist")) {
@@ -76,7 +75,7 @@ export async function GET(request: NextRequest) {
       return recoveryRedirect;
     }
 
-    const appUser = await bridgeSupabaseUser({
+    await bridgeSupabaseUser({
       supabaseUserId: data.user.id,
       email: data.user.email,
       fullName: (data.user.user_metadata?.full_name as string | undefined) ?? null,
@@ -86,12 +85,6 @@ export async function GET(request: NextRequest) {
     const finalRedirect = NextResponse.redirect(`${origin}${destination}`);
     callbackResponse.cookies.getAll().forEach(({ name, value }) => {
       finalRedirect.cookies.set(name, value);
-    });
-
-    await applyNextAuthSessionCookie(finalRedirect, {
-      id: appUser.id,
-      email: appUser.email,
-      role: appUser.role,
     });
 
     return finalRedirect;

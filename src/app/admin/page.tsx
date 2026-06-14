@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -10,7 +10,7 @@ import AdminPlansSection from "@/components/AdminPlansSection";
 import AdminPlatformSettings from "@/components/AdminPlatformSettings";
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const t = useTranslations("admin");
   const tc = useTranslations("common");
@@ -49,12 +49,12 @@ export default function AdminPage() {
   const [adminError, setAdminError] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-    if (status === "authenticated" && session?.user?.role !== "ADMIN") router.push("/dashboard");
-  }, [status, session, router]);
+    if (!loading && !user) router.push("/login");
+    if (!loading && user && user.role !== "ADMIN") router.push("/dashboard");
+  }, [loading, user, router]);
 
   const loadData = async () => {
-    if (session?.user?.role !== "ADMIN") return;
+    if (user?.role !== "ADMIN") return;
 
     const params = new URLSearchParams();
     if (filterFrozen) params.set("frozen", filterFrozen);
@@ -103,10 +103,10 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "ADMIN") {
+    if (!loading && user?.role === "ADMIN") {
       loadData();
     }
-  }, [status, session, filterFrozen, filterRole, filterDate, filterHasActivePlan]);
+  }, [loading, user, filterFrozen, filterRole, filterDate, filterHasActivePlan]);
 
   async function userAction(id: string, action: string, value?: string) {
     const res = await fetch("/api/admin/users", {
@@ -187,11 +187,11 @@ export default function AdminPage() {
     { id: "notifications", label: t("notifications") },
   ];
 
-  if (status === "loading") {
+  if (loading) {
     return <div className="page-shell flex items-center justify-center text-white">{tc("loading")}</div>;
   }
 
-  if (session?.user?.role !== "ADMIN") return null;
+  if (user?.role !== "ADMIN") return null;
 
   return (
     <div className="page-shell">

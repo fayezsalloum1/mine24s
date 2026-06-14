@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -21,7 +21,7 @@ type PendingAction =
   | { type: "pooled"; plan: ClientPlan; amount: number };
 
 export default function PlansPage() {
-  const { status } = useSession();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations("plans");
   const { toast } = useToast();
@@ -41,8 +41,8 @@ export default function PlansPage() {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (!authLoading && !user) router.push("/login");
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     loadPlans();

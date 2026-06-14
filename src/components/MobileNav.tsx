@@ -2,22 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
+  const { user, signOut } = useAuth();
   const t = useTranslations("common");
   const tn = useTranslations("nav");
 
-  const links = session
+  const links = user
     ? [
         { href: "/dashboard", label: t("dashboard") },
         { href: "/plans", label: tn("plans") },
         { href: "/withdraw", label: tn("withdraw") },
         { href: "/profile", label: t("profile") },
-        ...(session.user?.role === "ADMIN" ? [{ href: "/admin", label: t("admin") }] : []),
+        ...(user.role === "ADMIN" ? [{ href: "/admin", label: t("admin") }] : []),
       ]
     : [];
 
@@ -45,7 +45,7 @@ export default function MobileNav() {
         <>
           <div className="fixed inset-0 top-[7.5rem] bg-black/50 z-40" onClick={() => setOpen(false)} />
           <nav className="absolute top-full left-0 right-0 z-50 mobile-menu-enter mx-4 mt-2 rounded-2xl border border-slate-700/60 bg-slate-900/98 backdrop-blur-xl shadow-panel overflow-hidden">
-            {session ? (
+            {user ? (
               <>
                 {links.map((link) => (
                   <Link
@@ -59,7 +59,10 @@ export default function MobileNav() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => { setOpen(false); signOut({ callbackUrl: "/login" }); }}
+                  onClick={() => {
+                    setOpen(false);
+                    void signOut();
+                  }}
                   className="block w-full text-left px-5 py-3.5 text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   {t("logout")}

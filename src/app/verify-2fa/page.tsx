@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -13,18 +12,15 @@ export default function Verify2FAPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("2fa_email");
-    const storedPassword = sessionStorage.getItem("2fa_password");
-    if (!storedEmail || !storedPassword) {
+    if (!storedEmail) {
       router.push("/login");
       return;
     }
     setEmail(storedEmail);
-    setPassword(storedPassword);
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,7 +32,7 @@ export default function Verify2FAPage() {
       const verifyRes = await fetch("/api/auth/2fa/verify-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, code }),
+        body: JSON.stringify({ email, code }),
       });
       const verifyData = await verifyRes.json();
 
@@ -45,21 +41,10 @@ export default function Verify2FAPage() {
         return;
       }
 
-      const res = await signIn("credentials", {
-        email,
-        password,
-        twoFactorVerified: "true",
-        redirect: false,
-      });
-
       sessionStorage.removeItem("2fa_email");
       sessionStorage.removeItem("2fa_password");
-
-      if (res?.error) {
-        setError(t("invalidCredentials"));
-      } else {
-        router.push("/dashboard");
-      }
+      router.push("/dashboard");
+      router.refresh();
     } finally {
       setLoading(false);
     }

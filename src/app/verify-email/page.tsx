@@ -6,6 +6,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import AppHeader from "@/components/AppHeader";
 import { AuthButton, AuthField, AuthInput, AuthPanel } from "@/components/auth/AuthForm";
+import { createClient } from "@/lib/supabase/client";
+
+const PROFILE_STORAGE_KEY = "mining-farm-register-profile";
 
 function VerifyEmailForm() {
   const router = useRouter();
@@ -17,90 +20,87 @@ function VerifyEmailForm() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  const [expired, setExpired] = useState(false);
-  const [locked, setLocked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
-  const [autoActivating, setAutoActivating] = useState(false);
-
-  async function tryAutoActivate(targetEmail: string): Promise<"verified" | "sent" | "error"> {
-    if (!targetEmail) return "error";
-    setAutoActivating(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: targetEmail }),
-      });
-      const data = await res.json();
-      if (data.autoVerified) {
-        sessionStorage.removeItem("verify_email");
-        router.push("/login?verified=1");
-        return "verified";
-      }
-      if (data.error) {
-        setLocked(Boolean(data.locked));
-        setError(data.error);
-        return "error";
-      }
-      return "sent";
-    } finally {
-      setAutoActivating(false);
-    }
-  }
 
   useEffect(() => {
     const fromUrl = searchParams.get("email");
     const stored = sessionStorage.getItem("verify_email");
-    const notice = sessionStorage.getItem("verify_notice");
     const resolved = (fromUrl || stored || "").trim().toLowerCase();
     setEmail(resolved);
-    if (notice) {
-      setInfo(notice);
-      sessionStorage.removeItem("verify_notice");
-    }
-    if (resolved) {
-      void tryAutoActivate(resolved);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/verify-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        sessionStorage.removeItem("verify_email");
-        router.push("/login?verified=1");
+      const supabase = createClient();
+      if (!supabase) {
+        setError(t("serverError"));
         return;
       }
-      setExpired(Boolean(data.expired));
-      setLocked(Boolean(data.locked));
-      setError(data.error || t("verificationFailed"));
+
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: code,
+        type: "signup",
+      });
+
+      if (verifyError) {
+        setError(verifyError.message || t("verificationFailed"));
+        return;
+      }
+
+      const profileRaw = sessionStorage.getItem(PROFILE_STORAGE_KEY);
+      const profile = profileRaw ? JSON.parse(profileRaw) : {};
+
+      const setupRes = await fetch("/api/auth/setup-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+
+      if (!setupRes.ok) {
+        const setupData = await setupRes.json();
+        setError(setupData.error || t("serverError"));
+        return;
+      }
+
+      sessionStorage.removeItem("verify_email");
+      sessionStorage.removeItem(PROFILE_STORAGE_KEY);
+      router.push("/login?verified=1");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleResend() {
+    if (!email) return;
     setResending(true);
     setError("");
     setResent(false);
+
     try {
-      const result = await tryAutoActivate(email);
-      if (result === "sent") {
-        setExpired(false);
-        setResent(true);
+      const supabase = createClient();
+      if (!supabase) {
+        setError(t("serverError"));
+        return;
       }
+
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim().toLowerCase(),
+      });
+
+      if (resendError) {
+        setError(resendError.message);
+        return;
+      }
+
+      setResent(true);
     } finally {
       setResending(false);
     }
@@ -110,10 +110,6 @@ function VerifyEmailForm() {
     <AuthPanel>
       <h1 className="auth-title mb-2">{t("verifyEmailTitle")}</h1>
       <p className="text-gray-400 text-sm mb-6">{t("verifyEmailDesc")}</p>
-
-      {autoActivating && (
-        <p className="text-amber-400 mb-4 text-sm">{tc("loading")}</p>
-      )}
 
       {info && <p className="text-green-400 mb-4 text-sm">{info}</p>}
       {error && <p className="text-red-400 mb-4 text-sm">{error}</p>}
@@ -145,22 +141,17 @@ function VerifyEmailForm() {
         </AuthButton>
       </form>
 
-      {(expired || locked) && (
-        <div className="mt-4 text-center">
-          <AuthButton loading={resending} type="button" onClick={handleResend}>
-            {t("resendVerification")}
-          </AuthButton>
-        </div>
-      )}
-
-      {!expired && !locked && (
-        <p className="text-gray-500 text-sm text-center mt-4">
-          {t("didntReceive")}{" "}
-          <button type="button" onClick={handleResend} disabled={resending} className="text-yellow-500 hover:underline">
-            {t("resendVerification")}
-          </button>
-        </p>
-      )}
+      <p className="text-gray-500 text-sm text-center mt-4">
+        {t("didntReceive")}{" "}
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resending}
+          className="text-yellow-500 hover:underline"
+        >
+          {t("resendVerification")}
+        </button>
+      </p>
 
       <p className="text-gray-400 mt-6 text-center text-sm">
         <Link href="/login" className="text-yellow-500 hover:underline">

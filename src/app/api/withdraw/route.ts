@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getWithdrawEligibility } from "@/lib/referral";
 import { processDueMiningForUser } from "@/lib/mining";
 import { getProfitBalanceForUser } from "@/lib/profit-balance";
 import { createNotification, notifyAdmins } from "@/lib/notifications";
+import { getAppUrl } from "@/lib/app-url";
 
 const WITHDRAWAL_COOLDOWN_DAYS = 7;
 
@@ -17,12 +17,9 @@ function daysUntilNextWithdrawal(lastConfirmedAt: Date | null): number {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const auth = await requireAuth();
+  if ("error" in auth) return auth.error;
+  const { user: currentUser } = auth;
   const { amount, network, withdrawalAddress } = await req.json();
   const withdrawalAmount = Number(amount);
 
@@ -30,11 +27,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
   }
 
-  const currentUser = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-
-  if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   if (currentUser.isFrozen) return NextResponse.json({ error: "Account frozen" }, { status: 403 });
 
   await processDueMiningForUser(currentUser.id);
@@ -137,15 +129,10 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAuth();
+  if ("error" in auth) return auth.error;
 
-  const currentUser = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  });
-  if (!currentUser) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { user: currentUser } = auth;
 
   await processDueMiningForUser(currentUser.id);
 
@@ -161,7 +148,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const withdrawEligibility = await getWithdrawEligibility(user.id);
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const baseUrl = getAppUrl();
   const profitBalance = await getProfitBalanceForUser(user.id, user.balance, user.userPlans);
   const totalDailyProfit = user.userPlans.reduce((sum, plan) => {
     const principal = plan.purchasePrice ?? plan.plan.price;

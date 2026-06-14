@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/components/AuthProvider";
 
 const NAV = [
   { href: "/dashboard", icon: "📊", labelKey: "dashboard" as const },
@@ -14,7 +14,7 @@ const NAV = [
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const tc = useTranslations("common");
   const tn = useTranslations("nav");
 
@@ -49,7 +49,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {link.label}
           </Link>
         ))}
-        {session?.user?.role === "ADMIN" && (
+        {user?.role === "ADMIN" && (
           <Link
             href="/admin"
             className={`mt-4 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
