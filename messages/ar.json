@@ -489,8 +489,8 @@
                         "connectionError":  "خطأ في الاتصال. حاول مرة أخرى.",
                         "errorFallback":  "يرجى التواصل مع الدعم.",
                         "welcome":  {
-                                        "en":  "Hi! I can help with registration, deposits, plans, withdrawals, and referrals. What do you need?",
-                                        "ar":  "مرحباً! يمكنني مساعدتك في التسجيل، الإيداع، الخطط، السحب، والإحالات. كيف يمكنني مساعدتك؟"
+                                        "en":  "Hi! I can guide you step-by-step: password reset, registration, deposits, plans, withdrawals, and referrals. I can also list current plans. What do you need?",
+                                        "ar":  "مرحباً! يمكنني إرشادك خطوة بخطوة: إعادة تعيين كلمة المرور، التسجيل، الإيداع، الخطط، السحب، والإحالات. كيف يمكنني مساعدتك؟"
                                     }
                     },
     "faq":  {
