@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
   const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   try {
-    const supabase = await createClient();
+    let cookieResponse = NextResponse.next({ request: req });
+    const supabase = createRouteHandlerClient(req, cookieResponse);
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -23,7 +24,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=auth_failed`);
     }
 
-    return NextResponse.redirect(data.url);
+    const googleRedirect = NextResponse.redirect(data.url);
+    cookieResponse.cookies.getAll().forEach(({ name, value }) => {
+      googleRedirect.cookies.set(name, value);
+    });
+    return googleRedirect;
   } catch (err) {
     console.error("[api/auth/google]", err);
     const code =
