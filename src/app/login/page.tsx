@@ -39,9 +39,13 @@ function LoginForm() {
       setError(
         "New Google sign-ups are blocked. In Supabase go to Authentication → Sign In / Providers → enable \"Allow new users to sign up\"."
       );
-    } else if (authError === "wallet_not_configured") {
+    }     else if (authError === "wallet_not_configured") {
       setError(
         "Could not create your account — deposit wallet is not configured on the server. Set USE_CUSTOM_PLATFORM_WALLET + treasury addresses (or MASTER_WALLET_MNEMONIC) in Vercel."
+      );
+    } else if (authError === "db_migration_required") {
+      setError(
+        "Database schema is out of date on the server. Run: npx prisma migrate deploy against your production database."
       );
     } else if (authError === "supabase_not_configured") {
       setError("Google sign-in is not configured on the server. Add Supabase env vars in Vercel and redeploy.");
