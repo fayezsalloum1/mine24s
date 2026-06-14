@@ -7,6 +7,7 @@ import SessionProvider from "@/components/SessionProvider";
 import LocaleProvider from "@/components/LocaleProvider";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import AppProviders from "@/components/AppProviders";
+import SupportChat from "@/components/SupportChat";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default async function RootLayout({
           <SessionProvider session={session}>
             <LocaleProvider>
               <AppProviders>{children}</AppProviders>
+              <SupportChat />
             </LocaleProvider>
           </SessionProvider>
         </div>

@@ -266,7 +266,7 @@
                     "title":  "Deposit USDT",
                     "selectNetwork":  "Select Network",
                     "networkWarning":  "Send only USDT to this address on selected network",
-                    "autoDetect":  "Deposits are detected automatically — no manual confirmation needed.",
+                    "autoDetect":  "Send USDT to your address above. You will be notified when your deposit is detected on-chain, then again when your balance is credited.",
                     "uniqueAddress":  "Your unique address (derived from platform root wallet)",
                     "platformAddress":  "Platform deposit address (admin wallet)",
                     "customWalletSteps":  "After sending USDT, enter the amount and transaction hash below.",
@@ -277,7 +277,8 @@
                     "networks":  {
                                      "ERC20":  "ERC20 (Ethereum)",
                                      "BEP20":  "BEP20 (BNB Chain)",
-                                     "TRC20":  "TRC20 (TRON)"
+                                     "TRC20":  "TRC20 (TRON)",
+                                     "SOL":  "SOL (Solana USDT)"
                                  }
                 },
     "withdraw":  {
@@ -474,6 +475,24 @@
                     "uptime":  "Up",
                     "maintenance":  "Maintenance"
                 },
+    "supportChat":  {
+                        "title":  "Support",
+                        "chooseLanguage":  "Choose your language to start",
+                        "languageHint":  "The assistant will reply in the language you pick.",
+                        "english":  "English",
+                        "arabic":  "العربية",
+                        "recommended":  "Recommended",
+                        "changeLanguage":  "Language",
+                        "placeholder":  "Ask a question…",
+                        "send":  "Send",
+                        "typing":  "typing…",
+                        "connectionError":  "Connection error. Try again.",
+                        "errorFallback":  "Please contact support.",
+                        "welcome":  {
+                                        "en":  "Hi! I can help with registration, deposits, plans, withdrawals, and referrals. What do you need?",
+                                        "ar":  "مرحباً! يمكنني مساعدتك في التسجيل، الإيداع، الخطط، السحب، والإحالات. كيف يمكنني مساعدتك؟"
+                                    }
+                    },
     "faq":  {
                 "title":  "Frequently Asked Questions",
                 "subtitle":  "Everything you need to know about deposits, plans, pools, and withdrawals.",

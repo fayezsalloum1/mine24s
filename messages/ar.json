@@ -266,7 +266,7 @@
                     "title":  "إيداع USDT",
                     "selectNetwork":  "اختر الشبكة",
                     "networkWarning":  "أرسل USDT فقط إلى هذا العنوان على الشبكة المحددة",
-                    "autoDetect":  "يتم اكتشاف الإيداعات تلقائياً — لا حاجة لتأكيد يدوي.",
+                    "autoDetect":  "أرسل USDT إلى عنوانك أعلاه. ستصلك إشعار عند اكتشاف الإيداع على الشبكة، ثم إشعار آخر عند إضافة الرصيد.",
                     "uniqueAddress":  "عنوانك الفريد (مشتق من محفظة الجذر)",
                     "platformAddress":  "عنوان إيداع المنصة (محفظة المسؤول)",
                     "customWalletSteps":  "بعد إرسال USDT، أدخل المبلغ وهاش المعاملة أدناه.",
@@ -277,7 +277,8 @@
                     "networks":  {
                                      "ERC20":  "ERC20 (إيثريوم)",
                                      "BEP20":  "BEP20 (BNB Chain)",
-                                     "TRC20":  "TRC20 (ترون)"
+                                     "TRC20":  "TRC20 (ترون)",
+                                     "SOL":  "SOL (سولانا USDT)"
                                  }
                 },
     "withdraw":  {
@@ -474,6 +475,24 @@
                     "uptime":  "تشغيل",
                     "maintenance":  "صيانة"
                 },
+    "supportChat":  {
+                        "title":  "الدعم",
+                        "chooseLanguage":  "اختر لغتك للبدء",
+                        "languageHint":  "سيرد المساعد باللغة التي تختارها.",
+                        "english":  "English",
+                        "arabic":  "العربية",
+                        "recommended":  "موصى به",
+                        "changeLanguage":  "اللغة",
+                        "placeholder":  "اكتب سؤالك…",
+                        "send":  "إرسال",
+                        "typing":  "يكتب…",
+                        "connectionError":  "خطأ في الاتصال. حاول مرة أخرى.",
+                        "errorFallback":  "يرجى التواصل مع الدعم.",
+                        "welcome":  {
+                                        "en":  "Hi! I can help with registration, deposits, plans, withdrawals, and referrals. What do you need?",
+                                        "ar":  "مرحباً! يمكنني مساعدتك في التسجيل، الإيداع، الخطط، السحب، والإحالات. كيف يمكنني مساعدتك؟"
+                                    }
+                    },
     "faq":  {
                 "title":  "الأسئلة الشائعة",
                 "subtitle":  "كل ما تحتاج معرفته عن الإيداع والخطط والمجمعات والسحب.",
