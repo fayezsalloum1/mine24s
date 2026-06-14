@@ -100,10 +100,12 @@ export async function GET() {
       walletIndex: user.walletIndex,
       depositAddress: user.depositAddress,
       tronDepositAddress: user.tronDepositAddress,
+      solanaDepositAddress: user.solanaDepositAddress,
       depositAddresses: {
         ERC20: user.depositAddress,
         BEP20: user.depositAddress,
         TRC20: user.tronDepositAddress,
+        SOL: user.solanaDepositAddress,
       },
       referralCode: user.referralCode,
       referralLink: `${baseUrl}/register?ref=${user.referralCode}`,

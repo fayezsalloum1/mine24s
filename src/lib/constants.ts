@@ -1,5 +1,9 @@
 export const BRAND_NAME = "Simple Mining";
 
+export type DepositNetwork = "ERC20" | "BEP20" | "TRC20" | "SOL";
+
+export const DEPOSIT_NETWORKS: DepositNetwork[] = ["ERC20", "BEP20", "TRC20", "SOL"];
+
 export const USDT = {
   ERC20: {
     contract: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -13,6 +17,10 @@ export const USDT = {
   },
   TRC20: {
     contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    decimals: 6,
+  },
+  SOL: {
+    mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
     decimals: 6,
   },
 } as const;

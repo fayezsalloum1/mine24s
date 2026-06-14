@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { sweepSolana } from "@/lib/solana-sweep";
 import { TronWeb } from "tronweb";
 import { USDT } from "@/lib/constants";
 import { fetchNativeBalance, fetchUsdtBalance, getEvmProvider } from "@/lib/evm-rpc";
@@ -164,6 +165,9 @@ export async function sweepUsdtToAdmin(network: string, walletIndex: number) {
   }
   if (network === "TRC20") {
     return sweepTron(walletIndex);
+  }
+  if (network === "SOL") {
+    return sweepSolana(walletIndex);
   }
   throw new Error(`Unsupported network: ${network}`);
 }

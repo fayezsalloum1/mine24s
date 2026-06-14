@@ -7,6 +7,7 @@ import {
   getPlatformDepositAddresses,
   usesCustomPlatformWallet,
 } from "./lib/wallet";
+import { generateSolanaDepositAddress } from "./lib/solana-wallet";
 
 async function main() {
   const adminEmail = process.env.ADMIN_EMAIL;
@@ -21,6 +22,7 @@ async function main() {
   const walletIndex = 0;
   let depositAddress: string;
   let tronDepositAddress: string;
+  let solanaDepositAddress: string;
 
   if (usesCustomPlatformWallet()) {
     if (!getConfiguredTreasuryAddresses()) {
@@ -29,9 +31,11 @@ async function main() {
     const platform = getPlatformDepositAddresses();
     depositAddress = platform.depositAddress;
     tronDepositAddress = platform.tronDepositAddress;
+    solanaDepositAddress = platform.solanaDepositAddress;
   } else {
     depositAddress = generateDepositAddress(0);
     tronDepositAddress = generateTronDepositAddress(0);
+    solanaDepositAddress = generateSolanaDepositAddress(0);
   }
 
   const admin = await prisma.user.upsert({
@@ -39,6 +43,7 @@ async function main() {
     update: {
       depositAddress,
       tronDepositAddress,
+      solanaDepositAddress,
       emailVerified: true,
     },
     create: {
@@ -48,6 +53,7 @@ async function main() {
       walletIndex,
       depositAddress,
       tronDepositAddress,
+      solanaDepositAddress,
       referralCode: "ADMIN001",
       emailVerified: true,
     },
@@ -56,6 +62,7 @@ async function main() {
   console.log("Admin created:", admin.email);
   console.log("Deposit ERC20/BEP20:", depositAddress);
   console.log("Deposit TRC20:", tronDepositAddress);
+  console.log("Deposit SOL:", solanaDepositAddress);
 }
 
 main()

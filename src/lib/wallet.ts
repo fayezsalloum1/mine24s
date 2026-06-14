@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import { fromPrivateKey } from "tronweb/utils";
+import { generateSolanaDepositAddress } from "@/lib/solana-wallet";
+import type { DepositNetwork } from "@/lib/constants";
 
 const mnemonic = process.env.MASTER_WALLET_MNEMONIC;
 
@@ -24,6 +26,7 @@ export function getConfiguredTreasuryAddresses() {
     ERC20: evm,
     BEP20: process.env.ADMIN_TREASURY_BEP20?.trim() || evm,
     TRC20: trc,
+    SOL: process.env.ADMIN_TREASURY_SOL?.trim() || "",
   };
 }
 
@@ -63,6 +66,7 @@ export function getAdminAddresses() {
       ERC20: "",
       BEP20: "",
       TRC20: "",
+      SOL: "",
     };
   }
 
@@ -72,6 +76,7 @@ export function getAdminAddresses() {
     ERC20: generateDepositAddress(ADMIN_WALLET_INDEX),
     BEP20: generateDepositAddress(ADMIN_WALLET_INDEX),
     TRC20: generateTronDepositAddress(ADMIN_WALLET_INDEX),
+    SOL: generateSolanaDepositAddress(ADMIN_WALLET_INDEX),
   };
 }
 
@@ -88,18 +93,23 @@ export function generateTronDepositAddress(walletIndex: number): string {
 
 export function getDepositAddressForNetwork(
   walletIndex: number,
-  network: "ERC20" | "BEP20" | "TRC20"
+  network: DepositNetwork
 ) {
   if (usesCustomPlatformWallet()) {
     const treasury = getConfiguredTreasuryAddresses();
     if (!treasury) {
       throw new Error("Set ADMIN_TREASURY_EVM and ADMIN_TREASURY_TRC20 in .env");
     }
-    return network === "TRC20" ? treasury.TRC20 : treasury[network];
+    if (network === "TRC20") return treasury.TRC20;
+    if (network === "SOL") return treasury.SOL || "";
+    return treasury[network];
   }
 
   if (network === "TRC20") {
     return generateTronDepositAddress(walletIndex);
+  }
+  if (network === "SOL") {
+    return generateSolanaDepositAddress(walletIndex);
   }
   return generateDepositAddress(walletIndex);
 }
@@ -112,6 +122,7 @@ export function getPlatformDepositAddresses() {
   return {
     depositAddress: treasury.ERC20,
     tronDepositAddress: treasury.TRC20,
+    solanaDepositAddress: treasury.SOL || "",
   };
 }
 
@@ -145,6 +156,7 @@ export async function assignWalletForNewUser(prisma: {
       walletIndex,
       depositAddress: platform.depositAddress,
       tronDepositAddress: platform.tronDepositAddress,
+      solanaDepositAddress: platform.solanaDepositAddress,
     };
   }
 
@@ -158,5 +170,6 @@ export async function assignWalletForNewUser(prisma: {
     walletIndex,
     depositAddress: generateDepositAddress(walletIndex),
     tronDepositAddress: generateTronDepositAddress(walletIndex),
+    solanaDepositAddress: generateSolanaDepositAddress(walletIndex),
   };
 }

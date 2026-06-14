@@ -35,7 +35,7 @@ export async function bridgeSupabaseUser(params: {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const isAdmin = Boolean(adminEmail && email === adminEmail);
 
-  const { walletIndex, depositAddress, tronDepositAddress } =
+  const { walletIndex, depositAddress, tronDepositAddress, solanaDepositAddress } =
     await assignWalletForNewUser(prisma);
   const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
   const unusablePassword = await bcrypt.hash(
@@ -51,6 +51,7 @@ export async function bridgeSupabaseUser(params: {
       walletIndex,
       depositAddress,
       tronDepositAddress,
+      solanaDepositAddress,
       referralCode,
       emailVerified: true,
       supabaseUserId: params.supabaseUserId,

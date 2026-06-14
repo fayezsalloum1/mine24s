@@ -70,11 +70,7 @@ export default function WithdrawPage() {
 
   const availableProfit = useMemo(() => {
     if (!data) return 0;
-    const pending = data.pendingWithdrawalAmount ?? 0;
-    const credited = data.creditedProfit ?? 0;
-    const liveAccruing = data.accruingProfit ?? 0;
-    const totalProfit = credited + liveAccruing;
-    return Math.max(0, Math.min(data.balance - pending, totalProfit - pending));
+    return data.availableProfitBalance ?? data.availableBalance ?? 0;
   }, [data]);
 
   const nextPayoutMs = useMemo(() => {

@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import QRCode from "react-qr-code";
 import { fetchJson, fetchJsonWithRetry } from "@/lib/fetch-json";
 
-type Network = "ERC20" | "BEP20" | "TRC20";
+import { DEPOSIT_NETWORKS, type DepositNetwork } from "@/lib/constants";
+
+type Network = DepositNetwork;
 
 interface DepositModalProps {
   open: boolean;
@@ -149,6 +151,7 @@ export default function DepositModal({ open, onClose, onDepositDetected }: Depos
           <option value="ERC20">{t("networks.ERC20")}</option>
           <option value="BEP20">{t("networks.BEP20")}</option>
           <option value="TRC20">{t("networks.TRC20")}</option>
+          <option value="SOL">{t("networks.SOL")}</option>
         </select>
 
         {loading ? (

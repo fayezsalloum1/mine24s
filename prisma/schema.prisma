@@ -49,6 +49,7 @@ model User {
   walletIndex                 Int       @unique
   depositAddress              String
   tronDepositAddress          String
+  solanaDepositAddress        String    @default("")
   balance                     Float     @default(0)
   isFrozen                    Boolean   @default(false)
   referralCode                String    @unique

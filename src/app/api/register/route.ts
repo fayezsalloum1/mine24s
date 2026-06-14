@@ -96,7 +96,8 @@ export async function POST(req: Request) {
       if (referrer) referredBy = referrer.id;
     }
 
-    const { walletIndex, depositAddress, tronDepositAddress } = await assignWalletForNewUser(prisma);
+    const { walletIndex, depositAddress, tronDepositAddress, solanaDepositAddress } =
+      await assignWalletForNewUser(prisma);
     const newReferralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const user = await prisma.user.create({
@@ -108,6 +109,7 @@ export async function POST(req: Request) {
         walletIndex,
         depositAddress,
         tronDepositAddress,
+        solanaDepositAddress,
         referralCode: newReferralCode,
         referredBy,
         emailVerified: false,

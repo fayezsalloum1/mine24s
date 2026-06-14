@@ -21,9 +21,13 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@react-email/components": "^1.0.12",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",
     "bcryptjs": "^3.0.3",
+    "bip39": "^3.1.0",
+    "ed25519-hd-key": "^2.0.0",
     "ethers": "^6.16.0",
     "next": "14.2.35",
     "next-auth": "^4.24.14",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { DEPOSIT_NETWORKS } from "@/lib/constants";
 import { usesCustomPlatformWallet } from "@/lib/wallet";
 import { createNotification, notifyAdmins } from "@/lib/notifications";
 
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
   }
 
-  if (!network || !["ERC20", "BEP20", "TRC20"].includes(network)) {
+  if (!network || !DEPOSIT_NETWORKS.includes(network)) {
     return NextResponse.json({ error: "Invalid network" }, { status: 400 });
   }
 

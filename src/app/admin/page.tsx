@@ -145,7 +145,9 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (data.error) setMessage("Error: " + data.error);
-    else setMessage(t("done"));
+    else if (action === "confirm" && data.txHash) {
+      setMessage(`Withdrawal sent. Tx: ${data.txHash}`);
+    } else setMessage(t("done"));
     loadData();
   }
 

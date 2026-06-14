@@ -7,6 +7,13 @@ import { sendEmail, depositConfirmedHtml } from "@/lib/email";
 import { sendSMS } from "@/lib/sms";
 import { sweepUsdtToAdmin } from "@/lib/sweep";
 import {
+  fetchEvmUsdtTransfers,
+  fetchSolanaUsdtTransfers,
+  fetchTronUsdtTransfers,
+  getMinConfirmations,
+  hasExplorerApiForNetwork,
+} from "@/lib/explorer-apis";
+import {
   ADMIN_WALLET_INDEX,
   getConfiguredTreasuryAddresses,
   usesCustomPlatformWallet,
@@ -16,6 +23,88 @@ import { isDepositScannerDisabled } from "@/lib/runtime-env";
 const ERC20_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
+
+type ScanUser = {
+  id: string;
+  walletIndex: number;
+  email: string;
+  phoneNumber: string | null;
+  phoneVerified: boolean;
+};
+
+async function isDepositAlreadyCredited(network: string, txHash: string) {
+  const [processed, confirmed] = await Promise.all([
+    prisma.processedDeposit.findUnique({
+      where: { network_txHash: { network, txHash } },
+    }),
+    prisma.transaction.findFirst({
+      where: { type: "DEPOSIT", status: "CONFIRMED", txHash, network },
+    }),
+  ]);
+  return Boolean(processed || confirmed);
+}
+
+async function notifyDepositDetected(
+  userId: string,
+  network: string,
+  amount: number,
+  txHash: string
+) {
+  const existing = await prisma.transaction.findFirst({
+    where: { userId, type: "DEPOSIT", txHash, network },
+  });
+  if (existing) return false;
+
+  await prisma.transaction.create({
+    data: {
+      userId,
+      type: "DEPOSIT",
+      amount,
+      status: "PENDING",
+      network,
+      txHash,
+    },
+  });
+
+  await createNotification(
+    userId,
+    `Deposit detected on ${network} ($${amount.toFixed(2)}). Confirming on network — please wait…`
+  );
+  return true;
+}
+
+async function processIncomingDeposit(
+  user: ScanUser,
+  network: string,
+  txHash: string,
+  amount: number,
+  confirmations: number,
+  walletIndex: number
+) {
+  if (amount <= 0) return { credited: false, detected: false };
+  if (await isDepositAlreadyCredited(network, txHash)) {
+    return { credited: false, detected: false };
+  }
+
+  const minConfirmations = getMinConfirmations(network);
+
+  if (confirmations < minConfirmations) {
+    const detected = await notifyDepositDetected(user.id, network, amount, txHash);
+    return { credited: false, detected };
+  }
+
+  const credited = await creditDeposit(
+    user.id,
+    walletIndex,
+    network,
+    txHash,
+    amount,
+    user.email,
+    user.phoneNumber,
+    user.phoneVerified
+  );
+  return { credited, detected: false };
+}
 
 async function creditDeposit(
   userId: string,
@@ -42,16 +131,28 @@ async function creditDeposit(
       await tx.processedDeposit.create({
         data: { userId, network, txHash, amount },
       });
-      await tx.transaction.create({
-        data: {
-          userId,
-          type: "DEPOSIT",
-          amount,
-          status: "CONFIRMED",
-          network,
-          txHash,
-        },
+
+      const pending = await tx.transaction.findFirst({
+        where: { userId, type: "DEPOSIT", txHash, network, status: "PENDING" },
       });
+      if (pending) {
+        await tx.transaction.update({
+          where: { id: pending.id },
+          data: { status: "CONFIRMED", amount },
+        });
+      } else {
+        await tx.transaction.create({
+          data: {
+            userId,
+            type: "DEPOSIT",
+            amount,
+            status: "CONFIRMED",
+            network,
+            txHash,
+          },
+        });
+      }
+
       await tx.user.update({
         where: { id: userId },
         data: { balance: { increment: amount } },
@@ -95,10 +196,48 @@ async function creditDeposit(
   return true;
 }
 
+async function scanEvmViaExplorer(
+  network: "ERC20" | "BEP20",
+  users: Array<ScanUser & { depositAddress: string }>
+) {
+  let credited = 0;
+  let detected = 0;
+
+  for (const user of users) {
+    try {
+      const transfers = await fetchEvmUsdtTransfers(network, user.depositAddress);
+      for (const transfer of transfers) {
+        const result = await processIncomingDeposit(
+          user,
+          network,
+          transfer.txHash,
+          transfer.amount,
+          transfer.confirmations,
+          user.walletIndex
+        );
+        if (result.credited) credited++;
+        if (result.detected) detected++;
+      }
+    } catch (err) {
+      console.error(`[DepositScanner] ${network} explorer scan error for ${user.depositAddress}:`, err);
+    }
+  }
+
+  if (detected > 0) {
+    console.log(`[DepositScanner] ${detected} ${network} deposit(s) detected — awaiting confirmations`);
+  }
+
+  return credited;
+}
+
 async function scanEvmNetwork(
   network: "ERC20" | "BEP20",
-  users: Array<{ id: string; walletIndex: number; depositAddress: string; email: string; phoneNumber: string | null; phoneVerified: boolean }>
+  users: Array<ScanUser & { depositAddress: string }>
 ) {
+  if (hasExplorerApiForNetwork(network)) {
+    return scanEvmViaExplorer(network, users);
+  }
+
   const config = USDT[network];
   const provider = getEvmProvider(network);
   const usdt = new ethers.Contract(config.contract, ERC20_ABI, provider);
@@ -128,17 +267,17 @@ async function scanEvmNetwork(
         if (rawAmount <= 0) continue;
 
         const txHash = event.transactionHash;
-        const ok = await creditDeposit(
-          user.id,
-          user.walletIndex,
+        const blockNumber = event.blockNumber ?? currentBlock;
+        const confirmations = Math.max(1, currentBlock - blockNumber + 1);
+        const result = await processIncomingDeposit(
+          user,
           network,
           txHash,
           rawAmount,
-          user.email,
-          user.phoneNumber,
-          user.phoneVerified
+          confirmations,
+          user.walletIndex
         );
-        if (ok) credited++;
+        if (result.credited) credited++;
       }
     } catch (err) {
       console.error(`[DepositScanner] ${network} scan error for ${user.depositAddress}:`, err);
@@ -161,42 +300,70 @@ async function scanEvmNetwork(
 }
 
 async function scanTron(
-  users: Array<{ id: string; walletIndex: number; tronDepositAddress: string; email: string; phoneNumber: string | null; phoneVerified: boolean }>
+  users: Array<ScanUser & { tronDepositAddress: string }>
 ) {
   let credited = 0;
+  let detected = 0;
 
   for (const user of users) {
     try {
-      const url = `https://api.trongrid.io/v1/accounts/${user.tronDepositAddress}/transactions/trc20?only_to=true&limit=20&contract_address=${USDT.TRC20.contract}`;
-      const res = await fetch(url, {
-        headers: process.env.TRONGRID_API_KEY
-          ? { "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY }
-          : {},
-      });
-      const data = await res.json();
-
-      if (!data?.data) continue;
-
-      for (const tx of data.data) {
-        if (tx.token_info?.symbol !== "USDT" && tx.token_info?.address !== USDT.TRC20.contract) continue;
-        const rawAmount = Number(tx.value) / Math.pow(10, USDT.TRC20.decimals);
-        if (rawAmount <= 0) continue;
-
-        const ok = await creditDeposit(
-          user.id,
-          user.walletIndex,
+      const transfers = await fetchTronUsdtTransfers(user.tronDepositAddress);
+      for (const transfer of transfers) {
+        const result = await processIncomingDeposit(
+          user,
           "TRC20",
-          tx.transaction_id,
-          rawAmount,
-          user.email,
-          user.phoneNumber,
-          user.phoneVerified
+          transfer.txHash,
+          transfer.amount,
+          transfer.confirmations,
+          user.walletIndex
         );
-        if (ok) credited++;
+        if (result.credited) credited++;
+        if (result.detected) detected++;
       }
     } catch (err) {
       console.error(`[DepositScanner] TRC20 scan error for ${user.tronDepositAddress}:`, err);
     }
+  }
+
+  if (detected > 0) {
+    console.log(`[DepositScanner] ${detected} TRC20 deposit(s) detected — awaiting confirmations`);
+  }
+
+  return credited;
+}
+
+async function scanSolana(
+  users: Array<ScanUser & { solanaDepositAddress: string }>
+) {
+  if (!hasExplorerApiForNetwork("SOL")) return 0;
+
+  let credited = 0;
+  let detected = 0;
+
+  for (const user of users) {
+    if (!user.solanaDepositAddress) continue;
+
+    try {
+      const transfers = await fetchSolanaUsdtTransfers(user.solanaDepositAddress);
+      for (const transfer of transfers) {
+        const result = await processIncomingDeposit(
+          user,
+          "SOL",
+          transfer.txHash,
+          transfer.amount,
+          transfer.confirmations,
+          user.walletIndex
+        );
+        if (result.credited) credited++;
+        if (result.detected) detected++;
+      }
+    } catch (err) {
+      console.error(`[DepositScanner] SOL scan error for ${user.solanaDepositAddress}:`, err);
+    }
+  }
+
+  if (detected > 0) {
+    console.log(`[DepositScanner] ${detected} SOL deposit(s) detected — awaiting confirmations`);
   }
 
   return credited;
@@ -386,6 +553,7 @@ export async function scanDeposits() {
       email: true,
       depositAddress: true,
       tronDepositAddress: true,
+      solanaDepositAddress: true,
       phoneNumber: true,
       phoneVerified: true,
     },
@@ -411,18 +579,28 @@ export async function scanDeposits() {
     phoneVerified: u.phoneVerified,
   }));
 
-  const [erc20, bep20, trc20] = await Promise.all([
+  const solanaUsers = users.map((u) => ({
+    id: u.id,
+    walletIndex: u.walletIndex,
+    solanaDepositAddress: u.solanaDepositAddress,
+    email: u.email,
+    phoneNumber: u.phoneNumber,
+    phoneVerified: u.phoneVerified,
+  }));
+
+  const [erc20, bep20, trc20, sol] = await Promise.all([
     scanEvmNetwork("ERC20", evmUsers),
     scanEvmNetwork("BEP20", evmUsers),
     scanTron(tronUsers),
+    scanSolana(solanaUsers),
   ]);
 
-  const credited = erc20 + bep20 + trc20;
+  const credited = erc20 + bep20 + trc20 + sol;
   if (credited > 0) {
     console.log(`[DepositScanner] Credited ${credited} deposit(s)`);
   }
 
-  return { credited, erc20, bep20, trc20 };
+  return { credited, erc20, bep20, trc20, sol };
 }
 
 let scannerInterval: ReturnType<typeof setInterval> | null = null;
