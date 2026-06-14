@@ -39,12 +39,27 @@ function getSenderName() {
 }
 
 export function getEmailMode(): "resend" | "brevo-api" | "brevo-smtp" | "smtp" | "none" {
-  if (getResendApiKey()) return "resend";
+  const preferred = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
+
+  if (preferred === "resend" && getResendApiKey()) return "resend";
+  if (preferred === "brevo") {
+    if (getBrevoApiKey() && getSenderEmail()) return "brevo-api";
+    const brevoSmtp = getSmtpConfig();
+    if (brevoSmtp && isBrevoHost(brevoSmtp.host)) return "brevo-smtp";
+  }
+  if (preferred === "smtp") {
+    const config = getSmtpConfig();
+    if (config) return isBrevoHost(config.host) ? "brevo-smtp" : "smtp";
+  }
+
+  // Default: Brevo first — works for any recipient when sender is verified.
+  // Resend test keys only deliver to the account owner email.
   if (getBrevoApiKey() && getSenderEmail()) return "brevo-api";
   const config = getSmtpConfig();
-  if (!config) return "none";
-  if (isBrevoHost(config.host)) return "brevo-smtp";
-  return "smtp";
+  if (config && isBrevoHost(config.host)) return "brevo-smtp";
+  if (getResendApiKey()) return "resend";
+  if (config) return "smtp";
+  return "none";
 }
 
 function isBrevoHost(host: string) {
@@ -169,11 +184,25 @@ function formatBrevoApiError(status: number, body: string): string {
 
 function formatResendError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
+  if (/only send testing emails to your own email/i.test(msg)) {
+    return "Resend is in test mode and cannot email other users. Remove RESEND_API_KEY from Vercel and use BREVO_API_KEY + SMTP_FROM, or verify your domain at resend.com/domains.";
+  }
   if (msg.startsWith("Resend:")) return msg;
   if (/invalid api key|unauthorized|401|403/i.test(msg)) {
     return "Resend API key invalid. Set RESEND_API_KEY in your environment.";
   }
   return `Resend: ${msg.length > 120 ? `${msg.slice(0, 120)}…` : msg}`;
+}
+
+export function publicEmailError(raw: string | undefined, fallback: string) {
+  if (!raw) return fallback;
+  if (/Resend is in test mode/i.test(raw)) {
+    return "Password reset emails are not available to all addresses yet. Please contact support.";
+  }
+  if (raw.startsWith("Resend:") || raw.startsWith("Brevo:") || raw.includes("SMTP")) {
+    return fallback;
+  }
+  return raw;
 }
 
 export function formatSmtpError(err: unknown): string {

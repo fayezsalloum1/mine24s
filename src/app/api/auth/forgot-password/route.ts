@@ -4,6 +4,7 @@ import {
   sendEmail,
   passwordResetHtml,
   getEmailConfigStatus,
+  publicEmailError,
 } from "@/lib/email";
 import { generateResetToken, PASSWORD_RESET_TTL_MS } from "@/lib/auth-codes";
 import {
@@ -75,7 +76,10 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: result.error || "Could not send reset email. Check Brevo sender (SMTP_FROM).",
+          error: publicEmailError(
+            result.error,
+            "Could not send reset email right now. Please contact support."
+          ),
         },
         { status: 502 }
       );
