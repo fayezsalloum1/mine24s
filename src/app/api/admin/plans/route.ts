@@ -217,6 +217,27 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: true, softDeleted: true, plan });
   }
 
-  await prisma.plan.delete({ where: { id } });
-  return NextResponse.json({ success: true, softDeleted: false, id });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const pools = await tx.planPool.findMany({
+        where: { planId: id },
+        select: { id: true },
+      });
+      const poolIds = pools.map((pool) => pool.id);
+
+      await tx.userPlan.deleteMany({ where: { planId: id } });
+
+      if (poolIds.length > 0) {
+        await tx.poolContribution.deleteMany({ where: { poolId: { in: poolIds } } });
+        await tx.planPool.deleteMany({ where: { planId: id } });
+      }
+
+      await tx.plan.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true, softDeleted: false, id });
+  } catch (err) {
+    console.error("[admin/plans DELETE]", err);
+    return NextResponse.json({ error: "Failed to delete plan" }, { status: 500 });
+  }
 }
