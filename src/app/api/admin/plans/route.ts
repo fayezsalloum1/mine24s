@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
+import { PoolStatus } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { broadcastToUsers, notifyAdmins } from "@/lib/notifications";
+
+export const dynamic = "force-dynamic";
+
+const planInclude = {
+  pools: {
+    where: { status: { in: [PoolStatus.FILLING, PoolStatus.ACTIVE] } },
+    include: { _count: { select: { contributions: true } } },
+  },
+  _count: { select: { userPlans: true } },
+};
 
 function parsePlanBody(body: Record<string, unknown>) {
   const planType = body.planType === "POOLED" ? "POOLED" : "SOLO";
@@ -53,22 +64,49 @@ function parsePlanBody(body: Record<string, unknown>) {
   };
 }
 
+function applyMachineOnlineTransition(
+  existing: {
+    machineOnline: boolean;
+    machineOnlineSince: Date | null;
+    machineUptimeHours: number;
+  },
+  data: Record<string, unknown>
+) {
+  if (typeof data.machineOnline !== "boolean") return data;
+
+  const now = new Date();
+  if (data.machineOnline && !existing.machineOnline) {
+    return { ...data, machineOnlineSince: now };
+  }
+
+  if (!data.machineOnline && existing.machineOnline) {
+    const since = existing.machineOnlineSince ?? now;
+    const added = (now.getTime() - since.getTime()) / (1000 * 60 * 60);
+    return {
+      ...data,
+      machineOnlineSince: null,
+      machineUptimeHours:
+        typeof data.machineUptimeHours === "number"
+          ? data.machineUptimeHours
+          : existing.machineUptimeHours + added,
+    };
+  }
+
+  return data;
+}
+
 export async function GET() {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
   const plans = await prisma.plan.findMany({
     orderBy: { createdAt: "desc" },
-    include: {
-      pools: {
-        where: { status: { in: ["FILLING", "ACTIVE"] } },
-        include: { _count: { select: { contributions: true } } },
-      },
-      _count: { select: { userPlans: true } },
-    },
+    include: planInclude,
   });
 
-  return NextResponse.json(plans);
+  return NextResponse.json(plans, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(req: Request) {
@@ -86,6 +124,7 @@ export async function POST(req: Request) {
       ...parsed.data,
       machineOnlineSince: parsed.data.machineOnline !== false ? new Date() : null,
     },
+    include: planInclude,
   });
 
   if (plan.isActive) {
@@ -113,9 +152,12 @@ export async function PUT(req: Request) {
   const existing = await prisma.plan.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
 
+  const updateData = applyMachineOnlineTransition(existing, parsed.data);
+
   const plan = await prisma.plan.update({
     where: { id },
-    data: parsed.data,
+    data: updateData,
+    include: planInclude,
   });
 
   const newlyActivated = !existing.isActive && plan.isActive;
@@ -128,29 +170,53 @@ export async function PUT(req: Request) {
   return NextResponse.json(plan);
 }
 
+async function resolvePlanId(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const fromQuery = searchParams.get("id");
+  if (fromQuery) return fromQuery;
+
+  try {
+    const body = await req.json();
+    return typeof body?.id === "string" ? body.id : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function DELETE(req: Request) {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
 
-  const { id } = await req.json();
+  const id = await resolvePlanId(req);
   if (!id) return NextResponse.json({ error: "Plan id required" }, { status: 400 });
+
+  const existing = await prisma.plan.findUnique({ where: { id } });
+  if (!existing) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
 
   const activeUserPlans = await prisma.userPlan.count({
     where: { planId: id, isActive: true },
   });
   if (activeUserPlans > 0) {
-    await prisma.plan.update({ where: { id }, data: { isActive: false } });
-    return NextResponse.json({ success: true, softDeleted: true });
+    const plan = await prisma.plan.update({
+      where: { id },
+      data: { isActive: false, acceptingSubscriptions: false },
+      include: planInclude,
+    });
+    return NextResponse.json({ success: true, softDeleted: true, plan });
   }
 
   const fillingPool = await prisma.planPool.findFirst({
     where: { planId: id, status: "FILLING", filledAmount: { gt: 0 } },
   });
   if (fillingPool) {
-    await prisma.plan.update({ where: { id }, data: { isActive: false } });
-    return NextResponse.json({ success: true, softDeleted: true });
+    const plan = await prisma.plan.update({
+      where: { id },
+      data: { isActive: false, acceptingSubscriptions: false },
+      include: planInclude,
+    });
+    return NextResponse.json({ success: true, softDeleted: true, plan });
   }
 
   await prisma.plan.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, softDeleted: false, id });
 }

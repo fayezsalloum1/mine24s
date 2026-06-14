@@ -19,8 +19,18 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email || session.user.role !== "ADMIN") {
+  if (!session?.user?.email) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email.trim().toLowerCase() },
+    select: { id: true, email: true, role: true },
+  });
+
+  if (!user || user.role !== "ADMIN") {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+
+  return { session, user };
 }

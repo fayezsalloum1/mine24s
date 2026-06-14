@@ -58,10 +58,21 @@ export default function AdminPlansSection() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
 
-  const loadPlans = () => {
-    fetch("/api/admin/plans")
-      .then((r) => r.json())
-      .then((data) => setPlans(Array.isArray(data) ? data : []));
+  const loadPlans = async () => {
+    try {
+      const res = await fetch(`/api/admin/plans?_=${Date.now()}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to load plans");
+        return;
+      }
+      setPlans(Array.isArray(data) ? data : []);
+    } catch {
+      setError("Failed to load plans");
+    }
   };
 
   useEffect(() => {
@@ -117,6 +128,8 @@ export default function AdminPlansSection() {
     const res = await fetch("/api/admin/plans", {
       method: editingId ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify(editingId ? { id: editingId, ...payload } : payload),
     });
     const data = await res.json();
@@ -128,8 +141,13 @@ export default function AdminPlansSection() {
     }
 
     setMessage(editingId ? t("planUpdated") : t("planCreated"));
+    if (editingId) {
+      setPlans((prev) => prev.map((plan) => (plan.id === data.id ? { ...plan, ...data } : plan)));
+    } else {
+      setPlans((prev) => [data, ...prev]);
+    }
     resetForm();
-    loadPlans();
+    await loadPlans();
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,35 +208,56 @@ export default function AdminPlansSection() {
     const res = await fetch("/api/admin/plans/machine-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({ id: planId, online }),
     });
-    if (res.ok) loadPlans();
+    if (res.ok) {
+      const data = await res.json();
+      setPlans((prev) => prev.map((plan) => (plan.id === planId ? { ...plan, ...data } : plan)));
+      await loadPlans();
+    }
   };
 
   const togglePlanSubscriptions = async (planId: string, acceptingSubscriptions: boolean) => {
     const res = await fetch("/api/admin/plans/subscription", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({ planId, acceptingSubscriptions }),
     });
     if (res.ok) {
+      const data = await res.json();
+      setPlans((prev) => prev.map((plan) => (plan.id === planId ? { ...plan, ...data } : plan)));
       setMessage(acceptingSubscriptions ? t("subscriptionsOpened") : t("subscriptionsFrozen"));
-      loadPlans();
+      await loadPlans();
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm(t("confirmDeletePlan"))) return;
-    const res = await fetch("/api/admin/plans", {
+    setError("");
+    const res = await fetch(`/api/admin/plans?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      credentials: "include",
+      cache: "no-store",
     });
     const data = await res.json();
-    if (res.ok) {
-      setMessage(data.softDeleted ? t("planDeactivated") : t("planDeleted"));
-      loadPlans();
+    if (!res.ok) {
+      setError(data.error || "Failed to delete plan");
+      return;
     }
+
+    if (data.softDeleted && data.plan) {
+      setPlans((prev) => prev.map((plan) => (plan.id === id ? { ...plan, ...data.plan } : plan)));
+      setMessage(t("planDeactivated"));
+    } else {
+      setPlans((prev) => prev.filter((plan) => plan.id !== id));
+      setMessage(t("planDeleted"));
+    }
+    if (editingId === id) resetForm();
+    await loadPlans();
   };
 
   return (
