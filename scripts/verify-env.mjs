@@ -35,12 +35,13 @@ if (!supabaseConfigured) {
 
 const useCustom = process.env.USE_CUSTOM_PLATFORM_WALLET === "true";
 const hasTreasury =
-  Boolean(process.env.ADMIN_TREASURY_EVM?.trim()) &&
-  Boolean(process.env.ADMIN_TREASURY_TRC20?.trim());
+  Boolean(process.env.PLATFORM_TREASURY?.trim()) ||
+  (Boolean(process.env.ADMIN_TREASURY_EVM?.trim()) &&
+    Boolean(process.env.ADMIN_TREASURY_TRC20?.trim()));
 const hasMnemonic = Boolean(process.env.MASTER_WALLET_MNEMONIC?.trim());
 
 if (useCustom && !hasTreasury) {
-  console.error("\n❌ Custom wallet mode requires ADMIN_TREASURY_EVM and ADMIN_TREASURY_TRC20.\n");
+  console.error("\n❌ Custom wallet mode requires PLATFORM_TREASURY or ADMIN_TREASURY_EVM + ADMIN_TREASURY_TRC20.\n");
   process.exit(1);
 }
 

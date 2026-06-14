@@ -16,8 +16,16 @@ export function usesCustomPlatformWallet() {
 }
 
 export function getConfiguredTreasuryAddresses() {
-  const evm = process.env.ADMIN_TREASURY_EVM?.trim();
-  const trc = process.env.ADMIN_TREASURY_TRC20?.trim();
+  const combined = process.env.PLATFORM_TREASURY?.trim();
+  let evm = process.env.ADMIN_TREASURY_EVM?.trim() || "";
+  let trc = process.env.ADMIN_TREASURY_TRC20?.trim() || "";
+
+  if (combined) {
+    const [combinedEvm = "", combinedTrc = ""] = combined.split("|").map((part) => part.trim());
+    if (combinedEvm) evm = combinedEvm;
+    if (combinedTrc) trc = combinedTrc;
+  }
+
   if (!evm || !trc) return null;
 
   return {
